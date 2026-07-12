@@ -342,7 +342,7 @@ mod tests {
 
     #[test]
     fn extractive_summary_covers_all() {
-        // `should_summarize` has been unified into `crate::summarize` 
+        // `should_summarize` has been unified into `crate::summarize`
         assert!(crate::summarize::should_summarize(&[MemoryId(1); 15], 12));
         assert!(!crate::summarize::should_summarize(&[MemoryId(1); 5], 12));
     }

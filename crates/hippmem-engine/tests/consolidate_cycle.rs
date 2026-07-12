@@ -327,7 +327,7 @@ fn scenario_4_hebbian_strength_capped_at_one() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// Scenario 5: Summarizer integration — summary trigger and covers chain 
+// Scenario 5: Summarizer integration — summary trigger and covers chain
 // ═══════════════════════════════════════════════════════════════════
 
 #[test]
@@ -384,7 +384,7 @@ fn scenario_5_summary_creation_full_chain() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// Scenario 6: no summary triggered — <12 memories 
+// Scenario 6: no summary triggered — <12 memories
 // ═══════════════════════════════════════════════════════════════════
 
 #[test]
