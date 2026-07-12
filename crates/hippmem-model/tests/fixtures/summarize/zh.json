@@ -1,0 +1,10 @@
+{
+  "texts": [
+    "Rust 是一门系统编程语言。它保证内存安全。",
+    "今天学习了 Rust 的所有权机制和借用检查。"
+  ],
+  "_meta": {
+    "locale": "zh",
+    "description": "Chinese summarize test texts"
+  }
+}

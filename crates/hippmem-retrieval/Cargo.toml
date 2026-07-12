@@ -1,0 +1,22 @@
+[package]
+name = "hippmem-retrieval"
+version.workspace = true
+edition.workspace = true
+license = "AGPL-3.0-only"
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "Retrieval engine for HIPPMEM — multi-channel seed recall, spreading activation, rerank"
+publish = false
+keywords = ["memory", "rag", "retrieval", "spreading", "rerank"]
+categories = ["algorithms", "text-processing"]
+documentation = "https://docs.rs/hippmem-retrieval"
+
+[dependencies]
+hippmem-core = { path = "../hippmem-core", version = "0.1.0" }
+serde.workspace = true
+
+[dev-dependencies]
+hippmem-model = { path = "../hippmem-model", version = "0.1.0" }
+hippmem-store = { path = "../hippmem-store", version = "0.1.0" }

@@ -1,0 +1,18 @@
+{
+  "content_raw": "基于扩散激活的原生关联记忆引擎",
+  "event_action": "实现扩散激活算法",
+  "goal_description": "构建高性能记忆检索系统",
+  "goal_constraint": "内存安全且高性能",
+  "decision_choice": "使用 redb 作为存储后端",
+  "preference_object": "系统架构简洁",
+  "emotion_trigger": "集成测试通过",
+  "causal_cause": "Tantivy 是 Rust 原生全文索引库",
+  "causal_effect": "选择它实现 BM25 通道",
+  "topic_label": "系统架构",
+  "link_note": "因果推理链路",
+  "revision_reason": "全量索引构建",
+  "_meta": {
+    "locale": "zh",
+    "description": "Chinese model roundtrip test content"
+  }
+}

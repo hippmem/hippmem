@@ -1,0 +1,735 @@
+{
+  "_meta": {
+    "locale": "zh",
+    "description": "Chinese comprehensive test: 100 memories across 8 content types, 15 retrieval quality queries, and locale-specific test params"
+  },
+  "entries": [
+    {
+      "content": "我叫陈明，是一名全栈工程师",
+      "content_type": "UserStatement",
+      "importance": 0.5,
+      "group": "statements"
+    },
+    {
+      "content": "我目前在创业，做 AI 记忆引擎方向",
+      "content_type": "UserStatement",
+      "importance": 0.53,
+      "group": "statements"
+    },
+    {
+      "content": "平时主要用 Rust 和 TypeScript 写代码",
+      "content_type": "UserStatement",
+      "importance": 0.56,
+      "group": "statements"
+    },
+    {
+      "content": "我对数据库内核很感兴趣，尤其是存储引擎",
+      "content_type": "UserStatement",
+      "importance": 0.59,
+      "group": "statements"
+    },
+    {
+      "content": "最近在研究近似最近邻搜索算法 HNSW",
+      "content_type": "UserStatement",
+      "importance": 0.62,
+      "group": "statements"
+    },
+    {
+      "content": "我觉得 Tantivy 的 BM25 实现很不错",
+      "content_type": "UserStatement",
+      "importance": 0.65,
+      "group": "statements"
+    },
+    {
+      "content": "飞书是一个很好用的协作工具",
+      "content_type": "UserStatement",
+      "importance": 0.68,
+      "group": "statements"
+    },
+    {
+      "content": "我习惯在 Linux 环境下开发",
+      "content_type": "UserStatement",
+      "importance": 0.71,
+      "group": "statements"
+    },
+    {
+      "content": "我用 VS Code 和 Neovim 两个编辑器",
+      "content_type": "UserStatement",
+      "importance": 0.74,
+      "group": "statements"
+    },
+    {
+      "content": "我喜欢函数式编程风格，但也不排斥面向对象",
+      "content_type": "UserStatement",
+      "importance": 0.77,
+      "group": "statements"
+    },
+    {
+      "content": "比起 Python，我更喜欢 Rust 的类型安全",
+      "content_type": "Preference",
+      "importance": 0.6,
+      "group": "preferences"
+    },
+    {
+      "content": "数据库方面偏好 PostgreSQL，其次是 SQLite",
+      "content_type": "Preference",
+      "importance": 0.62,
+      "group": "preferences"
+    },
+    {
+      "content": "前端框架偏好 React + Next.js，不喜欢 Angular",
+      "content_type": "Preference",
+      "importance": 0.64,
+      "group": "preferences"
+    },
+    {
+      "content": "我偏爱简洁的 API 设计，讨厌过度抽象",
+      "content_type": "Preference",
+      "importance": 0.66,
+      "group": "preferences"
+    },
+    {
+      "content": "写测试时喜欢用 Rust 原生的 #[test] 而非 mock 框架",
+      "content_type": "Preference",
+      "importance": 0.68,
+      "group": "preferences"
+    },
+    {
+      "content": "文本格式偏好 Markdown 而非富文本",
+      "content_type": "Preference",
+      "importance": 0.7,
+      "group": "preferences"
+    },
+    {
+      "content": "部署偏好容器化，Docker Compose 管理开发环境",
+      "content_type": "Preference",
+      "importance": 0.72,
+      "group": "preferences"
+    },
+    {
+      "content": "代码风格上偏好 4 空格缩进",
+      "content_type": "Preference",
+      "importance": 0.74,
+      "group": "preferences"
+    },
+    {
+      "content": "用中文写注释和文档，代码用英文",
+      "content_type": "Preference",
+      "importance": 0.76,
+      "group": "preferences"
+    },
+    {
+      "content": "偏好异步编程模型 async/await 而非回调",
+      "content_type": "Preference",
+      "importance": 0.78,
+      "group": "preferences"
+    },
+    {
+      "content": "喜欢命令式 commit message 风格",
+      "content_type": "Preference",
+      "importance": 0.8,
+      "group": "preferences"
+    },
+    {
+      "content": "颜色主题偏好深色模式",
+      "content_type": "Preference",
+      "importance": 0.82,
+      "group": "preferences"
+    },
+    {
+      "content": "喜欢小函数，每个函数不超过 30 行",
+      "content_type": "Preference",
+      "importance": 0.84,
+      "group": "preferences"
+    },
+    {
+      "content": "对 ORM 持谨慎态度，更倾向原生 SQL",
+      "content_type": "Preference",
+      "importance": 0.86,
+      "group": "preferences"
+    },
+    {
+      "content": "API 版本管理偏好 URL 路径版本而非 Header 版本",
+      "content_type": "Preference",
+      "importance": 0.88,
+      "group": "preferences"
+    },
+    {
+      "content": "决定使用 Rust 作为后端主要语言，因为性能好且类型安全",
+      "content_type": "Decision",
+      "importance": 0.7,
+      "group": "decisions"
+    },
+    {
+      "content": "存储引擎选择 redb，因为它是纯 Rust 实现且 API 简洁",
+      "content_type": "Decision",
+      "importance": 0.71,
+      "group": "decisions"
+    },
+    {
+      "content": "因为 Tantivy 支持中文分词，所以选它做全文检索",
+      "content_type": "Decision",
+      "importance": 0.72,
+      "group": "decisions"
+    },
+    {
+      "content": "选择 DashScope 作为默认嵌入模型提供商",
+      "content_type": "Decision",
+      "importance": 0.73,
+      "group": "decisions"
+    },
+    {
+      "content": "决定采用确定性提取器作为降级方案，不依赖外部 API",
+      "content_type": "Decision",
+      "importance": 0.74,
+      "group": "decisions"
+    },
+    {
+      "content": "内存图结构选择邻接表表示，O(1) 出边查询",
+      "content_type": "Decision",
+      "importance": 0.75,
+      "group": "decisions"
+    },
+    {
+      "content": "散列表使用开放定址而非拉链法，减少堆分配",
+      "content_type": "Decision",
+      "importance": 0.76,
+      "group": "decisions"
+    },
+    {
+      "content": "决定用 SimHash 做语义签名，比 MinHash 更适合短文本",
+      "content_type": "Decision",
+      "importance": 0.77,
+      "group": "decisions"
+    },
+    {
+      "content": "向量索引用 FlatIndex（暴力搜索），小规模时比 HNSW 更稳定",
+      "content_type": "Decision",
+      "importance": 0.78,
+      "group": "decisions"
+    },
+    {
+      "content": "序列化选择 bincode 而非 JSON 或 protobuf，性能和体积最优",
+      "content_type": "Decision",
+      "importance": 0.79,
+      "group": "decisions"
+    },
+    {
+      "content": "因为需要多通道召回，所以设计了 10 条召回通道",
+      "content_type": "Decision",
+      "importance": 0.8,
+      "group": "decisions"
+    },
+    {
+      "content": "决定用 redb 的 Table 分区实现倒排索引",
+      "content_type": "Decision",
+      "importance": 0.81,
+      "group": "decisions"
+    },
+    {
+      "content": "激活扩散的最大跳数设为 2 跳，平衡精度和延迟",
+      "content_type": "Decision",
+      "importance": 0.82,
+      "group": "decisions"
+    },
+    {
+      "content": "因为要支持批量写入，所以设计了 write_batch API",
+      "content_type": "Decision",
+      "importance": 0.83,
+      "group": "decisions"
+    },
+    {
+      "content": "consolidate 周期设为 1 小时，避免高峰时段资源争用",
+      "content_type": "Decision",
+      "importance": 0.84,
+      "group": "decisions"
+    },
+    {
+      "content": "种子数设为每个通道最多 15 条，保证召回覆盖率",
+      "content_type": "Decision",
+      "importance": 0.85,
+      "group": "decisions"
+    },
+    {
+      "content": "用 energy-based 而非 score-based 做重排，更符合生物启发",
+      "content_type": "Decision",
+      "importance": 0.86,
+      "group": "decisions"
+    },
+    {
+      "content": "决定不引入 Python 依赖层，全 Rust 实现保持内聚",
+      "content_type": "Decision",
+      "importance": 0.87,
+      "group": "decisions"
+    },
+    {
+      "content": "embedding 维度设为 1024，与 DashScope text-embedding-v4 匹配",
+      "content_type": "Decision",
+      "importance": 0.88,
+      "group": "decisions"
+    },
+    {
+      "content": "选择 Apache 2.0 开源协议",
+      "content_type": "Decision",
+      "importance": 0.89,
+      "group": "decisions"
+    },
+    {
+      "content": "The project uses a Cargo workspace with multiple sub-crates",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.75,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "核心 crate: hippmem-core 定义数据模型和配置",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.755,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "hippmem-store 负责持久化，基于 redb 嵌入式 KV 数据库",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.76,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "hippmem-model 封装外部 API 调用和确定性降级实现",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.765,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "hippmem-write 是写入流水线，将 raw text 转为 indexed memory",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.77,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "hippmem-retrieval 实现多通道种子召回和激活扩散",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.775,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "hippmem-consolidation 处理记忆巩固：衰减、压缩、Hebbian 学习",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.78,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "hippmem-engine 是统一编排层，对外暴露 write/retrieve 等 7 个 API",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.785,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "hippmem-eval 是评测框架，包含 70+ 个评测用例和 56 个 fixture",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.79,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "hippmem-grpc 提供 gRPC 服务接口，用于远程调用",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.795,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "全文索引基于 Tantivy，支持中文 jieba 分词和 BM25 评分",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.8,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "每个 MemoryUnit 包含 content、understanding、context 和 semantic 四部分",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.805,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "AssociationLink 表示记忆间的关联边，支持 8 种边类型",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.81,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "每条记忆通过 AssociationKeys 建立倒排索引，加速召回",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.815,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "激活扩散算法模拟生物神经元的 spreading activation",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.82,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "多通道召回包含 Entity、Topic、Temporal、BM25、Semantic、Binary 等 10 个通道",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.825,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "重排阶段结合能量得分和问题类型感知增强",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.83,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "支持 dump 全量导出 JSONL、list 分页浏览、traverse 图遍历",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.835,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "AlgoParams 可运行时调整，支持通道系数、阈值等热替换",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.84,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "测试覆盖率约 85%，包含单元测试、集成测试和 E2E 评测",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.845,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "完成了 Rust 项目的 CI/CD 流水线搭建",
+      "content_type": "TaskState",
+      "importance": 0.65,
+      "group": "task_states"
+    },
+    {
+      "content": "修复了 redb 并发写入时的死锁问题",
+      "content_type": "TaskState",
+      "importance": 0.665,
+      "group": "task_states"
+    },
+    {
+      "content": "BM25 通道召回率从 35% 提升到 72%",
+      "content_type": "TaskState",
+      "importance": 0.68,
+      "group": "task_states"
+    },
+    {
+      "content": "将嵌入 API 调用延迟从 200ms 降低到 50ms（批量模式）",
+      "content_type": "TaskState",
+      "importance": 0.695,
+      "group": "task_states"
+    },
+    {
+      "content": "解决了确定性提取器对英文缩写的识别问题",
+      "content_type": "TaskState",
+      "importance": 0.71,
+      "group": "task_states"
+    },
+    {
+      "content": "补全了 Consolidation 的 Hebbian 学习单元测试",
+      "content_type": "TaskState",
+      "importance": 0.725,
+      "group": "task_states"
+    },
+    {
+      "content": "优化了倒排索引的 key 生成策略，减少了 30% 的冲突",
+      "content_type": "TaskState",
+      "importance": 0.74,
+      "group": "task_states"
+    },
+    {
+      "content": "部署了 v0.7 版本到测试环境，修复了 3 个 P0 问题",
+      "content_type": "TaskState",
+      "importance": 0.755,
+      "group": "task_states"
+    },
+    {
+      "content": "完成了 API 文档的中英文双语版本",
+      "content_type": "TaskState",
+      "importance": 0.77,
+      "group": "task_states"
+    },
+    {
+      "content": "重构了 write_internal，合并了 write 和 write_batch 的公共逻辑",
+      "content_type": "TaskState",
+      "importance": 0.785,
+      "group": "task_states"
+    },
+    {
+      "content": "排查了 spreading activation 中 energy 累积溢出的 bug",
+      "content_type": "TaskState",
+      "importance": 0.8,
+      "group": "task_states"
+    },
+    {
+      "content": "将 seed_per_channel 从固定值改为可配置参数",
+      "content_type": "TaskState",
+      "importance": 0.815,
+      "group": "task_states"
+    },
+    {
+      "content": "实现了 question-aware boosting 的问题类型检测",
+      "content_type": "TaskState",
+      "importance": 0.83,
+      "group": "task_states"
+    },
+    {
+      "content": "修复了 Tantivy 索引 reader 不刷新导致 BM25 无结果的问题",
+      "content_type": "TaskState",
+      "importance": 0.845,
+      "group": "task_states"
+    },
+    {
+      "content": "补全了 dump API 的 JSONL 格式化输出",
+      "content_type": "TaskState",
+      "importance": 0.86,
+      "group": "task_states"
+    },
+    {
+      "content": "之前说用 Tantivy 的 BM25 有问题，后来发现是 reader 没有 reload，修正后恢复正常",
+      "content_type": "Correction",
+      "importance": 0.8,
+      "group": "corrections"
+    },
+    {
+      "content": "原本计划用 JSON 序列化，实测后决定改用 bincode，序列化体积减少 40%",
+      "content_type": "Correction",
+      "importance": 0.8,
+      "group": "corrections"
+    },
+    {
+      "content": "之前以为 redb 不支持并发写，实际是事务隔离级别理解有误，redb 支持多读单写",
+      "content_type": "Correction",
+      "importance": 0.8,
+      "group": "corrections"
+    },
+    {
+      "content": "之前计划引入 Python wrapper，后来决定不引入额外语言依赖，保持纯 Rust",
+      "content_type": "Correction",
+      "importance": 0.8,
+      "group": "corrections"
+    },
+    {
+      "content": "之前 embedding 维度用了 1536（OpenAI 默认），切换到 DashScope 后改为 1024",
+      "content_type": "Correction",
+      "importance": 0.8,
+      "group": "corrections"
+    },
+    {
+      "content": "Rust 社区在 2024 年发布了 Rust 2024 Edition，引入了多项语法改进",
+      "content_type": "AssistantObservation",
+      "importance": 0.5,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "DashScope text-embedding-v4 模型的 MTEB 评分达到 0.67",
+      "content_type": "AssistantObservation",
+      "importance": 0.52,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "Tantivy 0.22 版本优化了中文分词的性能，提升了 40% 的吞吐",
+      "content_type": "AssistantObservation",
+      "importance": 0.54,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "redb 2.0 引入了 Write-Ahead Log 支持，提升了写入性能",
+      "content_type": "AssistantObservation",
+      "importance": 0.56,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "mem0 是另一个记忆引擎项目，但使用确定性哈希导致语义通道不如 HippMem",
+      "content_type": "AssistantObservation",
+      "importance": 0.58,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "OpenAI 的 text-embedding-3-small 维度可动态调整，从 256 到 1536",
+      "content_type": "AssistantObservation",
+      "importance": 0.6,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "Qdrant 和 Milvus 是主流的向量数据库，但都不支持图关联记忆",
+      "content_type": "AssistantObservation",
+      "importance": 0.62,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "Anthropic 的 Claude 支持 200K 上下文窗口，但长期记忆仍需外部存储",
+      "content_type": "AssistantObservation",
+      "importance": 0.64,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "MCP 协议允许 AI 模型通过标准化接口访问外部工具和数据",
+      "content_type": "AssistantObservation",
+      "importance": 0.66,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "Rust 的 async/await 生态越来越成熟，tokio 是主流运行时",
+      "content_type": "AssistantObservation",
+      "importance": 0.68,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "我是陈明，an open-source project contributor",
+      "content_type": "UserStatement",
+      "importance": 0.9,
+      "group": "identities"
+    },
+    {
+      "content": "GitHub: chenming, email: chenming@example.com",
+      "content_type": "UserStatement",
+      "importance": 0.9,
+      "group": "identities"
+    },
+    {
+      "content": "有 10 年后端开发经验，5 年 Rust 经验",
+      "content_type": "UserStatement",
+      "importance": 0.9,
+      "group": "identities"
+    },
+    {
+      "content": "之前在某大厂做数据库内核开发，2024 年开始创业",
+      "content_type": "UserStatement",
+      "importance": 0.9,
+      "group": "identities"
+    },
+    {
+      "content": "Based in Hangzhou, works remotely, prefers async communication",
+      "content_type": "UserStatement",
+      "importance": 0.9,
+      "group": "identities"
+    }
+  ],
+  "queries": [
+    {
+      "query": "用户叫什么名字",
+      "expected_keyword": "陈明",
+      "min_results": 1
+    },
+    {
+      "query": "用户喜欢什么编程语言",
+      "expected_keyword": "Rust",
+      "min_results": 2
+    },
+    {
+      "query": "为什么选择 Rust",
+      "expected_keyword": "Rust",
+      "min_results": 2
+    },
+    {
+      "query": "HippMem 用了什么数据库",
+      "expected_keyword": "redb",
+      "min_results": 2
+    },
+    {
+      "query": "全文检索用的什么",
+      "expected_keyword": "Tantivy",
+      "min_results": 2
+    },
+    {
+      "query": "嵌入模型用的什么",
+      "expected_keyword": "DashScope",
+      "min_results": 1
+    },
+    {
+      "query": "BM25 有什么问题",
+      "expected_keyword": "BM25",
+      "min_results": 2
+    },
+    {
+      "query": "做了哪些优化",
+      "expected_keyword": "优化",
+      "min_results": 1
+    },
+    {
+      "query": "开源协议是什么",
+      "expected_keyword": "Apache",
+      "min_results": 1
+    },
+    {
+      "query": "用户偏好什么数据库",
+      "expected_keyword": "PostgreSQL",
+      "min_results": 1
+    },
+    {
+      "query": "之前计划用 JSON 后来改了什么",
+      "expected_keyword": "bincode",
+      "min_results": 1
+    },
+    {
+      "query": "向量索引用什么",
+      "expected_keyword": "FlatIndex",
+      "min_results": 1
+    },
+    {
+      "query": "多少条召回通道",
+      "expected_keyword": "10 条",
+      "min_results": 1
+    },
+    {
+      "query": "重构了什么函数",
+      "expected_keyword": "write_internal",
+      "min_results": 1
+    },
+    {
+      "query": "用户不喜欢什么",
+      "expected_keyword": "Angular",
+      "min_results": 1
+    },
+    {
+      "query": "序列化方案",
+      "expected_keyword": "bincode",
+      "min_results": 2
+    },
+    {
+      "query": "HippMem 有多少 crate",
+      "expected_keyword": "8 个",
+      "min_results": 1
+    },
+    {
+      "query": "激活扩散跳数",
+      "expected_keyword": "2 跳",
+      "min_results": 1
+    },
+    {
+      "query": "代码编辑器偏好",
+      "expected_keyword": "Neovim",
+      "min_results": 1
+    },
+    {
+      "query": "Rust 2024 Edition",
+      "expected_keyword": "Rust 2024",
+      "min_results": 1
+    }
+  ],
+  "params": {
+    "persist_query": "陈明",
+    "persist_keyword": "陈明",
+    "rust_query": "Rust 编程",
+    "why_query": "为什么选 Rust",
+    "explanatory_keywords": [
+      "因为",
+      "决定",
+      "原因"
+    ],
+    "correction_query": "之前说的有什么变化或修正",
+    "correction_keywords": [
+      "修正",
+      "之前",
+      "后来发现",
+      "原本"
+    ],
+    "preference_query": "用户偏好什么数据库",
+    "preference_keywords": [
+      "偏好",
+      "喜欢",
+      "PostgreSQL",
+      "SQLite"
+    ]
+  }
+}

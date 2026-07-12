@@ -1,0 +1,25 @@
+{
+  "_meta": {
+    "locale": "en",
+    "description": "English tokenization test cases"
+  },
+  "cases": [
+    {
+      "label": "basic English terms",
+      "text": "natural language processing is an important branch of AI",
+      "expected": ["natural", "language", "processing", "ai"],
+      "expected_any": ["important", "branch"]
+    },
+    {
+      "label": "technical text with mixed casing",
+      "text": "using Rust with redb for memory storage",
+      "expected": ["rust", "redb"],
+      "expected_any": ["memory", "storage"]
+    },
+    {
+      "label": "English with project name",
+      "text": "HIPPMEM is a memory engine",
+      "expected": ["hippmem", "memory", "engine"]
+    }
+  ]
+}

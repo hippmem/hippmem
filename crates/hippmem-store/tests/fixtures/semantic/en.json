@@ -1,0 +1,15 @@
+{
+  "_meta": {
+    "locale": "en",
+    "description": "English semantic search test documents and queries"
+  },
+  "documents": [
+    "Rust is a systems programming language",
+    "The weather is nice today for going out",
+    "Memory safety is a core feature of Rust",
+    "Python is suitable for data analysis and machine learning"
+  ],
+  "queries": [
+    "Rust programming language"
+  ]
+}

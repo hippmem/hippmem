@@ -1,0 +1,29 @@
+[package]
+name = "hippmem-grpc"
+version.workspace = true
+edition.workspace = true
+license = "AGPL-3.0-only"
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "HIPPMEM gRPC bindings — protobuf mapping for core types (optional)"
+publish = false
+keywords = ["memory", "grpc", "agent", "rpc", "protobuf"]
+categories = ["api-bindings", "network-programming"]
+documentation = "https://docs.rs/hippmem-grpc"
+
+[features]
+grpc = ["dep:tonic", "dep:prost", "dep:tokio", "dep:tonic-build"]
+
+[dependencies]
+hippmem-core = { path = "../hippmem-core", version = "0.1.0" }
+hippmem-engine = { path = "../hippmem-engine", version = "0.1.0" }
+tonic = { version = "0.12", optional = true }
+prost = { version = "0.13", optional = true }
+tokio = { workspace = true, optional = true }
+serde.workspace = true
+serde_json.workspace = true
+
+[build-dependencies]
+tonic-build = { version = "0.12", optional = true }

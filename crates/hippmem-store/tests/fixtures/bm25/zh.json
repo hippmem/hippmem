@@ -1,0 +1,23 @@
+{
+  "documents": [
+    {
+      "id": 10,
+      "text": "RocksDB 编译耗时较长因此替换为 redb"
+    },
+    {
+      "id": 20,
+      "text": "Tantivy 提供全文搜索能力"
+    },
+    {
+      "id": 30,
+      "text": "Rust 提供了内存安全保障和零成本抽象"
+    }
+  ],
+  "queries": [
+    "全文搜索"
+  ],
+  "_meta": {
+    "locale": "zh",
+    "description": "Chinese BM25 test documents and queries"
+  }
+}

@@ -1,0 +1,59 @@
+[package]
+name = "hippmem-engine"
+version.workspace = true
+edition.workspace = true
+license = "AGPL-3.0-only"
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "HIPPMEM native association memory engine — unified public Rust API orchestration layer"
+publish = false
+keywords = ["memory", "ai", "agent", "rag", "associative"]
+categories = ["database", "command-line-interface"]
+documentation = "https://docs.rs/hippmem-engine"
+
+[features]
+default = ["api-backends"]
+api-backends = ["hippmem-model/api-backends"]
+
+[dependencies]
+hippmem-core = { path = "../hippmem-core", version = "0.1.0" }
+hippmem-store = { path = "../hippmem-store", version = "0.1.0" }
+hippmem-model = { path = "../hippmem-model", version = "0.1.0" }
+hippmem-write = { path = "../hippmem-write", version = "0.1.0" }
+hippmem-retrieval = { path = "../hippmem-retrieval", version = "0.1.0" }
+hippmem-consolidation = { path = "../hippmem-consolidation", version = "0.1.0" }
+
+# storage (internal use, bypasses store trait for direct redb::Database access)
+redb = "3"
+
+# async runtime
+tokio = { workspace = true, features = ["rt-multi-thread", "sync", "time", "macros"] }
+
+# concurrency
+parking_lot.workspace = true
+dashmap.workspace = true
+
+# serialization
+serde.workspace = true
+serde_json.workspace = true
+bincode.workspace = true
+
+# observability
+tracing.workspace = true
+
+# error handling
+thiserror.workspace = true
+
+# CLI
+clap = { version = "4", features = ["derive", "env"] }
+
+# .env auto-loading
+dotenvy = "0.15"
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[[example]]
+name = "basic_usage"

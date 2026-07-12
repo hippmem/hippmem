@@ -1,0 +1,164 @@
+{
+  "_meta": {
+    "locale": "en",
+    "description": "English seed data: 100 memory entries in 8 sections for manual testing and database population"
+  },
+  "sections": [
+    {
+      "content_type": "UserStatement",
+      "conv_id": 1,
+      "importance": 0.55,
+      "items": [
+        "My name is John Chen, I'm a full-stack engineer",
+        "I'm currently building a startup in the AI memory engine space",
+        "I primarily write code in Rust and TypeScript",
+        "I'm deeply interested in database internals, especially storage engines",
+        "Recently researching approximate nearest neighbor search algorithms like HNSW",
+        "I think Tantivy's BM25 implementation is quite impressive",
+        "Linear is a great project management tool for keeping track of tasks",
+        "I'm used to developing in Linux environments",
+        "I use both VS Code and Neovim as my editors",
+        "I enjoy functional programming style but I'm open to OOP as well"
+      ]
+    },
+    {
+      "content_type": "Preference",
+      "conv_id": 2,
+      "importance": 0.65,
+      "items": [
+        "Compared to Python, I prefer Rust's type safety",
+        "For databases I prefer PostgreSQL, followed by SQLite",
+        "Front-end framework preference: React + Next.js, dislike Angular",
+        "I prefer clean API design and dislike over-abstraction",
+        "When writing tests I prefer Rust's native #[test] over mock frameworks",
+        "For text formatting I prefer Markdown over rich text",
+        "Deployment preference: containerized with Docker Compose for dev environments",
+        "Code style: I prefer 4-space indentation",
+        "Documentation and comments in English, code identifiers in English",
+        "Prefer async/await programming model over callbacks",
+        "I like imperative commit message style (conventional commits)",
+        "Color theme preference: dark mode",
+        "Prefer small functions, each function no more than 30 lines",
+        "Skeptical of ORMs, prefer writing raw SQL",
+        "API versioning: prefer URL path versioning over header-based versioning"
+      ]
+    },
+    {
+      "content_type": "Decision",
+      "conv_id": 3,
+      "importance": 0.75,
+      "items": [
+        "Decided to use Rust as the primary backend language due to its performance and type safety",
+        "Chose redb as the storage engine because it is pure Rust with a clean API",
+        "Selected Tantivy for full-text search because of its BM25 and tokenization capabilities",
+        "Chose DashScope as the default embedding model provider",
+        "Decided to use a deterministic extractor as the fallback path, independent of external APIs",
+        "In-memory graph structure uses adjacency list representation for O(1) outgoing edge queries",
+        "Hash table uses open addressing instead of chaining to reduce heap allocations",
+        "Decided to use SimHash for semantic signatures — better for short text than MinHash",
+        "Vector index uses FlatIndex (brute-force search), more stable than HNSW at small scale",
+        "Serialization uses bincode instead of JSON or protobuf for optimal performance and size",
+        "Designed 10 recall channels for comprehensive multi-channel coverage",
+        "Decided to implement inverted index using redb's Table partitioning",
+        "Maximum spreading activation hops set to 2, balancing precision and latency",
+        "Designed write_batch API to support batch writes efficiently",
+        "Consolidation cycle set to 1 hour to avoid peak-time resource contention",
+        "Max seeds per channel set to 15 to ensure recall coverage",
+        "Using energy-based reranking instead of score-based — more aligned with bio-inspired design",
+        "Decided against introducing a Python dependency layer, keeping it all Rust for cohesion",
+        "Embedding dimension set to 1024 to match DashScope text-embedding-v4",
+        "Chose the Apache 2.0 open source license"
+      ]
+    },
+    {
+      "content_type": "ProjectKnowledge",
+      "conv_id": 4,
+      "importance": 0.7,
+      "items": [
+        "The project uses a Cargo workspace with multiple sub-crates",
+        "Core crate: hippmem-core defines the data model and configuration",
+        "hippmem-store handles persistence, based on the redb embedded KV database",
+        "hippmem-model encapsulates external API calls and deterministic fallback implementations",
+        "hippmem-write is the write pipeline, converting raw text into indexed memory",
+        "hippmem-retrieval implements multi-channel seed recall and spreading activation",
+        "hippmem-consolidation handles memory consolidation: decay, compression, and Hebbian learning",
+        "hippmem-engine is the unified orchestration layer exposing 7 public APIs",
+        "hippmem-eval is the evaluation framework with 70+ test cases and 56 fixtures",
+        "hippmem-grpc provides a gRPC service interface for remote invocation",
+        "Full-text index based on Tantivy with BM25 scoring and multi-language tokenization support",
+        "Each MemoryUnit contains four parts: content, understanding, context, and semantic",
+        "AssociationLink represents edges between memories, supporting 8 edge types",
+        "Each memory builds an inverted index through AssociationKeys to accelerate recall",
+        "The spreading activation algorithm simulates biological neural activation",
+        "Multi-channel recall includes Entity, Topic, Temporal, BM25, Semantic, Binary and more — 10 total",
+        "The reranking phase combines energy scores with question-type-aware boosting",
+        "Supports dump (full JSONL export), list (paginated browsing), and traverse (graph exploration)",
+        "AlgoParams can be adjusted at runtime — channel coefficients, thresholds, etc. are hot-swappable",
+        "Test coverage approximately 85%, including unit tests, integration tests, and E2E evaluation"
+      ]
+    },
+    {
+      "content_type": "TaskState",
+      "conv_id": 5,
+      "importance": 0.65,
+      "items": [
+        "Completed CI/CD pipeline setup for the Rust monorepo",
+        "Fixed a deadlock bug in redb concurrent write scenarios",
+        "BM25 channel recall improved from 35% to 72%",
+        "Reduced embedding API call latency from 200ms to 50ms using batch mode",
+        "Resolved the deterministic extractor's handling of English acronyms",
+        "Completed Hebbian learning unit tests for the Consolidation module",
+        "Optimized inverted index key generation strategy, reducing collisions by 30%",
+        "Deployed v0.7 to staging environment, fixed 3 P0 issues",
+        "Completed the API reference documentation",
+        "Refactored write_internal, merging shared logic between write and write_batch",
+        "Diagnosed and fixed energy accumulation overflow bug in spreading activation",
+        "Changed seed_per_channel from a hardcoded constant to a configurable parameter",
+        "Implemented question-type detection for question-aware boosting",
+        "Fixed Tantivy index reader not refreshing, causing BM25 to return empty results",
+        "Completed JSONL formatted output for the dump API"
+      ]
+    },
+    {
+      "content_type": "Correction",
+      "conv_id": 6,
+      "importance": 0.8,
+      "items": [
+        "Previously thought Tantivy's BM25 had issues, later found it was a reader reload problem — fixed and working",
+        "Originally planned to use JSON serialization, switched to bincode after benchmarking — 40% size reduction",
+        "Previously believed redb didn't support concurrent writes, turned out to be transaction isolation level misunderstanding — redb supports multi-reader single-writer",
+        "Earlier planned to introduce a Python wrapper, later decided against extra language dependencies — staying pure Rust",
+        "Previously used embedding dimension 1536 (OpenAI default), switched to 1024 after migrating to DashScope"
+      ]
+    },
+    {
+      "content_type": "AssistantObservation",
+      "conv_id": 7,
+      "importance": 0.55,
+      "items": [
+        "The Rust community released Rust 2024 Edition, introducing several syntax improvements",
+        "DashScope text-embedding-v4 model achieved an MTEB score of 0.67",
+        "Tantivy 0.22 optimized tokenization performance by 40% throughput",
+        "redb 2.0 introduced Write-Ahead Log support, improving write performance",
+        "mem0 is another memory engine project, but its deterministic hashing makes its semantic channel weaker than HippMem",
+        "OpenAI's text-embedding-3-small supports dynamic dimension adjustment from 256 to 1536",
+        "Qdrant and Milvus are mainstream vector databases, but neither supports graph-based associative memory",
+        "Anthropic's Claude supports 200K context windows, but long-term memory still requires external storage",
+        "The MCP protocol enables AI models to access external tools and data through standardized interfaces",
+        "Rust's async/await ecosystem is increasingly mature, with tokio as the dominant runtime"
+      ]
+    },
+    {
+      "content_type": "UserStatement",
+      "conv_id": 8,
+      "importance": 0.9,
+      "items": [
+        "I work as a core contributor on an open-source memory engine project",
+        "GitHub: johnchen, email: johnchen@example.com",
+        "10 years of backend development experience, 5 years with Rust",
+        "Previously worked on database kernel development at a major tech company, started my own venture in 2024",
+        "Based in San Francisco, works remotely, prefers async communication"
+      ]
+    }
+  ]
+}

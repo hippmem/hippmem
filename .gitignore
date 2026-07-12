@@ -1,0 +1,25 @@
+# Rust build artifacts
+target/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables (may contain secrets)
+.env
+
+# Runtime data (redb database + Tantivy full-text index)
+hippmem_data
+fulltext/
+
+# Temporary files
+.tmp/
+
+# Local workflow assistant (not part of the public project)
+CLAUDE.md

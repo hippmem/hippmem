@@ -1,0 +1,15 @@
+{
+  "documents": [
+    "Rust 是一门系统编程语言",
+    "今天天气真好适合出去玩",
+    "内存安全是 Rust 的核心特性",
+    "Python 适合数据分析和机器学习"
+  ],
+  "queries": [
+    "Rust 编程语言"
+  ],
+  "_meta": {
+    "locale": "zh",
+    "description": "Chinese semantic search test documents and queries"
+  }
+}

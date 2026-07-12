@@ -1,0 +1,10 @@
+{
+  "_meta": {
+    "locale": "en",
+    "description": "English summarize test texts"
+  },
+  "texts": [
+    "Rust is a systems programming language. It guarantees memory safety.",
+    "Today I learned about Rust's ownership system and borrow checker."
+  ]
+}

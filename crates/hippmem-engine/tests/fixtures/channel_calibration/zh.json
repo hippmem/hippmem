@@ -1,0 +1,39 @@
+{
+  "_meta": {
+    "locale": "zh",
+    "description": "Chinese channel calibration E2E test: why/what query scenarios with causal decision detection and definition ranking"
+  },
+  "why_test": {
+    "memories": [
+      {
+        "text": "我叫陈明，软件工程师，偏好用 Rust 开发后端服务，喜欢 redb 做嵌入式存储。",
+        "type": "UserStatement"
+      },
+      {
+        "text": "我参与过多个 Rust 开源项目，包括 CLI 工具和数据库绑定。",
+        "type": "UserStatement"
+      },
+      {
+        "text": "因为 RocksDB 编译太慢，决定用 redb 替代做嵌入式存储。",
+        "type": "Decision"
+      }
+    ],
+    "query": "我为什么选择 redb？",
+    "result_contains": "RocksDB"
+  },
+  "what_test": {
+    "memories": [
+      {
+        "text": "我是陈明，an open-source project contributor",
+        "type": "UserStatement"
+      },
+      {
+        "text": "HippMem 是一个原生关联记忆引擎，基于 Rust 实现",
+        "type": "ProjectKnowledge"
+      }
+    ],
+    "query": "hippmem是什么",
+    "pk_contains": "原生关联记忆引擎",
+    "us_contains": "我是陈明"
+  }
+}

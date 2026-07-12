@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "locale": "en",
+    "description": "English embed test samples"
+  },
+  "embed_texts": [
+    "Hello world",
+    "Rust programming language",
+    "The weather is nice today"
+  ],
+  "batch_texts": [
+    "Test text 0",
+    "Test text 1",
+    "Test text 2",
+    "Test text 3",
+    "Test text 4"
+  ]
+}

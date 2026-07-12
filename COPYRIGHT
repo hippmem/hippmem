@@ -1,0 +1,50 @@
+Copyright (c) 2026 hippmem
+
+HIPPMEM uses a two-tier licensing model:
+
+┌─────────────────────────────────────────────────────────────┐
+│ Apache 2.0 (permissive)                                     │
+│                                                             │
+│   hippmem-core   — Core domain types                        │
+│   hippmem-model  — Model backend traits                     │
+│   hippmem-store  — Storage and indexing                     │
+│                                                             │
+│   These crates can be used in any project, open or          │
+│   proprietary, without copyleft obligations.                │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ AGPL-3.0-only (copyleft)                                    │
+│                                                             │
+│   hippmem-write          — Association discovery algorithms │
+│   hippmem-retrieval      — Spreading activation retrieval   │
+│   hippmem-consolidation  — Hebbian consolidation            │
+│   hippmem-engine         — API orchestration + binaries     │
+│   hippmem-grpc           — gRPC bindings                    │
+│   hippmem-eval           — Evaluation framework             │
+│                                                             │
+│   If you use, modify, or distribute these crates (or any    │
+│   software that links against them), you must make your     │
+│   source code available under the AGPL-3.0-only when you    │
+│   offer the software as a network service.                  │
+└─────────────────────────────────────────────────────────────┘
+
+Note on the Apache/AGPL boundary
+--------------------------------
+hippmem-core, hippmem-model, and hippmem-store are Apache-2.0 and
+can be used standalone in any project. However, once you link any
+of them into the same binary or service as an AGPL-3.0-only crate
+(hippmem-write, -retrieval, -consolidation, -engine, -grpc, -eval),
+the combined work becomes subject to AGPL-3.0-only. The Apache
+crates never depend on the AGPL crates, so the permissive license
+only applies when they are used in isolation.
+
+Commercial Licensing
+--------------------
+If the AGPL-3.0-only requirements do not fit your use case — for
+example, you want to distribute a proprietary product that
+embeds HIPPMEM, or you want to offer a managed HIPPMEM service
+without releasing your full infrastructure code — a commercial
+license is available.
+
+Contact: hippmem@gmail.com

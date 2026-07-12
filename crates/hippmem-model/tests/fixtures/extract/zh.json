@@ -1,0 +1,23 @@
+{
+  "causal_text": "因为 RocksDB 编译太重,所以换成了 redb",
+  "causal_label": "因为...所以",
+  "tech_text": "我用 Rust 和 Tantivy 构建搜索",
+  "pref_text": "我喜欢用 Rust 写程序,讨厌配置 C++ 工具链",
+  "pref_label": "喜欢/讨厌",
+  "decision_text": "我决定使用 redb",
+  "entity_text": "陈明在杭州参加了 Rust 会议",
+  "entity_person": "陈明",
+  "entity_place": "杭州",
+  "compare_text": "Python 和 Java 都不如 Rust",
+  "cn_entity_text": "马云在杭州创办了阿里巴巴",
+  "cn_entity_names": [
+    "马云",
+    "杭州",
+    "阿里巴巴"
+  ],
+  "batch_text": "Transformer 架构革新了自然语言处理领域",
+  "_meta": {
+    "locale": "zh",
+    "description": "Chinese extract test targets"
+  }
+}

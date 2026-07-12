@@ -1,0 +1,7 @@
+{
+  "_meta": {
+    "locale": "en",
+    "description": "English write E2E test: causal decision text with because...so connective"
+  },
+  "causal_decision": "Because Rust compilation was too slow, I switched to Redb as the storage engine"
+}

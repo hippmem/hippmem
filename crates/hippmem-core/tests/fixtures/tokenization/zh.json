@@ -1,0 +1,34 @@
+{
+  "_meta": {
+    "locale": "zh",
+    "description": "Chinese tokenization test cases"
+  },
+  "cases": [
+    {
+      "label": "basic NLP terms",
+      "text": "自然语言处理是人工智能的重要分支",
+      "expected": [
+        "自然语言",
+        "处理",
+        "人工智能"
+      ]
+    },
+    {
+      "label": "technical text with mixed English and Chinese",
+      "text": "在Rust中使用redb存储记忆单元",
+      "expected": [
+        "Rust",
+        "redb"
+      ],
+      "expected_any": [
+        "记忆",
+        "存储"
+      ]
+    },
+    {
+      "label": "mixed CJK and English",
+      "text": "HIPPMEM 是一个 memory engine",
+      "expected": []
+    }
+  ]
+}

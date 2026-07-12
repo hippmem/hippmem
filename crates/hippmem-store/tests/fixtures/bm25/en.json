@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "locale": "en",
+    "description": "English BM25 test documents and queries"
+  },
+  "documents": [
+    {
+      "id": 10,
+      "text": "RocksDB compilation is slow so it was replaced with redb"
+    },
+    {
+      "id": 20,
+      "text": "Tantivy provides full-text search capabilities"
+    },
+    {
+      "id": 30,
+      "text": "Rust provides memory safety guarantees and zero-cost abstractions"
+    }
+  ],
+  "queries": [
+    "full text search"
+  ]
+}

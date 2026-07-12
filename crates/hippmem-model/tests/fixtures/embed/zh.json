@@ -1,0 +1,18 @@
+{
+  "embed_texts": [
+    "你好世界",
+    "Rust 编程语言",
+    "今天天气真好"
+  ],
+  "batch_texts": [
+    "测试文本 0",
+    "测试文本 1",
+    "测试文本 2",
+    "测试文本 3",
+    "测试文本 4"
+  ],
+  "_meta": {
+    "locale": "zh",
+    "description": "Chinese embed test samples"
+  }
+}

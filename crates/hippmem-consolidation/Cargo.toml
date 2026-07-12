@@ -1,0 +1,19 @@
+[package]
+name = "hippmem-consolidation"
+version.workspace = true
+edition.workspace = true
+license = "AGPL-3.0-only"
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "Consolidation engine for HIPPMEM — Hebbian learning, decay, compaction, summarization, background worker"
+publish = false
+keywords = ["memory", "hebbian", "decay", "compaction", "consolidation"]
+categories = ["algorithms"]
+documentation = "https://docs.rs/hippmem-consolidation"
+
+[dependencies]
+hippmem-core = { path = "../hippmem-core", version = "0.1.0" }
+hippmem-model = { path = "../hippmem-model", version = "0.1.0" }
+serde.workspace = true

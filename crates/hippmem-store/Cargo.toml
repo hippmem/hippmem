@@ -1,0 +1,27 @@
+[package]
+name = "hippmem-store"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "Storage and indexing for HIPPMEM — redb persistence, full-text index (Tantivy), vector index, graph store"
+publish = false
+keywords = ["memory", "storage", "vector", "fulltext", "redb"]
+categories = ["database"]
+documentation = "https://docs.rs/hippmem-store"
+
+[dependencies]
+hippmem-core = { path = "../hippmem-core", version = "0.1.0" }
+redb.workspace = true
+tantivy.workspace = true
+bincode.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+tempfile.workspace = true
+hippmem-model = { path = "../hippmem-model", version = "0.1.0" }

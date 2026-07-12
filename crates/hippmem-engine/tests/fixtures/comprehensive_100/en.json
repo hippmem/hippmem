@@ -1,0 +1,740 @@
+{
+  "_meta": {
+    "locale": "en",
+    "description": "English comprehensive test: 100 memories across 8 content types with 20 retrieval quality queries and locale-specific test params"
+  },
+  "entries": [
+    {
+      "content": "My name is John Chen, I'm a full-stack engineer",
+      "content_type": "UserStatement",
+      "importance": 0.5,
+      "group": "statements"
+    },
+    {
+      "content": "I'm currently building a startup in the AI memory engine space",
+      "content_type": "UserStatement",
+      "importance": 0.53,
+      "group": "statements"
+    },
+    {
+      "content": "I primarily write code in Rust and TypeScript",
+      "content_type": "UserStatement",
+      "importance": 0.56,
+      "group": "statements"
+    },
+    {
+      "content": "I'm deeply interested in database internals, especially storage engines",
+      "content_type": "UserStatement",
+      "importance": 0.59,
+      "group": "statements"
+    },
+    {
+      "content": "Recently researching approximate nearest neighbor search algorithms like HNSW",
+      "content_type": "UserStatement",
+      "importance": 0.62,
+      "group": "statements"
+    },
+    {
+      "content": "I think Tantivy's BM25 implementation is quite impressive",
+      "content_type": "UserStatement",
+      "importance": 0.65,
+      "group": "statements"
+    },
+    {
+      "content": "Linear is a great project management tool for keeping track of tasks",
+      "content_type": "UserStatement",
+      "importance": 0.68,
+      "group": "statements"
+    },
+    {
+      "content": "I'm used to developing in Linux environments",
+      "content_type": "UserStatement",
+      "importance": 0.71,
+      "group": "statements"
+    },
+    {
+      "content": "I use both VS Code and Neovim as my editors",
+      "content_type": "UserStatement",
+      "importance": 0.74,
+      "group": "statements"
+    },
+    {
+      "content": "I enjoy functional programming style but I'm open to OOP as well",
+      "content_type": "UserStatement",
+      "importance": 0.77,
+      "group": "statements"
+    },
+    {
+      "content": "Compared to Python, I prefer Rust's type safety",
+      "content_type": "Preference",
+      "importance": 0.6,
+      "group": "preferences"
+    },
+    {
+      "content": "For databases I prefer PostgreSQL, followed by SQLite",
+      "content_type": "Preference",
+      "importance": 0.62,
+      "group": "preferences"
+    },
+    {
+      "content": "Front-end framework preference: React + Next.js, I dislike Angular",
+      "content_type": "Preference",
+      "importance": 0.64,
+      "group": "preferences"
+    },
+    {
+      "content": "I prefer clean API design and dislike over-abstraction",
+      "content_type": "Preference",
+      "importance": 0.66,
+      "group": "preferences"
+    },
+    {
+      "content": "When writing tests I prefer Rust's native #[test] over mock frameworks",
+      "content_type": "Preference",
+      "importance": 0.68,
+      "group": "preferences"
+    },
+    {
+      "content": "For text formatting I prefer Markdown over rich text",
+      "content_type": "Preference",
+      "importance": 0.7,
+      "group": "preferences"
+    },
+    {
+      "content": "Deployment preference: containerized with Docker Compose for dev environments",
+      "content_type": "Preference",
+      "importance": 0.72,
+      "group": "preferences"
+    },
+    {
+      "content": "Code style: I prefer 4-space indentation",
+      "content_type": "Preference",
+      "importance": 0.74,
+      "group": "preferences"
+    },
+    {
+      "content": "Documentation and comments in English, code identifiers in English",
+      "content_type": "Preference",
+      "importance": 0.76,
+      "group": "preferences"
+    },
+    {
+      "content": "Prefer async/await programming model over callbacks",
+      "content_type": "Preference",
+      "importance": 0.78,
+      "group": "preferences"
+    },
+    {
+      "content": "I like imperative commit message style (conventional commits)",
+      "content_type": "Preference",
+      "importance": 0.8,
+      "group": "preferences"
+    },
+    {
+      "content": "Color theme preference: dark mode",
+      "content_type": "Preference",
+      "importance": 0.82,
+      "group": "preferences"
+    },
+    {
+      "content": "Prefer small functions, each function no more than 30 lines",
+      "content_type": "Preference",
+      "importance": 0.84,
+      "group": "preferences"
+    },
+    {
+      "content": "Skeptical of ORMs, prefer writing raw SQL",
+      "content_type": "Preference",
+      "importance": 0.86,
+      "group": "preferences"
+    },
+    {
+      "content": "API versioning: prefer URL path versioning over header-based versioning",
+      "content_type": "Preference",
+      "importance": 0.88,
+      "group": "preferences"
+    },
+    {
+      "content": "Decided to use Rust as the primary backend language due to its performance and type safety",
+      "content_type": "Decision",
+      "importance": 0.7,
+      "group": "decisions"
+    },
+    {
+      "content": "Chose redb as the storage engine because it is pure Rust with a clean API",
+      "content_type": "Decision",
+      "importance": 0.71,
+      "group": "decisions"
+    },
+    {
+      "content": "Selected Tantivy for full-text search because it supports tokenization for multiple languages",
+      "content_type": "Decision",
+      "importance": 0.72,
+      "group": "decisions"
+    },
+    {
+      "content": "Chose DashScope as the default embedding model provider",
+      "content_type": "Decision",
+      "importance": 0.73,
+      "group": "decisions"
+    },
+    {
+      "content": "Decided to use a deterministic extractor as the fallback path, independent of external APIs",
+      "content_type": "Decision",
+      "importance": 0.74,
+      "group": "decisions"
+    },
+    {
+      "content": "In-memory graph structure uses adjacency list representation for O(1) outgoing edge queries",
+      "content_type": "Decision",
+      "importance": 0.75,
+      "group": "decisions"
+    },
+    {
+      "content": "Hash table uses open addressing instead of chaining to reduce heap allocations",
+      "content_type": "Decision",
+      "importance": 0.76,
+      "group": "decisions"
+    },
+    {
+      "content": "Decided to use SimHash for semantic signatures — better for short text than MinHash",
+      "content_type": "Decision",
+      "importance": 0.77,
+      "group": "decisions"
+    },
+    {
+      "content": "Vector index uses FlatIndex (brute-force search), more stable than HNSW at small scale",
+      "content_type": "Decision",
+      "importance": 0.78,
+      "group": "decisions"
+    },
+    {
+      "content": "Serialization uses bincode instead of JSON or protobuf for optimal performance and size",
+      "content_type": "Decision",
+      "importance": 0.79,
+      "group": "decisions"
+    },
+    {
+      "content": "Designed 10 recall channels because multi-channel recall is needed for coverage",
+      "content_type": "Decision",
+      "importance": 0.8,
+      "group": "decisions"
+    },
+    {
+      "content": "Decided to implement inverted index using redb's Table partitioning",
+      "content_type": "Decision",
+      "importance": 0.81,
+      "group": "decisions"
+    },
+    {
+      "content": "Maximum spreading activation hops set to 2, balancing precision and latency",
+      "content_type": "Decision",
+      "importance": 0.82,
+      "group": "decisions"
+    },
+    {
+      "content": "Designed write_batch API to support batch writes efficiently",
+      "content_type": "Decision",
+      "importance": 0.83,
+      "group": "decisions"
+    },
+    {
+      "content": "Consolidation cycle set to 1 hour to avoid peak-time resource contention",
+      "content_type": "Decision",
+      "importance": 0.84,
+      "group": "decisions"
+    },
+    {
+      "content": "Max seeds per channel set to 15 to ensure recall coverage",
+      "content_type": "Decision",
+      "importance": 0.85,
+      "group": "decisions"
+    },
+    {
+      "content": "Using energy-based reranking instead of score-based — more aligned with bio-inspired design",
+      "content_type": "Decision",
+      "importance": 0.86,
+      "group": "decisions"
+    },
+    {
+      "content": "Decided against introducing a Python dependency layer, keeping it all Rust for cohesion",
+      "content_type": "Decision",
+      "importance": 0.87,
+      "group": "decisions"
+    },
+    {
+      "content": "Embedding dimension set to 1024 to match DashScope text-embedding-v4",
+      "content_type": "Decision",
+      "importance": 0.88,
+      "group": "decisions"
+    },
+    {
+      "content": "Chose the Apache 2.0 open source license",
+      "content_type": "Decision",
+      "importance": 0.89,
+      "group": "decisions"
+    },
+    {
+      "content": "The project uses a Cargo workspace with multiple sub-crates",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.75,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "Core crate: hippmem-core defines the data model and configuration",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.755,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "hippmem-store handles persistence, based on the redb embedded KV database",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.76,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "hippmem-model encapsulates external API calls and deterministic fallback implementations",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.765,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "hippmem-write is the write pipeline, converting raw text into indexed memory",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.77,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "hippmem-retrieval implements multi-channel seed recall and spreading activation",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.775,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "hippmem-consolidation handles memory consolidation: decay, compression, and Hebbian learning",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.78,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "hippmem-engine is the unified orchestration layer exposing 7 public APIs (write/retrieve/etc.)",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.785,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "hippmem-eval is the evaluation framework with 70+ test cases and 56 fixtures",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.79,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "hippmem-grpc provides a gRPC service interface for remote invocation",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.795,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "Full-text index based on Tantivy with BM25 scoring and multi-language tokenization support",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.8,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "Each MemoryUnit contains four parts: content, understanding, context, and semantic signature",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.805,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "AssociationLink represents edges between memories, supporting 8 edge types",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.81,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "Each memory builds an inverted index through AssociationKeys to accelerate recall",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.815,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "The spreading activation algorithm simulates biological neural activation",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.82,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "Multi-channel recall includes Entity, Topic, Temporal, BM25, Semantic, Binary, and other channels — 10 total",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.825,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "The reranking phase combines energy scores with question-type-aware boosting",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.83,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "Supports dump (full JSONL export), list (paginated browsing), and traverse (graph exploration)",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.835,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "AlgoParams can be adjusted at runtime — channel coefficients, thresholds, etc. are hot-swappable",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.84,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "Test coverage approximately 85%, including unit tests, integration tests, and E2E evaluation",
+      "content_type": "ProjectKnowledge",
+      "importance": 0.845,
+      "group": "project_knowledge"
+    },
+    {
+      "content": "Completed CI/CD pipeline setup for the Rust monorepo",
+      "content_type": "TaskState",
+      "importance": 0.65,
+      "group": "task_states"
+    },
+    {
+      "content": "Fixed a deadlock bug in redb concurrent write scenarios",
+      "content_type": "TaskState",
+      "importance": 0.665,
+      "group": "task_states"
+    },
+    {
+      "content": "BM25 channel recall improved from 35% to 72%",
+      "content_type": "TaskState",
+      "importance": 0.68,
+      "group": "task_states"
+    },
+    {
+      "content": "Reduced embedding API call latency from 200ms to 50ms using batch mode",
+      "content_type": "TaskState",
+      "importance": 0.695,
+      "group": "task_states"
+    },
+    {
+      "content": "Resolved the deterministic extractor's handling of English acronyms",
+      "content_type": "TaskState",
+      "importance": 0.71,
+      "group": "task_states"
+    },
+    {
+      "content": "Completed Hebbian learning unit tests for the Consolidation module",
+      "content_type": "TaskState",
+      "importance": 0.725,
+      "group": "task_states"
+    },
+    {
+      "content": "Optimized inverted index key generation strategy, reducing collisions by 30%",
+      "content_type": "TaskState",
+      "importance": 0.74,
+      "group": "task_states"
+    },
+    {
+      "content": "Deployed v0.7 to staging environment, fixed 3 P0 issues",
+      "content_type": "TaskState",
+      "importance": 0.755,
+      "group": "task_states"
+    },
+    {
+      "content": "Completed the API reference documentation",
+      "content_type": "TaskState",
+      "importance": 0.77,
+      "group": "task_states"
+    },
+    {
+      "content": "Refactored write_internal, merging shared logic between write and write_batch",
+      "content_type": "TaskState",
+      "importance": 0.785,
+      "group": "task_states"
+    },
+    {
+      "content": "Diagnosed and fixed energy accumulation overflow bug in spreading activation",
+      "content_type": "TaskState",
+      "importance": 0.8,
+      "group": "task_states"
+    },
+    {
+      "content": "Changed seed_per_channel from a hardcoded constant to a configurable parameter",
+      "content_type": "TaskState",
+      "importance": 0.815,
+      "group": "task_states"
+    },
+    {
+      "content": "Implemented question-type detection for question-aware boosting",
+      "content_type": "TaskState",
+      "importance": 0.83,
+      "group": "task_states"
+    },
+    {
+      "content": "Fixed Tantivy index reader not refreshing, causing BM25 to return empty results",
+      "content_type": "TaskState",
+      "importance": 0.845,
+      "group": "task_states"
+    },
+    {
+      "content": "Completed JSONL formatted output for the dump API",
+      "content_type": "TaskState",
+      "importance": 0.86,
+      "group": "task_states"
+    },
+    {
+      "content": "Previously thought Tantivy's BM25 had issues, later found it was a reader reload problem — fixed and back to normal",
+      "content_type": "Correction",
+      "importance": 0.8,
+      "group": "corrections"
+    },
+    {
+      "content": "Originally planned to use JSON serialization, switched to bincode after benchmarking — 40% size reduction",
+      "content_type": "Correction",
+      "importance": 0.8,
+      "group": "corrections"
+    },
+    {
+      "content": "Previously believed redb didn't support concurrent writes, turned out to be a misunderstanding of transaction isolation levels — redb supports multiple readers + single writer",
+      "content_type": "Correction",
+      "importance": 0.8,
+      "group": "corrections"
+    },
+    {
+      "content": "Earlier planned to introduce a Python wrapper, later decided against adding extra language dependencies — staying pure Rust",
+      "content_type": "Correction",
+      "importance": 0.8,
+      "group": "corrections"
+    },
+    {
+      "content": "Previously used embedding dimension 1536 (OpenAI default), switched to 1024 after migrating to DashScope",
+      "content_type": "Correction",
+      "importance": 0.8,
+      "group": "corrections"
+    },
+    {
+      "content": "The Rust community released Rust 2024 Edition, introducing several syntax improvements",
+      "content_type": "AssistantObservation",
+      "importance": 0.5,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "DashScope text-embedding-v4 model achieved an MTEB score of 0.67",
+      "content_type": "AssistantObservation",
+      "importance": 0.52,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "Tantivy 0.22 optimized tokenization performance by 40% throughput improvement",
+      "content_type": "AssistantObservation",
+      "importance": 0.54,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "redb 2.0 introduced Write-Ahead Log support, improving write performance",
+      "content_type": "AssistantObservation",
+      "importance": 0.56,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "mem0 is another memory engine project, but its use of deterministic hashing makes its semantic channel weaker than HippMem",
+      "content_type": "AssistantObservation",
+      "importance": 0.58,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "OpenAI's text-embedding-3-small supports dynamic dimension adjustment from 256 to 1536",
+      "content_type": "AssistantObservation",
+      "importance": 0.6,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "Qdrant and Milvus are mainstream vector databases, but neither supports graph-based associative memory",
+      "content_type": "AssistantObservation",
+      "importance": 0.62,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "Anthropic's Claude supports 200K context windows, but long-term memory still requires external storage",
+      "content_type": "AssistantObservation",
+      "importance": 0.64,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "The MCP protocol enables AI models to access external tools and data through standardized interfaces",
+      "content_type": "AssistantObservation",
+      "importance": 0.66,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "Rust's async/await ecosystem is increasingly mature, with tokio as the dominant runtime",
+      "content_type": "AssistantObservation",
+      "importance": 0.68,
+      "group": "assistant_observations"
+    },
+    {
+      "content": "I am John Chen, an open-source project contributor",
+      "content_type": "UserStatement",
+      "importance": 0.9,
+      "group": "identities"
+    },
+    {
+      "content": "GitHub: johnchen, email: johnchen@example.com",
+      "content_type": "UserStatement",
+      "importance": 0.9,
+      "group": "identities"
+    },
+    {
+      "content": "10 years of backend development experience, 5 years with Rust",
+      "content_type": "UserStatement",
+      "importance": 0.9,
+      "group": "identities"
+    },
+    {
+      "content": "Previously worked on database kernel development at a major tech company, started my own venture in 2024",
+      "content_type": "UserStatement",
+      "importance": 0.9,
+      "group": "identities"
+    },
+    {
+      "content": "Based in San Francisco, works remotely, prefers async communication",
+      "content_type": "UserStatement",
+      "importance": 0.9,
+      "group": "identities"
+    }
+  ],
+  "queries": [
+    {
+      "query": "What is the user's name",
+      "expected_keyword": "John Chen",
+      "min_results": 1
+    },
+    {
+      "query": "What programming language does the user prefer",
+      "expected_keyword": "Rust",
+      "min_results": 2
+    },
+    {
+      "query": "Why choose Rust",
+      "expected_keyword": "Rust",
+      "min_results": 2
+    },
+    {
+      "query": "What database does HippMem use",
+      "expected_keyword": "redb",
+      "min_results": 2
+    },
+    {
+      "query": "What is used for full-text search",
+      "expected_keyword": "Tantivy",
+      "min_results": 2
+    },
+    {
+      "query": "What embedding model is used",
+      "expected_keyword": "DashScope",
+      "min_results": 1
+    },
+    {
+      "query": "What issues does BM25 have",
+      "expected_keyword": "reader",
+      "min_results": 2
+    },
+    {
+      "query": "What optimizations were made",
+      "expected_keyword": "optimized",
+      "min_results": 1
+    },
+    {
+      "query": "What is the open source license",
+      "expected_keyword": "Apache",
+      "min_results": 1
+    },
+    {
+      "query": "What database does the user prefer",
+      "expected_keyword": "PostgreSQL",
+      "min_results": 1
+    },
+    {
+      "query": "Previously planned JSON, what was changed to later",
+      "expected_keyword": "bincode",
+      "min_results": 1
+    },
+    {
+      "query": "What vector index is used",
+      "expected_keyword": "FlatIndex",
+      "min_results": 1
+    },
+    {
+      "query": "How many recall channels",
+      "expected_keyword": "10 total",
+      "min_results": 1
+    },
+    {
+      "query": "What function was refactored",
+      "expected_keyword": "write_internal",
+      "min_results": 1
+    },
+    {
+      "query": "What does the user dislike",
+      "expected_keyword": "Angular",
+      "min_results": 1
+    },
+    {
+      "query": "Serialization approach",
+      "expected_keyword": "bincode",
+      "min_results": 2
+    },
+    {
+      "query": "How many crates does HippMem have",
+      "expected_keyword": "sub-crates",
+      "min_results": 1
+    },
+    {
+      "query": "Spreading activation hop count",
+      "expected_keyword": "2 hops",
+      "min_results": 1
+    },
+    {
+      "query": "Code editor preference",
+      "expected_keyword": "Neovim",
+      "min_results": 1
+    },
+    {
+      "query": "Rust 2024 Edition",
+      "expected_keyword": "Rust 2024",
+      "min_results": 1
+    }
+  ],
+  "params": {
+    "persist_query": "John Chen",
+    "persist_keyword": "John Chen",
+    "rust_query": "Rust programming",
+    "why_query": "Why choose Rust",
+    "explanatory_keywords": [
+      "because",
+      "decided",
+      "reason",
+      "chose"
+    ],
+    "correction_query": "What has changed or been corrected from previous statements",
+    "correction_keywords": [
+      "corrected",
+      "previously",
+      "later found",
+      "originally"
+    ],
+    "preference_query": "What database does the user prefer",
+    "preference_keywords": [
+      "prefer",
+      "favorite",
+      "like",
+      "enjoy",
+      "database",
+      "SQLite",
+      "PostgreSQL",
+      "storage"
+    ]
+  }
+}

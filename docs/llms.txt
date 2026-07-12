@@ -1,0 +1,55 @@
+# HIPPMEM
+
+HIPPMEM is a native association memory engine for AI agents, written in Rust.
+It discovers associations at write time, retrieves via spreading activation, and evolves through Hebbian learning and decay.
+
+## Getting Started
+- Quickstart (5 min): docs/quickstart.md — clone, build, write, retrieve, explain
+- User Guide (20 min): docs/user-guide.md — concepts, lifecycle, CLI, Rust API, FAQ
+- Cookbook: docs/cookbook.md — 7 copy-paste scenario recipes with runnable code
+- Concepts deep-dive: docs/concepts.md — MemoryUnit, associations, spreading activation, consolidation
+- API Reference: docs/api-reference.md — all 7 Engine method signatures, types, error codes
+- gRPC Guide: docs/grpc-guide.md — Python/Go/Node.js client examples
+- Configuration: docs/configuration.md — AlgoParams, EngineConfig, BackendSelection, tuning tips
+- Comparison: docs/comparison.md — vs vector DBs, graph DBs, Mem0, Graphiti
+
+## Architecture
+9 Rust crates in a workspace:
+- hippmem-core: data model, newtypes, Clock/Rng, config, error types
+- hippmem-store: redb persistence, Tantivy BM25, HNSW semantic index, inverted indexes
+- hippmem-model: Embedder/Extractor/Reranker/Summarizer traits + deterministic fallback + API backends
+- hippmem-write: write path — keys, candidate discovery, scoring, edge building, staged pipeline
+- hippmem-retrieval: retrieve path — seeds, energy, spreading, rerank, explain
+- hippmem-consolidation: Hebbian, decay, compaction, summarization, background worker
+- hippmem-engine: assembly layer — Engine struct + 7 public APIs + CLI + gRPC server
+- hippmem-eval: evaluation framework — 5 baselines, 10 task types, 50 fixtures
+- hippmem-grpc: gRPC proto + tonic service (feature-gated)
+
+## Key Commands
+```bash
+cargo build --bin hippmem          # CLI
+cargo build --bin hippmem-server   # gRPC server
+cargo test --workspace             # all tests (deterministic fallback, no network)
+cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings  # gate
+```
+
+## Public API Summary
+Engine::open(config) -> Engine
+Engine::close(self)
+engine.write(WriteMemoryInput) -> WriteMemoryOutput
+engine.retrieve(RetrieveInput) -> RetrieveOutput
+engine.explain(MemoryId, context) -> Explanation
+engine.consolidate(ConsolidationScope) -> ConsolidationReport
+engine.inspect(InspectQuery) -> InspectReport
+engine.feedback(FeedbackInput) -> ()
+
+## Key Design Decisions
+- Write-time association discovery (not just retrieval-time)
+- Spreading activation with edge-type modifiers (not vector similarity ranking)
+- Deterministic fallback backend (works offline, no API keys needed)
+- Native graph traversal (self-implemented, not delegated to graph DB)
+- All state in one redb file + Tantivy directory
+
+## Links
+- Architecture: docs/architecture/whitepaper.md — design philosophy and first principles
+- License: Apache-2.0 (infrastructure crates) / AGPL-3.0-only (algorithm + product crates) — see COPYRIGHT

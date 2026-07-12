@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "locale": "en",
+    "description": "English extract test targets"
+  },
+  "causal_text": "because Rust compilation was too slow, so I switched to redb",
+  "causal_label": "because",
+  "tech_text": "I use Rust and Tantivy to build search engines",
+  "pref_text": "I like writing Rust programs but dislike configuring C++ toolchains",
+  "pref_label": "like/dislike",
+  "decision_text": "I decided to use redb",
+  "entity_text": "John Chen attended a Rust conference in California",
+  "entity_person": "John",
+  "entity_place": "California",
+  "compare_text": "Python and Java are both inferior to Rust",
+  "cn_entity_text": "John Chen founded a startup in California",
+  "cn_entity_names": [
+    "John",
+    "Rust",
+    "California"
+  ],
+  "batch_text": "The Transformer architecture revolutionized the field of natural language processing"
+}

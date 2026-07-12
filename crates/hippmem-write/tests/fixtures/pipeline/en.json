@@ -1,0 +1,10 @@
+{
+  "_meta": {
+    "locale": "en",
+    "description": "English write pipeline test services — designed for reliable SimHash distinctness"
+  },
+  "services": [
+    {"id": 1, "name": "Rust programming language backend development", "keyword": "Rust"},
+    {"id": 2, "name": "database storage engine query optimization", "keyword": "redb"}
+  ]
+}

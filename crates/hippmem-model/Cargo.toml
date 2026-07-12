@@ -1,0 +1,31 @@
+[package]
+name = "hippmem-model"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "Model backends for HIPPMEM — Embedder, Extractor, Reranker, Summarizer traits and registry"
+publish = false
+keywords = ["memory", "ai", "embeddings", "llm", "reranking"]
+categories = ["api-bindings", "text-processing"]
+documentation = "https://docs.rs/hippmem-model"
+
+[features]
+api-backends = ["dep:reqwest", "dep:serde_json", "dep:tokio"]
+
+[dependencies]
+hippmem-core = { path = "../hippmem-core", version = "0.1.0" }
+async-trait.workspace = true
+serde.workspace = true
+jieba-rs.workspace = true
+thiserror.workspace = true
+xxhash-rust.workspace = true
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"], optional = true }
+serde_json = { version = "1", optional = true }
+tokio = { workspace = true, optional = true }
+
+[dev-dependencies]
+serde_json.workspace = true

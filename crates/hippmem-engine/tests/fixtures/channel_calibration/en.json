@@ -1,0 +1,39 @@
+{
+  "_meta": {
+    "locale": "en",
+    "description": "English channel calibration E2E test: why/what query scenarios with causal decision detection and definition ranking"
+  },
+  "why_test": {
+    "memories": [
+      {
+        "text": "My name is John Chen, a software engineer who prefers building backend services with Rust and likes redb for embedded storage.",
+        "type": "UserStatement"
+      },
+      {
+        "text": "I've contributed to several Rust open-source projects, including CLI tools and database bindings.",
+        "type": "UserStatement"
+      },
+      {
+        "text": "Because RocksDB compilation was too slow, I decided to use redb instead for embedded storage.",
+        "type": "Decision"
+      }
+    ],
+    "query": "Why did I choose redb?",
+    "result_contains": "RocksDB"
+  },
+  "what_test": {
+    "memories": [
+      {
+        "text": "I am John Chen, an open-source project contributor",
+        "type": "UserStatement"
+      },
+      {
+        "text": "HippMem is a native associative memory engine implemented in Rust",
+        "type": "ProjectKnowledge"
+      }
+    ],
+    "query": "what is hippmem",
+    "pk_contains": "associative memory engine",
+    "us_contains": "John Chen"
+  }
+}

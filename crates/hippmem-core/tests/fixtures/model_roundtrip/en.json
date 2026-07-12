@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "locale": "en",
+    "description": "English model roundtrip test content"
+  },
+  "content_raw": "a native associative memory engine based on spreading activation",
+  "event_action": "implemented the spreading activation algorithm",
+  "goal_description": "build a high-performance memory retrieval system",
+  "goal_constraint": "memory-safe and high-performance",
+  "decision_choice": "use redb as the storage backend",
+  "preference_object": "clean system architecture",
+  "emotion_trigger": "integration tests passed",
+  "causal_cause": "Tantivy is a Rust-native full-text index library",
+  "causal_effect": "chose it to implement the BM25 channel",
+  "topic_label": "system architecture",
+  "link_note": "causal inference chain",
+  "revision_reason": "full index rebuild"
+}

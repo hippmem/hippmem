@@ -1,0 +1,164 @@
+{
+  "sections": [
+    {
+      "content_type": "UserStatement",
+      "conv_id": 1,
+      "importance": 0.55,
+      "items": [
+        "我叫陈明，是一名全栈工程师",
+        "我目前在创业，做 AI 记忆引擎方向",
+        "平时主要用 Rust 和 TypeScript 写代码",
+        "我对数据库内核很感兴趣，尤其是存储引擎",
+        "最近在研究近似最近邻搜索算法 HNSW",
+        "我觉得 Tantivy 的 BM25 实现很不错",
+        "飞书是一个很好用的协作工具",
+        "我习惯在 Linux 环境下开发",
+        "我用 VS Code 和 Neovim 两个编辑器",
+        "我喜欢函数式编程风格，但也不排斥面向对象"
+      ]
+    },
+    {
+      "content_type": "Preference",
+      "conv_id": 2,
+      "importance": 0.65,
+      "items": [
+        "比起 Python，我更喜欢 Rust 的类型安全",
+        "数据库方面偏好 PostgreSQL，其次是 SQLite",
+        "前端框架偏好 React + Next.js，不喜欢 Angular",
+        "我偏爱简洁的 API 设计，讨厌过度抽象",
+        "写测试时喜欢用 Rust 原生的 #[test] 而非 mock 框架",
+        "文本格式偏好 Markdown 而非富文本",
+        "部署偏好容器化，Docker Compose 管理开发环境",
+        "代码风格上偏好 4 空格缩进",
+        "用中文写注释和文档，代码用英文",
+        "偏好异步编程模型 async/await 而非回调",
+        "喜欢命令式 commit message 风格",
+        "颜色主题偏好深色模式",
+        "喜欢小函数，每个函数不超过 30 行",
+        "对 ORM 持谨慎态度，更倾向原生 SQL",
+        "API 版本管理偏好 URL 路径版本而非 Header 版本"
+      ]
+    },
+    {
+      "content_type": "Decision",
+      "conv_id": 3,
+      "importance": 0.75,
+      "items": [
+        "决定使用 Rust 作为后端主要语言，因为性能好且类型安全",
+        "存储引擎选择 redb，因为它是纯 Rust 实现且 API 简洁",
+        "因为 Tantivy 支持中文分词，所以选它做全文检索",
+        "选择 DashScope 作为默认嵌入模型提供商",
+        "决定采用确定性提取器作为降级方案，不依赖外部 API",
+        "内存图结构选择邻接表表示，O(1) 出边查询",
+        "散列表使用开放定址而非拉链法，减少堆分配",
+        "决定用 SimHash 做语义签名，比 MinHash 更适合短文本",
+        "向量索引用 FlatIndex（暴力搜索），小规模时比 HNSW 更稳定",
+        "序列化选择 bincode 而非 JSON 或 protobuf，性能和体积最优",
+        "因为需要多通道召回，所以设计了 10 条召回通道",
+        "决定用 redb 的 Table 分区实现倒排索引",
+        "激活扩散的最大跳数设为 2 跳，平衡精度和延迟",
+        "因为要支持批量写入，所以设计了 write_batch API",
+        "consolidate 周期设为 1 小时，避免高峰时段资源争用",
+        "种子数设为每个通道最多 15 条，保证召回覆盖率",
+        "用 energy-based 而非 score-based 做重排，更符合生物启发",
+        "决定不引入 Python 依赖层，全 Rust 实现保持内聚",
+        "embedding 维度设为 1024，与 DashScope text-embedding-v4 匹配",
+        "选择 Apache 2.0 开源协议"
+      ]
+    },
+    {
+      "content_type": "ProjectKnowledge",
+      "conv_id": 4,
+      "importance": 0.7,
+      "items": [
+        "The project uses a Cargo workspace with multiple sub-crates",
+        "核心 crate: hippmem-core 定义数据模型和配置",
+        "hippmem-store 负责持久化，基于 redb 嵌入式 KV 数据库",
+        "hippmem-model 封装外部 API 调用和确定性降级实现",
+        "hippmem-write 是写入流水线，将 raw text 转为 indexed memory",
+        "hippmem-retrieval 实现多通道种子召回和激活扩散",
+        "hippmem-consolidation 处理记忆巩固：衰减、压缩、Hebbian 学习",
+        "hippmem-engine 是统一编排层，对外暴露 write/retrieve 等 7 个 API",
+        "hippmem-eval 是评测框架，包含 70+ 个评测用例和 56 个 fixture",
+        "hippmem-grpc 提供 gRPC 服务接口，用于远程调用",
+        "全文索引基于 Tantivy，支持中文 jieba 分词和 BM25 评分",
+        "每个 MemoryUnit 包含 content、understanding、context 和 semantic 四部分",
+        "AssociationLink 表示记忆间的关联边，支持 8 种边类型",
+        "每条记忆通过 AssociationKeys 建立倒排索引，加速召回",
+        "激活扩散算法模拟生物神经元的 spreading activation",
+        "多通道召回包含 Entity、Topic、Temporal、BM25、Semantic、Binary 等 10 个通道",
+        "重排阶段结合能量得分和问题类型感知增强",
+        "支持 dump 全量导出 JSONL、list 分页浏览、traverse 图遍历",
+        "AlgoParams 可运行时调整，支持通道系数、阈值等热替换",
+        "测试覆盖率约 85%，包含单元测试、集成测试和 E2E 评测"
+      ]
+    },
+    {
+      "content_type": "TaskState",
+      "conv_id": 5,
+      "importance": 0.65,
+      "items": [
+        "完成了 Rust 项目的 CI/CD 流水线搭建",
+        "修复了 redb 并发写入时的死锁问题",
+        "BM25 通道召回率从 35% 提升到 72%",
+        "将嵌入 API 调用延迟从 200ms 降低到 50ms（批量模式）",
+        "解决了确定性提取器对英文缩写的识别问题",
+        "补全了 Consolidation 的 Hebbian 学习单元测试",
+        "优化了倒排索引的 key 生成策略，减少了 30% 的冲突",
+        "部署了 v0.7 版本到测试环境，修复了 3 个 P0 问题",
+        "完成了 API 文档的中英文双语版本",
+        "重构了 write_internal，合并了 write 和 write_batch 的公共逻辑",
+        "排查了 spreading activation 中 energy 累积溢出的 bug",
+        "将 seed_per_channel 从固定值改为可配置参数",
+        "实现了 question-aware boosting 的问题类型检测",
+        "修复了 Tantivy 索引 reader 不刷新导致 BM25 无结果的问题",
+        "补全了 dump API 的 JSONL 格式化输出"
+      ]
+    },
+    {
+      "content_type": "Correction",
+      "conv_id": 6,
+      "importance": 0.8,
+      "items": [
+        "之前说用 Tantivy 的 BM25 有问题，后来发现是 reader 没有 reload，修正后恢复正常",
+        "原本计划用 JSON 序列化，实测后决定改用 bincode，序列化体积减少 40%",
+        "之前以为 redb 不支持并发写，实际是事务隔离级别理解有误，redb 支持多读单写",
+        "之前计划引入 Python wrapper，后来决定不引入额外语言依赖，保持纯 Rust",
+        "之前 embedding 维度用了 1536（OpenAI 默认），切换到 DashScope 后改为 1024"
+      ]
+    },
+    {
+      "content_type": "AssistantObservation",
+      "conv_id": 7,
+      "importance": 0.55,
+      "items": [
+        "Rust 社区在 2024 年发布了 Rust 2024 Edition，引入了多项语法改进",
+        "DashScope text-embedding-v4 模型的 MTEB 评分达到 0.67",
+        "Tantivy 0.22 版本优化了中文分词的性能，提升了 40% 的吞吐",
+        "redb 2.0 引入了 Write-Ahead Log 支持，提升了写入性能",
+        "mem0 是另一个记忆引擎项目，但使用确定性哈希导致语义通道不如 HippMem",
+        "OpenAI 的 text-embedding-3-small 维度可动态调整，从 256 到 1536",
+        "Qdrant 和 Milvus 是主流的向量数据库，但都不支持图关联记忆",
+        "Anthropic 的 Claude 支持 200K 上下文窗口，但长期记忆仍需外部存储",
+        "MCP 协议允许 AI 模型通过标准化接口访问外部工具和数据",
+        "Rust 的 async/await 生态越来越成熟，tokio 是主流运行时"
+      ]
+    },
+    {
+      "content_type": "UserStatement",
+      "conv_id": 8,
+      "importance": 0.9,
+      "items": [
+        "I work as a core contributor on an open-source memory engine project",
+        "GitHub: chenming, email: chenming@example.com",
+        "有 10 年后端开发经验，5 年 Rust 经验",
+        "之前在某大厂做数据库内核开发，2024 年开始创业",
+        "Based in Hangzhou, works remotely, prefers async communication"
+      ]
+    }
+  ],
+  "_meta": {
+    "locale": "zh",
+    "description": "Chinese seed data: 100 memory entries in 8 sections for manual testing and database population"
+  }
+}

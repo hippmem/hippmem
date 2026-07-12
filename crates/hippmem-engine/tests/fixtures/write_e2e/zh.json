@@ -1,0 +1,7 @@
+{
+  "_meta": {
+    "locale": "zh",
+    "description": "Chinese write E2E test: causal decision text with 因为...所以 connective"
+  },
+  "causal_decision": "因为 Rust 编译太慢,所以换成了 Redb 做存储引擎"
+}

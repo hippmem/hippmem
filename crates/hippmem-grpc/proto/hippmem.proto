@@ -1,0 +1,111 @@
+syntax = "proto3";
+package hippmem.v1;
+
+// ── Basic types ──
+
+message MemoryId {
+  uint64 id = 1; // simplified u128 as uint64 for proto
+}
+
+message Timestamp {
+  int64 millis = 1;
+}
+
+// ── Write ──
+
+message WriteRequest {
+  string content = 1;
+  optional string content_type = 2;
+  optional uint64 session_id = 3;
+  optional float importance_hint = 4;
+}
+
+message WriteResponse {
+  uint64 memory_id = 1;
+  string stage = 2;
+  uint32 link_count = 3;
+  repeated string warnings = 4;
+}
+
+// ── Retrieve ──
+
+message RetrieveRequest {
+  string query = 1;
+  optional uint64 session_id = 2;
+  uint32 top_k = 3;
+  optional uint32 max_hops = 4;
+  string mode = 5; // Balanced | Fast | Deep | Diagnostic
+}
+
+message RetrievedItem {
+  uint64 memory_id = 1;
+  string content = 2;
+  float score = 3;
+  repeated string dimensions = 4;
+  repeated string warnings = 5;
+}
+
+message RetrieveResponse {
+  repeated RetrievedItem results = 1;
+  uint32 latency_ms = 2;
+}
+
+// ── Explain ──
+
+message ExplainRequest {
+  uint64 memory_id = 1;
+}
+
+message ExplainResponse {
+  uint64 memory_id = 1;
+  string content_summary = 2;
+  float importance = 3;
+  uint32 link_count = 4;
+  uint32 correction_count = 5;
+}
+
+// ── Consolidate ──
+
+message ConsolidateRequest {
+  string scope = 1; // Full | Incremental | Reindex | EdgesOnly
+}
+
+message ConsolidateResponse {
+  uint64 memories_processed = 1;
+  uint64 edges_decayed = 2;
+  uint64 edges_archived = 3;
+  bool reindexed = 4;
+  uint64 elapsed_ms = 5;
+}
+
+// ── Inspect ──
+
+message InspectRequest {
+  string query_type = 1; // store-stats | queue-status
+}
+
+message InspectResponse {
+  string query_type = 1;
+  string data_json = 2;
+}
+
+// ── Feedback ──
+
+message FeedbackRequest {
+  uint64 retrieval_id = 1;
+  repeated uint64 used_memory_ids = 2;
+  string signal = 3; // Referenced | UserConfirmedCorrect | TaskSucceeded | UserRejected
+}
+
+message FeedbackResponse {}
+
+// ── Service ──
+
+service Hippmem {
+  rpc Write(WriteRequest) returns (WriteResponse);
+  rpc Retrieve(RetrieveRequest) returns (RetrieveResponse);
+  rpc Explain(ExplainRequest) returns (ExplainResponse);
+  rpc Consolidate(ConsolidateRequest) returns (ConsolidateResponse);
+  rpc Inspect(InspectRequest) returns (InspectResponse);
+  rpc Feedback(FeedbackRequest) returns (FeedbackResponse);
+}

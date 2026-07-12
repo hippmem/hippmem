@@ -1,0 +1,18 @@
+{
+  "services": [
+    {
+      "id": 1,
+      "name": "Rust 编写服务",
+      "keyword": "Rust"
+    },
+    {
+      "id": 2,
+      "name": "Golang 微服务",
+      "keyword": "Golang"
+    }
+  ],
+  "_meta": {
+    "locale": "zh",
+    "description": "Chinese write pipeline test services"
+  }
+}
