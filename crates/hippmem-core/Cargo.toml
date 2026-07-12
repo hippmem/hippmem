@@ -8,6 +8,7 @@ homepage.workspace = true
 authors.workspace = true
 rust-version.workspace = true
 description = "Core domain types for HIPPMEM — MemoryUnit, AssociationLink, ActivationState, Clock/Rng traits, base error types"
+readme = "README.md"
 publish = false
 keywords = ["memory", "ai", "agent", "associative", "data-model"]
 categories = ["data-structures"]

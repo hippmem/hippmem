@@ -8,6 +8,7 @@ homepage.workspace = true
 authors.workspace = true
 rust-version.workspace = true
 description = "Model backends for HIPPMEM — Embedder, Extractor, Reranker, Summarizer traits and registry"
+readme = "README.md"
 publish = false
 keywords = ["memory", "ai", "embeddings", "llm", "reranking"]
 categories = ["api-bindings", "text-processing"]

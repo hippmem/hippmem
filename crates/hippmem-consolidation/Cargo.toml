@@ -8,6 +8,7 @@ homepage.workspace = true
 authors.workspace = true
 rust-version.workspace = true
 description = "Consolidation engine for HIPPMEM — Hebbian learning, decay, compaction, summarization, background worker"
+readme = "README.md"
 publish = false
 keywords = ["memory", "hebbian", "decay", "compaction", "consolidation"]
 categories = ["algorithms"]

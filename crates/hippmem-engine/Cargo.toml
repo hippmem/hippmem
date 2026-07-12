@@ -8,6 +8,7 @@ homepage.workspace = true
 authors.workspace = true
 rust-version.workspace = true
 description = "HIPPMEM native association memory engine — unified public Rust API orchestration layer"
+readme = "README.md"
 publish = false
 keywords = ["memory", "ai", "agent", "rag", "associative"]
 categories = ["database", "command-line-interface"]

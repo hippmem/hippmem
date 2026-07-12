@@ -8,6 +8,7 @@ homepage.workspace = true
 authors.workspace = true
 rust-version.workspace = true
 description = "HIPPMEM gRPC bindings — protobuf mapping for core types (optional)"
+readme = "README.md"
 publish = false
 keywords = ["memory", "grpc", "agent", "rpc", "protobuf"]
 categories = ["api-bindings", "network-programming"]

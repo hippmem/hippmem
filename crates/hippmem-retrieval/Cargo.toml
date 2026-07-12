@@ -8,6 +8,7 @@ homepage.workspace = true
 authors.workspace = true
 rust-version.workspace = true
 description = "Retrieval engine for HIPPMEM — multi-channel seed recall, spreading activation, rerank"
+readme = "README.md"
 publish = false
 keywords = ["memory", "rag", "retrieval", "spreading", "rerank"]
 categories = ["algorithms", "text-processing"]

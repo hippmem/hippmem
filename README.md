@@ -1,6 +1,8 @@
 # HIPPMEM
 
 [![CI](https://github.com/hippmem/hippmem/actions/workflows/ci.yml/badge.svg)](https://github.com/hippmem/hippmem/actions/workflows/ci.yml)
+[![crates.io](https://img.shields.io/crates/v/hippmem-engine.svg)](https://crates.io/crates/hippmem-engine)
+[![Documentation](https://docs.rs/hippmem-engine/badge.svg)](https://docs.rs/hippmem-engine)
 [![License](https://img.shields.io/badge/license-AGPL--3.0--only-blue.svg)](LICENSE)
 
 **A native associative memory engine for AI agents, written in Rust.**

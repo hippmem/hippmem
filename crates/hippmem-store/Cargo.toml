@@ -8,6 +8,7 @@ homepage.workspace = true
 authors.workspace = true
 rust-version.workspace = true
 description = "Storage and indexing for HIPPMEM — redb persistence, full-text index (Tantivy), vector index, graph store"
+readme = "README.md"
 publish = false
 keywords = ["memory", "storage", "vector", "fulltext", "redb"]
 categories = ["database"]
