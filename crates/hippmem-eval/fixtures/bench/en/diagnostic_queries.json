@@ -1,0 +1,10 @@
+{
+  "queries": [
+    {"query": "What is the user's preference for databases?", "expected_categories": ["user_prefs"], "description": "preference:database"},
+    {"query": "What are the user's work habits?", "expected_categories": ["user_prefs"], "description": "preference:work habits"},
+    {"query": "How was the HNSW performance issue solved?", "expected_categories": ["problem_solving"], "description": "causal:HNSW optimization"},
+    {"query": "What does the user value most in software?", "expected_categories": ["user_prefs", "tech_decisions"], "description": "implicit:values"},
+    {"query": "What changed regarding the Chinese language support claims?", "expected_categories": ["corrections"], "description": "correction:Chinese support"},
+    {"query": "Which technical decisions were later revised?", "expected_categories": ["corrections"], "description": "correction:decision revisions"}
+  ]
+}

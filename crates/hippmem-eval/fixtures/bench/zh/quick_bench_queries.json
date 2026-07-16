@@ -1,0 +1,19 @@
+{
+  "queries": [
+    {"query": "HIPPMEM 是什么？", "expected_categories": ["proj"], "description": "fact:project definition"},
+    {"query": "hippmem 用什么做存储？", "expected_categories": ["proj", "tech"], "description": "fact:storage solution"},
+    {"query": "引擎支持多少种关联边类型？", "expected_categories": ["proj"], "description": "fact:edge types"},
+    {"query": "用户喜欢用什么编辑器？", "expected_categories": ["pref"], "description": "preference:editor"},
+    {"query": "用户对数据库有什么偏好？", "expected_categories": ["pref"], "description": "preference:database"},
+    {"query": "为什么选择 Rust？", "expected_categories": ["tech", "ident"], "description": "decision:Rust"},
+    {"query": "为什么选择 redb？", "expected_categories": ["tech"], "description": "decision:redb"},
+    {"query": "OOM 问题怎么解决的？", "expected_categories": ["event", "tech"], "description": "causal:OOM"},
+    {"query": "HNSW 性能问题怎么解决的？", "expected_categories": ["solve"], "description": "causal:HNSW"},
+    {"query": "中文分词是怎么支持的？", "expected_categories": ["solve", "tech"], "description": "causal:tokenization"},
+    {"query": "项目的核心设计理念是什么？", "expected_categories": ["proj"], "description": "project:philosophy"},
+    {"query": "用户最看重软件的什么特性？", "expected_categories": ["pref", "tech"], "description": "implicit:values"},
+    {"query": "用户对系统架构有什么看法？", "expected_categories": ["pref", "ident"], "description": "implicit:architecture"},
+    {"query": "之前关于中文支持的说法有什么变化？", "expected_categories": ["corr"], "description": "correction:chinese"},
+    {"query": "今天中午吃什么？", "expected_categories": ["noise"], "description": "noise:lunch"}
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "case_id": "contradiction-detection-002",
+  "task_type": "ContradictionDetection",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "User said \"I don't like using frameworks — writing things by hand gives me more flexibility\"",
+      "content_type": "Preference",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m2",
+      "content": "The same user later rewrote the entire project using the Axum framework",
+      "content_type": "Decision",
+      "context": { "session_id": 2 }
+    }
+  ],
+  "query": {
+    "text": "What is the user's attitude toward frameworks",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": { "session_id": 2 }
+  },
+  "ground_truth": {
+    "relevant": ["m2", "m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Entity"],
+    "expected_warnings": ["HasContradiction"],
+    "expected_edges": [
+      { "from": "m2", "to": "m1", "link_type": "Contradiction" }
+    ]
+  }
+}

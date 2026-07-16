@@ -1,0 +1,42 @@
+{
+  "case_id": "long-tail-recall-001",
+  "task_type": "LongTailRecall",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "In the first week we discussed the requirements and scoped out the features",
+      "context": {
+        "session_id": 1
+      }
+    },
+    {
+      "local_id": "m2",
+      "content": "Two weeks later we had a working prototype ready for review",
+      "context": {
+        "session_id": 3
+      }
+    },
+    {
+      "local_id": "m3",
+      "content": "A month later the project was live in production",
+      "context": {
+        "session_id": 5
+      }
+    }
+  ],
+  "query": {
+    "text": "What did the project discuss at the very beginning",
+    "mode": "Deep",
+    "top_k": 5,
+    "context": {
+      "session_id": 6
+    }
+  },
+  "ground_truth": {
+    "relevant": ["m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Temporal"],
+    "expected_warnings": ["StaleFreshness"],
+    "expected_edges": []
+  }
+}

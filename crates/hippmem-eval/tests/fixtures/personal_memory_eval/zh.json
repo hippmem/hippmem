@@ -1,0 +1,20 @@
+{
+  "m1_identity": "我叫陈明，软件工程师，偏好用 Rust 开发后端服务，喜欢 redb 做嵌入式存储。",
+  "m2_projects": "我参与过多个 Rust 开源项目，包括 CLI 工具和数据库绑定。",
+  "m3_causal": "因为 RocksDB 编译太慢，决定用 redb 替代做嵌入式存储。",
+  "why_query": "我为什么选择 redb？",
+  "who_query": "我是谁？",
+  "job_query": "我做什么工作？",
+  "identity_keywords": [
+    "陈明",
+    "软件工程师"
+  ],
+  "causal_keywords": [
+    "RocksDB",
+    "编译太慢"
+  ],
+  "_meta": {
+    "locale": "zh",
+    "description": "Chinese personal memory eval data"
+  }
+}

@@ -1,0 +1,25 @@
+[package]
+name = "hippmem-eval"
+version = "0.1.0"
+edition.workspace = true
+license = "AGPL-3.0-only"
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "Evaluation framework for HIPPMEM — corpus loading, benchmark execution, metric computation, threshold verification"
+publish = false
+
+[features]
+api-backends = ["hippmem-model/api-backends"]
+
+[dependencies]
+hippmem-core = { path = "../hippmem-core", version = "0.1.0" }
+hippmem-engine = { path = "../hippmem-engine", version = "0.1.0" }
+serde.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+
+[dev-dependencies]
+hippmem-model = { path = "../hippmem-model", version = "0.1.0" }
+hippmem-write = { path = "../hippmem-write", version = "0.1.0" }
+hippmem-retrieval = { path = "../hippmem-retrieval", version = "0.1.0" }

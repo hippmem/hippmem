@@ -1,0 +1,54 @@
+{
+  "queries": [
+    {
+      "query": "Rust",
+      "expected_categories": ["Rust"],
+      "description": "Single-category query: Rust language"
+    },
+    {
+      "query": "Python programming",
+      "expected_categories": ["Python"],
+      "description": "Single-category query: Python language"
+    },
+    {
+      "query": "databases",
+      "expected_categories": ["Database"],
+      "description": "Single-category query: databases"
+    },
+    {
+      "query": "compiler",
+      "expected_categories": ["Compilation"],
+      "description": "Single-category query: compilation"
+    },
+    {
+      "query": "machine learning AI",
+      "expected_categories": ["AI"],
+      "description": "Single-category query: AI"
+    },
+    {
+      "query": "developer tools",
+      "expected_categories": ["Tools"],
+      "description": "Single-category query: tools"
+    },
+    {
+      "query": "Rust compilation",
+      "expected_categories": ["Rust", "Compilation"],
+      "description": "Cross-category query: Rust + compilation"
+    },
+    {
+      "query": "Python data analysis",
+      "expected_categories": ["Python"],
+      "description": "Single-category query: Python data analysis"
+    },
+    {
+      "query": "neural networks deep learning",
+      "expected_categories": ["AI"],
+      "description": "Single-category query: AI deep learning"
+    },
+    {
+      "query": "database indexing",
+      "expected_categories": ["Database"],
+      "description": "Single-category query: database indexing"
+    }
+  ]
+}

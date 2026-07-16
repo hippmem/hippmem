@@ -1,0 +1,53 @@
+{
+  "categories": [
+    {
+      "category": "Tech Decisions",
+      "texts": [
+        "Decided to rewrite the core engine in Rust for memory safety and performance.",
+        "Migrated the storage layer from RocksDB to redb for simpler compilation.",
+        "Chose Tantivy for full-text search; BM25 is a mature and reliable algorithm.",
+        "Used gRPC instead of REST for the API layer to enforce strong type contracts."
+      ]
+    },
+    {
+      "category": "User Preferences",
+      "texts": [
+        "The user prefers dark mode and dislikes harsh white backgrounds.",
+        "The user is a Vim user and has been using it for over 10 years.",
+        "The user favors functional programming style and avoids excessive mutable state."
+      ]
+    },
+    {
+      "category": "Project Background",
+      "texts": [
+        "HIPPMEM is a Rust-native associative memory engine designed to give AI agents long-term memory.",
+        "The project started in 2025 with the core idea of discovering associations at write time rather than assembling them at query time.",
+        "The engine uses no external database; all storage is built on redb + Tantivy."
+      ]
+    },
+    {
+      "category": "Problem Solving",
+      "texts": [
+        "Discovered that HNSW index search slowed down at million-scale data; root cause was excessive distance calculations.",
+        "By adding IVF coarse quantization pre-filtering, HNSW search speed improved by 5x.",
+        "Chinese tokenization previously only supported whitespace splitting; integrated jieba to solve Chinese entity extraction."
+      ]
+    },
+    {
+      "category": "Personal Habits",
+      "texts": [
+        "The user starts working at 8 AM every day and spends the first 30 minutes reading tech blogs.",
+        "The user prefers doing code reviews in the afternoon, believing focus is sharper at that time.",
+        "The user does a weekly summary and next-week planning every Friday afternoon."
+      ]
+    },
+    {
+      "category": "Toolchain",
+      "texts": [
+        "Uses GitHub Actions for CI/CD, automatically running tests and linting.",
+        "Monitoring uses Prometheus + Grafana; logging uses Loki.",
+        "Deployed on Kubernetes, managed with Helm charts."
+      ]
+    }
+  ]
+}

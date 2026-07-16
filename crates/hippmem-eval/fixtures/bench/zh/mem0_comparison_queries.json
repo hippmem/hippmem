@@ -1,0 +1,24 @@
+{
+  "queries": [
+    {"query": "HIPPMEM 是什么？", "expected_categories": ["project_knowledge"], "description": "fact: project definition"},
+    {"query": "hippmem 用什么做存储？", "expected_categories": ["project_knowledge", "tech_decisions"], "description": "fact: storage solution"},
+    {"query": "引擎支持多少种关联边类型？", "expected_categories": ["project_knowledge"], "description": "fact: edge type count"},
+    {"query": "用户喜欢用什么编辑器？", "expected_categories": ["user_prefs"], "description": "preference: editor"},
+    {"query": "用户对数据库有什么偏好？", "expected_categories": ["user_prefs"], "description": "preference: database"},
+    {"query": "用户的工作习惯是什么？", "expected_categories": ["user_prefs"], "description": "preference: work habits"},
+    {"query": "为什么选择 Rust？", "expected_categories": ["tech_decisions", "identity"], "description": "decision: Rust choice"},
+    {"query": "为什么选择 redb 而不是 RocksDB？", "expected_categories": ["tech_decisions"], "description": "decision: redb choice"},
+    {"query": "存储相关的技术决策有哪些？", "expected_categories": ["tech_decisions", "project_knowledge"], "description": "decision: storage related"},
+    {"query": "OOM 问题怎么解决的？", "expected_categories": ["events", "tech_decisions"], "description": "causal: OOM trace"},
+    {"query": "HNSW 性能问题怎么解决的？", "expected_categories": ["problem_solving"], "description": "causal: HNSW optimization"},
+    {"query": "中文分词是怎么支持的？", "expected_categories": ["problem_solving", "tech_decisions"], "description": "causal: Chinese tokenization"},
+    {"query": "项目的核心设计理念是什么？", "expected_categories": ["project_knowledge"], "description": "project: core philosophy"},
+    {"query": "引擎的检索模式有哪些？", "expected_categories": ["project_knowledge"], "description": "project: retrieval modes"},
+    {"query": "HIPPMEM 的知识演化机制是什么？", "expected_categories": ["project_knowledge"], "description": "project: evolution mechanism"},
+    {"query": "用户最看重软件的什么特性？", "expected_categories": ["user_prefs", "tech_decisions"], "description": "implicit: values"},
+    {"query": "用户对系统架构有什么看法？", "expected_categories": ["user_prefs", "identity"], "description": "implicit: architecture view"},
+    {"query": "之前关于中文支持的说法有什么变化？", "expected_categories": ["corrections"], "description": "correction: Chinese support"},
+    {"query": "哪些技术决策后来被修正了？", "expected_categories": ["corrections"], "description": "correction: decision revision"},
+    {"query": "今天中午吃什么？", "expected_categories": ["noise"], "description": "noise: lunch"}
+  ]
+}

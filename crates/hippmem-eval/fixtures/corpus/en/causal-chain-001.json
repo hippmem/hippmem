@@ -1,0 +1,48 @@
+{
+  "case_id": "causal-chain-001",
+  "task_type": "CausalTrace",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "After deploying to production we noticed response latency had tripled",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m2",
+      "content": "The slowdown was caused by database queries degrading under increased user load",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m3",
+      "content": "Added composite indexes to the database to address the bottleneck",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m4",
+      "content": "After the index optimization, query latency dropped from 200ms to 20ms",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m5",
+      "content": "Final root-cause summary: user growth led to database bottleneck, which was resolved by index optimization, restoring performance",
+      "context": { "session_id": 1 }
+    }
+  ],
+  "query": {
+    "text": "Why did the latency increase and how was it resolved",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": { "session_id": 2 }
+  },
+  "ground_truth": {
+    "relevant": ["m1", "m2", "m3", "m4"],
+    "also_acceptable": ["m5"],
+    "expected_dimensions": ["Causal", "Temporal"],
+    "expected_warnings": [],
+    "expected_edges": [
+      { "from": "m1", "to": "m2", "link_type": "Causal" },
+      { "from": "m2", "to": "m3", "link_type": "Causal" },
+      { "from": "m3", "to": "m4", "link_type": "Causal" }
+    ]
+  }
+}

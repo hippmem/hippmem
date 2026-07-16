@@ -1,0 +1,239 @@
+{
+  "sample_texts": [
+    {
+      "content": "The user said the weather is nice today and wants to go for a walk in the park.",
+      "ct": "UserStatement"
+    },
+    {
+      "content": "Decided to migrate the backend from Node.js to Rust due to clear performance bottlenecks.",
+      "ct": "Decision"
+    },
+    {
+      "content": "The user prefers dark-themed IDEs and dislikes bright backgrounds.",
+      "ct": "Preference"
+    },
+    {
+      "content": "The June 2026 Code Review meeting discussed the HNSW index optimization plan.",
+      "ct": "Event"
+    },
+    {
+      "content": "V3 bug fixes completed — all three defects resolved, CI passing.",
+      "ct": "TaskState"
+    },
+    {
+      "content": "hippmem uses redb for embedded storage, avoiding external database dependencies.",
+      "ct": "ProjectKnowledge"
+    },
+    {
+      "content": "In retrospect, choosing Rust was the right call — compile-time checks prevented many runtime bugs.",
+      "ct": "Reflection"
+    },
+    {
+      "content": "Previously claimed the engine did not support Chinese, but it actually does via the jieba tokenizer.",
+      "ct": "Correction"
+    }
+  ],
+  "sample_labels": [
+    "Walk in the park",
+    "Node.js backend migration to Rust",
+    "Dark theme IDE preference",
+    "HNSW index optimization Code Review",
+    "V3 bug fixes CI passing",
+    "hippmem redb embedded storage",
+    "Choosing Rust runtime bugs",
+    "Chinese jieba tokenizer support"
+  ],
+  "memories": [
+    {
+      "text": "Alice is a software engineer based in San Francisco, working primarily with Rust and Go.",
+      "ct": "Preference"
+    },
+    {
+      "text": "Bob's team is in Austin, Texas — their main project is a real-time recommendation engine.",
+      "ct": "ProjectKnowledge"
+    },
+    {
+      "text": "Carol leads product design. She prefers using Figma for UI prototypes and considers Sketch outdated.",
+      "ct": "Preference"
+    }
+  ],
+  "queries": {
+    "person": {
+      "query": "What does Alice do for work?",
+      "keywords": [
+        "Alice",
+        "software engineer",
+        "Rust"
+      ]
+    },
+    "team": {
+      "query": "What is the Austin team working on?",
+      "keywords": [
+        "Austin",
+        "Texas",
+        "recommendation"
+      ]
+    },
+    "tool": {
+      "query": "Who uses Figma?",
+      "keywords": [
+        "Figma",
+        "Carol",
+        "product design"
+      ]
+    }
+  },
+  "causal_test": {
+    "memories": [
+      "RocksDB compilation was too slow, so we decided to replace it with redb for embedded storage.",
+      "hippmem uses Tantivy for full-text search — the BM25 algorithm beats naive keyword matching.",
+      "We evaluated RocksDB, LMDB, sled, and redb for the storage layer. Chose redb because it's pure Rust and compiles quickly.",
+      "Chose Tantivy over Lucene for full-text indexing — Tantivy is Rust-native, faster, and simpler to compile.",
+      "Not a fan of the Java ecosystem — needing a JVM makes the toolchain too heavy."
+    ],
+    "query": "Why did we choose redb over RocksDB?"
+  },
+  "oom_test": {
+    "memories": [
+      "Production was OOMing after every deploy — memory spiked to 8GB, causing Pod restarts.",
+      "Root cause analysis: the index was fully loaded into memory at startup. Needs lazy loading.",
+      "Decision: switch index loading to mmap + lazy page faults. Estimated memory reduction to 200MB.",
+      "After deploying the lazy-load solution, startup memory stabilized at 180MB. OOM resolved, verified."
+    ],
+    "query": "How was the OOM issue resolved? Walk through the full process.",
+    "keywords": [
+      "root cause",
+      "fully loaded"
+    ],
+    "verify_keywords": [
+      "180MB",
+      "verified"
+    ]
+  },
+  "noise_test": {
+    "memories": [
+      "Rust is a systems programming language with zero-cost abstractions.",
+      "Systems languages (like C++/Rust) typically run 10-100x faster than scripting languages (like Python).",
+      "Modern game engines (Unreal/Unity) demand extreme performance, typically requiring systems languages."
+    ],
+    "query": "Is Rust suitable for game engine development?",
+    "keyword": "game engine"
+  },
+  "drift_test": {
+    "memories": [
+      "The user prefers MySQL for databases because they are familiar with SQL syntax.",
+      "The user reports MySQL performance is insufficient and has fully migrated to PostgreSQL, no longer using MySQL."
+    ],
+    "query": "What database does the user use now?"
+  },
+  "noise_topics": [
+    "Had Kung Pao chicken for lunch today — pretty good.",
+    "Subway line 10 was delayed by 15 minutes again.",
+    "The cat knocked a water glass off the table and it shattered.",
+    "Planning to go hiking this weekend, hope the weather holds up.",
+    "That new Netflix documentary is quite interesting."
+  ],
+  "activation_test": {
+    "memory": "HIPPMEM's spreading activation algorithm is based on Collins & Loftus's semantic network model.",
+    "query": "What is the theoretical foundation of HIPPMEM's spreading activation algorithm?",
+    "keywords": [
+      "spreading activation",
+      "HIPPMEM"
+    ]
+  },
+  "noise_filter_keywords": [
+    "lunch",
+    "subway",
+    "cat",
+    "hiking"
+  ],
+  "rust_memory_test": {
+    "memory": "Rust's ownership system guarantees thread safety through compile-time borrow checking.",
+    "query": "Rust memory safety mechanism",
+    "query2": "Rust memory safety"
+  },
+  "causal_migration_test": {
+    "memories": [
+      "Because compilation was painfully slow, the team decided to migrate from C++ to Go.",
+      "Go compile times are 10x faster than C++, dramatically improving developer productivity."
+    ],
+    "query": "Why did we migrate from C++ to Go?"
+  },
+  "long_tail_test": {
+    "memory": "In the third conversation, the user mentioned they worked on a quantitative trading project in 2020, writing a matching engine in Rust.",
+    "followups": [
+      "The weather is lovely today, perfect for a walk outside.",
+      "I've been reading a book on system design lately.",
+      "Kubernetes configuration management is really complex.",
+      "Planning to go grocery shopping this weekend.",
+      "I discovered a really nice coffee shop nearby."
+    ],
+    "query": "Does the user have any quantitative trading experience?",
+    "keywords": [
+      "quantitative trading",
+      "matching engine",
+      "2020"
+    ]
+  },
+  "embed_texts": [
+    "Hello world",
+    "HIPPMEM is a Rust-native memory engine"
+  ],
+  "_flat": {
+    "s0": "Chose Tantivy over Lucene for full-text indexing — Tantivy is Rust-native, faster, and simpler to compile.",
+    "s1": "We evaluated RocksDB, LMDB, sled, and redb for the storage layer. Chose redb because it's pure Rust and compiles quickly.",
+    "s2": "In the third conversation, the user mentioned they worked on a quantitative trading project in 2020, writing a matching engine in Rust.",
+    "s3": "Systems languages (like C++/Rust) typically run 10-100x faster than scripting languages (like Python).",
+    "s4": "Decision: switch index loading to mmap + lazy page faults. Estimated memory reduction to 200MB.",
+    "s5": "The user reports MySQL performance is insufficient and has fully migrated to PostgreSQL, no longer using MySQL.",
+    "s6": "HIPPMEM's spreading activation algorithm is based on Collins & Loftus's semantic network model.",
+    "s7": "After deploying the lazy-load solution, startup memory stabilized at 180MB. OOM resolved, verified.",
+    "s8": "hippmem uses Tantivy for full-text search — the BM25 algorithm beats naive keyword matching.",
+    "s9": "Rust's ownership system guarantees thread safety through compile-time borrow checking.",
+    "s10": "Modern game engines (Unreal/Unity) demand extreme performance, typically requiring systems languages.",
+    "s11": "Go compile times are 10x faster than C++, dramatically improving developer productivity.",
+    "s12": "RocksDB compilation was too slow, so we decided to replace it with redb for embedded storage.",
+    "s13": "Production was OOMing after every deploy — memory spiked to 8GB, causing Pod restarts.",
+    "s14": "Not a fan of the Java ecosystem — needing a JVM makes the toolchain too heavy.",
+    "s15": "The user prefers MySQL for databases because they are familiar with SQL syntax.",
+    "s16": "Root cause analysis: the index was fully loaded into memory at startup. Needs lazy loading.",
+    "s17": "Because compilation was painfully slow, the team decided to migrate from C++ to Go.",
+    "s18": "What is the theoretical foundation of HIPPMEM's spreading activation algorithm?",
+    "s19": "Rust is a systems programming language with zero-cost abstractions.",
+    "s20": "Why did we choose redb over RocksDB?",
+    "s21": "HIPPMEM is a Rust-native memory engine",
+    "s22": "Subway line 10 was delayed by 15 minutes again.",
+    "s23": "How was the OOM issue resolved? Walk through the full process.",
+    "s24": "Kubernetes configuration management is really complex.",
+    "s25": "That new Netflix documentary is quite interesting.",
+    "s26": "Why did we migrate from C++ to Go?",
+    "s27": "Had Kung Pao chicken for lunch today — pretty good.",
+    "s28": "I've been reading a book on system design lately.",
+    "s29": "The cat knocked a water glass off the table and it shattered.",
+    "s30": "Planning to go hiking this weekend, hope the weather holds up.",
+    "s31": "Is Rust suitable for game engine development?",
+    "s32": "The weather is lovely today, perfect for a walk outside.",
+    "s33": "I discovered a really nice coffee shop nearby.",
+    "s34": "Does the user have any quantitative trading experience?",
+    "s35": "What database does the user use now?",
+    "s36": "Rust memory safety mechanism",
+    "s37": "Planning to go grocery shopping this weekend.",
+    "s38": "Rust memory safety",
+    "s39": "Hello world",
+    "s40": "game engine",
+    "s41": "fully loaded",
+    "s42": "matching engine",
+    "s43": "spreading activation",
+    "s44": "quantitative trading",
+    "s45": "verified",
+    "s46": "lunch",
+    "s47": "root cause",
+    "s48": "hiking",
+    "s49": "subway",
+    "s50": "cat"
+  },
+  "_meta": {
+    "locale": "en",
+    "description": "English user perspective eval data"
+  }
+}

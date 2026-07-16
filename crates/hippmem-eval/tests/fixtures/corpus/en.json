@@ -1,0 +1,12 @@
+{
+  "_meta": {
+    "locale": "en",
+    "description": "English eval corpus: write and query samples"
+  },
+  "writes": [
+    "We are using redb for storage"
+  ],
+  "queries": [
+    "Why not use RocksDB for storage"
+  ]
+}

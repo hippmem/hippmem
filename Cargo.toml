@@ -4,6 +4,7 @@ members = [
     "crates/hippmem-consolidation",
     "crates/hippmem-core",
     "crates/hippmem-engine",
+    "crates/hippmem-eval",
     "crates/hippmem-grpc",
     "crates/hippmem-model",
     "crates/hippmem-retrieval",

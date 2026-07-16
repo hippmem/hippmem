@@ -1,0 +1,31 @@
+{
+  "case_id": "state-change-003",
+  "task_type": "StateChange",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "In the first half of the year the project was in an exploratory phase with undecided tech choices",
+      "content_type": "Reflection",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m2",
+      "content": "In the second half the tech stack was finalized and formal development began",
+      "content_type": "TaskState",
+      "context": { "session_id": 2 }
+    }
+  ],
+  "query": {
+    "text": "How did the project phase change",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": { "session_id": 2 }
+  },
+  "ground_truth": {
+    "relevant": ["m2", "m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Temporal"],
+    "expected_warnings": [],
+    "expected_edges": []
+  }
+}

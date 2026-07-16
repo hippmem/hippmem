@@ -1,0 +1,31 @@
+{
+  "case_id": "contradiction-detection-001",
+  "task_type": "ContradictionDetection",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "We are using RocksDB as the primary storage engine",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m2",
+      "content": "Decided to drop RocksDB and migrate to redb instead",
+      "context": { "session_id": 2 }
+    }
+  ],
+  "query": {
+    "text": "What storage engine are we using right now",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": { "session_id": 3 }
+  },
+  "ground_truth": {
+    "relevant": ["m2"],
+    "also_acceptable": ["m1"],
+    "expected_dimensions": ["Entity", "Causal"],
+    "expected_warnings": ["HasContradiction"],
+    "expected_edges": [
+      { "from": "m2", "to": "m1", "link_type": "Causal" }
+    ]
+  }
+}

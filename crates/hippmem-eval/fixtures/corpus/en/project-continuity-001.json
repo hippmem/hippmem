@@ -1,0 +1,41 @@
+{
+  "case_id": "project-continuity-001",
+  "task_type": "ProjectContinuity",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "The project uses redb for storage",
+      "context": {
+        "session_id": 1
+      }
+    },
+    {
+      "local_id": "m2",
+      "content": "redb's write performance is excellent",
+      "context": {
+        "session_id": 2
+      }
+    }
+  ],
+  "query": {
+    "text": "What does the project use for storage",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": {
+      "session_id": 3
+    }
+  },
+  "ground_truth": {
+    "relevant": ["m1"],
+    "also_acceptable": ["m2"],
+    "expected_dimensions": ["Entity", "Topic"],
+    "expected_warnings": [],
+    "expected_edges": [
+      {
+        "from": "m2",
+        "to": "m1",
+        "link_type": "EntityOverlap"
+      }
+    ]
+  }
+}

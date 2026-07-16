@@ -1,0 +1,35 @@
+{
+  "case_id": "preference-recall-001",
+  "task_type": "PreferenceRecall",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "I like writing programs in Rust",
+      "context": {
+        "session_id": 1
+      }
+    },
+    {
+      "local_id": "m2",
+      "content": "Python is great for rapid prototyping",
+      "context": {
+        "session_id": 1
+      }
+    }
+  ],
+  "query": {
+    "text": "What language does the user prefer",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": {
+      "session_id": 2
+    }
+  },
+  "ground_truth": {
+    "relevant": ["m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Entity"],
+    "expected_warnings": [],
+    "expected_edges": []
+  }
+}

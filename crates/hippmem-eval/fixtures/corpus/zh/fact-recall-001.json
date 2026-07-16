@@ -1,0 +1,33 @@
+{
+  "case_id": "fact-recall-001",
+  "task_type": "FactRecall",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "我在用 redb 做存储",
+      "content_type": "ProjectKnowledge",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m2",
+      "content": "因为 RocksDB 编译太重,所以换掉了它",
+      "content_type": "Decision",
+      "context": { "session_id": 1 }
+    }
+  ],
+  "query": {
+    "text": "存储为什么不用 RocksDB",
+    "mode": "Balanced",
+    "top_k": 10,
+    "context": { "session_id": 2 }
+  },
+  "ground_truth": {
+    "relevant": ["m2"],
+    "also_acceptable": ["m1"],
+    "expected_dimensions": ["Causal", "Entity"],
+    "expected_warnings": [],
+    "expected_edges": [
+      { "from": "m2", "to": "m1", "link_type": "Causal" }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "writes": [
+    "我在用 redb 做存储"
+  ],
+  "queries": [
+    "存储为什么不用 RocksDB"
+  ],
+  "_meta": {
+    "locale": "zh",
+    "description": "Chinese eval corpus: write and query samples"
+  }
+}

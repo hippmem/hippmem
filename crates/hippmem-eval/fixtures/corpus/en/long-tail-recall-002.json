@@ -1,0 +1,43 @@
+{
+  "case_id": "long-tail-recall-002",
+  "task_type": "LongTailRecall",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "Six months ago we discussed the feasibility of replacing C++ with Rust",
+      "content_type": "Reflection",
+      "context": {
+        "session_id": 1
+      }
+    },
+    {
+      "local_id": "m2",
+      "content": "We finally completed the migration recently — performance stayed the same but safety improved dramatically",
+      "content_type": "TaskState",
+      "context": {
+        "session_id": 6
+      }
+    }
+  ],
+  "query": {
+    "text": "What is the progress on replacing C++ with Rust",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": {
+      "session_id": 6
+    }
+  },
+  "ground_truth": {
+    "relevant": ["m1", "m2"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Temporal"],
+    "expected_warnings": [],
+    "expected_edges": [
+      {
+        "from": "m2",
+        "to": "m1",
+        "link_type": "EntityOverlap"
+      }
+    ]
+  }
+}

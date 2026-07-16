@@ -1,0 +1,43 @@
+{
+  "case_id": "implicit-association-003",
+  "task_type": "ImplicitAssociation",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "The user was looking for a high-performance storage solution",
+      "content_type": "UserStatement",
+      "context": {
+        "session_id": 1
+      }
+    },
+    {
+      "local_id": "m2",
+      "content": "After comparing options we picked redb because it is pure Rust and delivers great performance",
+      "content_type": "Decision",
+      "context": {
+        "session_id": 1
+      }
+    }
+  ],
+  "query": {
+    "text": "What was the basis for choosing the storage solution",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": {
+      "session_id": 2
+    }
+  },
+  "ground_truth": {
+    "relevant": ["m2", "m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Entity"],
+    "expected_warnings": [],
+    "expected_edges": [
+      {
+        "from": "m2",
+        "to": "m1",
+        "link_type": "SemanticSimilar"
+      }
+    ]
+  }
+}

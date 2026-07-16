@@ -1,0 +1,62 @@
+{
+  "case_id": "entity-network-001",
+  "task_type": "FactRecall",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "Rust's ownership model traces its roots back to the RAII idiom from C++",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m2",
+      "content": "C++ smart pointers like shared_ptr are built on reference counting",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m3",
+      "content": "Rust's Rc type is similar to shared_ptr but is not thread-safe",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m4",
+      "content": "Arc is Rust's atomic reference-counted smart pointer",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m5",
+      "content": "Reference counting is commonly used when modeling graph data structures",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m6",
+      "content": "Rust's borrow checker eliminates the need for reference counting in many cases",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m7",
+      "content": "Swift also uses automatic reference counting, abbreviated as ARC",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m8",
+      "content": "Garbage collection is the main alternative to reference counting for memory management",
+      "context": { "session_id": 1 }
+    }
+  ],
+  "query": {
+    "text": "Rust reference counting and ownership model",
+    "mode": "Balanced",
+    "top_k": 8,
+    "context": { "session_id": 2 }
+  },
+  "ground_truth": {
+    "relevant": ["m1", "m3", "m4", "m6"],
+    "also_acceptable": ["m2", "m5"],
+    "expected_dimensions": ["Entity"],
+    "expected_warnings": [],
+    "expected_edges": [
+      { "from": "m1", "to": "m2", "link_type": "EntityOverlap" },
+      { "from": "m3", "to": "m4", "link_type": "EntityOverlap" }
+    ]
+  }
+}

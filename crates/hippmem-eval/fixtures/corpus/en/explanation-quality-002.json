@@ -1,0 +1,33 @@
+{
+  "case_id": "explanation-quality-002",
+  "task_type": "ExplanationQuality",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "The queries are slow because there's no index on the lookup field",
+      "content_type": "Reflection",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m2",
+      "content": "So we added a B-Tree index on the query column to speed things up",
+      "content_type": "Decision",
+      "context": { "session_id": 1 }
+    }
+  ],
+  "query": {
+    "text": "What did we do to optimize the queries",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": { "session_id": 2 }
+  },
+  "ground_truth": {
+    "relevant": ["m2"],
+    "also_acceptable": ["m1"],
+    "expected_dimensions": ["Causal"],
+    "expected_warnings": [],
+    "expected_edges": [
+      { "from": "m2", "to": "m1", "link_type": "Causal" }
+    ]
+  }
+}

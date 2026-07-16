@@ -1,0 +1,31 @@
+{
+  "case_id": "state-change-002",
+  "task_type": "StateChange",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "The user just started learning Rust and is unfamiliar with the ownership concept",
+      "content_type": "UserStatement",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m2",
+      "content": "Three months later, the user is proficient in Rust and developing projects with it",
+      "content_type": "UserStatement",
+      "context": { "session_id": 2 }
+    }
+  ],
+  "query": {
+    "text": "User's Rust proficiency change",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": { "session_id": 2 }
+  },
+  "ground_truth": {
+    "relevant": ["m2", "m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Temporal"],
+    "expected_warnings": [],
+    "expected_edges": []
+  }
+}

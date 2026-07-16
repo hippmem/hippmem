@@ -1,0 +1,31 @@
+{
+  "case_id": "state-change-004",
+  "task_type": "StateChange",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "Performance bottleneck: current QPS is only 500",
+      "content_type": "TaskState",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m2",
+      "content": "After optimization, QPS reached 2000 and the bottleneck was resolved",
+      "content_type": "TaskState",
+      "context": { "session_id": 2 }
+    }
+  ],
+  "query": {
+    "text": "Has the performance issue been resolved",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": { "session_id": 2 }
+  },
+  "ground_truth": {
+    "relevant": ["m2", "m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Temporal"],
+    "expected_warnings": [],
+    "expected_edges": []
+  }
+}

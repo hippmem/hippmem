@@ -1,0 +1,64 @@
+{
+  "categories": [
+    {
+      "category": "Rust",
+      "texts": [
+        "Rust's ownership system guarantees memory safety at compile time",
+        "Use cargo build to compile a Rust project",
+        "Rust traits are similar to interfaces in other languages",
+        "Rust async programming uses the async/await syntax",
+        "Rust's match expression supports powerful pattern matching"
+      ]
+    },
+    {
+      "category": "Python",
+      "texts": [
+        "Python's list comprehensions are concise and expressive",
+        "Use pip install to add Python packages",
+        "Python decorators can modify function behavior at runtime",
+        "Python's pandas library is the standard for data analysis",
+        "Python is a dynamically typed language"
+      ]
+    },
+    {
+      "category": "Databases",
+      "texts": [
+        "Relational databases use SQL as their query language",
+        "redb is a pure Rust embedded database engine",
+        "Indexes can dramatically speed up database queries",
+        "NoSQL databases trade the relational model for horizontal scalability",
+        "Transactions guarantee the ACID properties of database operations"
+      ]
+    },
+    {
+      "category": "Compilation",
+      "texts": [
+        "Rust's borrow checker enforces ownership rules at compile time",
+        "Compiled languages generally run faster than interpreted ones",
+        "JIT compilation combines the benefits of interpretation and compilation",
+        "Cross-compilation enables building binaries for different target platforms",
+        "Incremental compilation only rebuilds the parts of code that changed"
+      ]
+    },
+    {
+      "category": "AI",
+      "texts": [
+        "Deep learning uses neural networks for pattern recognition",
+        "Large language models are based on the Transformer architecture",
+        "Embedding vectors map text into a semantic vector space",
+        "RAG combines retrieval and generation to improve answer accuracy",
+        "Fine-tuning adapts a pretrained model to a specific downstream task"
+      ]
+    },
+    {
+      "category": "Tools",
+      "texts": [
+        "Git is the most widely used version control system",
+        "Docker containerization simplifies the deployment process",
+        "VS Code is a popular code editor with a rich extension ecosystem",
+        "CI/CD pipelines automate testing and deployment workflows",
+        "Linux command-line tools are highly efficient for text processing"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "case_id": "implicit-association-002",
+  "task_type": "ImplicitAssociation",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "The team values clean, readable code above clever abstractions",
+      "content_type": "Preference",
+      "context": {
+        "session_id": 1
+      }
+    },
+    {
+      "local_id": "m2",
+      "content": "We chose Rust because its expressiveness leads to clear, maintainable code",
+      "content_type": "Decision",
+      "context": {
+        "session_id": 1
+      }
+    }
+  ],
+  "query": {
+    "text": "Why did the team choose Rust",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": {
+      "session_id": 2
+    }
+  },
+  "ground_truth": {
+    "relevant": ["m2", "m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Entity"],
+    "expected_warnings": [],
+    "expected_edges": [
+      {
+        "from": "m2",
+        "to": "m1",
+        "link_type": "SemanticSimilar"
+      }
+    ]
+  }
+}

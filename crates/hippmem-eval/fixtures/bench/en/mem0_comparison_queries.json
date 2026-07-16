@@ -1,0 +1,24 @@
+{
+  "queries": [
+    {"query": "What is HIPPMEM?", "expected_categories": ["project_knowledge"], "description": "fact: project definition"},
+    {"query": "What does HIPPMEM use for storage?", "expected_categories": ["project_knowledge", "tech_decisions"], "description": "fact: storage solution"},
+    {"query": "How many association edge types does the engine support?", "expected_categories": ["project_knowledge"], "description": "fact: edge type count"},
+    {"query": "What editor does the user prefer?", "expected_categories": ["user_prefs"], "description": "preference: editor"},
+    {"query": "What database does the user prefer?", "expected_categories": ["user_prefs"], "description": "preference: database"},
+    {"query": "What are the user's work habits?", "expected_categories": ["user_prefs"], "description": "preference: work habits"},
+    {"query": "Why was Rust chosen?", "expected_categories": ["tech_decisions", "identity"], "description": "decision: Rust choice"},
+    {"query": "Why was redb chosen over RocksDB?", "expected_categories": ["tech_decisions"], "description": "decision: redb choice"},
+    {"query": "What tech decisions were made around storage?", "expected_categories": ["tech_decisions", "project_knowledge"], "description": "decision: storage related"},
+    {"query": "How was the OOM issue resolved?", "expected_categories": ["events", "tech_decisions"], "description": "causal: OOM trace"},
+    {"query": "How was the HNSW performance issue resolved?", "expected_categories": ["problem_solving"], "description": "causal: HNSW optimization"},
+    {"query": "How is Chinese tokenization supported?", "expected_categories": ["problem_solving", "tech_decisions"], "description": "causal: Chinese tokenization"},
+    {"query": "What is the core design philosophy of the project?", "expected_categories": ["project_knowledge"], "description": "project: core philosophy"},
+    {"query": "What retrieval modes does the engine support?", "expected_categories": ["project_knowledge"], "description": "project: retrieval modes"},
+    {"query": "What is HIPPMEM's memory evolution mechanism?", "expected_categories": ["project_knowledge"], "description": "project: evolution mechanism"},
+    {"query": "What software qualities does the user value most?", "expected_categories": ["user_prefs", "tech_decisions"], "description": "implicit: values"},
+    {"query": "What does the user think about system architecture?", "expected_categories": ["user_prefs", "identity"], "description": "implicit: architecture view"},
+    {"query": "What changed regarding the Chinese language support claim?", "expected_categories": ["corrections"], "description": "correction: Chinese support"},
+    {"query": "Which technical decisions were later revised?", "expected_categories": ["corrections"], "description": "correction: decision revision"},
+    {"query": "What should I eat for lunch today?", "expected_categories": ["noise"], "description": "noise: lunch"}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "queries": [
+    {"query": "用户对数据库有什么偏好？", "expected_categories": ["user_prefs"], "description": "偏好:数据库"},
+    {"query": "用户的工作习惯是什么？", "expected_categories": ["user_prefs"], "description": "偏好:工作习惯"},
+    {"query": "HNSW 性能问题怎么解决的？", "expected_categories": ["problem_solving"], "description": "因果:HNSW优化"},
+    {"query": "用户最看重软件的什么特性？", "expected_categories": ["user_prefs", "tech_decisions"], "description": "隐式:价值观"},
+    {"query": "之前关于中文支持的说法有什么变化？", "expected_categories": ["corrections"], "description": "修正:中文支持"},
+    {"query": "哪些技术决策后来被修正了？", "expected_categories": ["corrections"], "description": "修正:决策修正"}
+  ]
+}

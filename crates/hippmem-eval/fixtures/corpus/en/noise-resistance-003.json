@@ -1,0 +1,32 @@
+{
+  "case_id": "noise-resistance-003",
+  "task_type": "NoiseResistance",
+  "writes": [
+    {
+      "local_id": "noise_1",
+      "content": "What I had for lunch doesn't matter",
+      "content_type": "UserStatement",
+      "context": { "session_id": 1 },
+      "n": 5
+    },
+    {
+      "local_id": "m1",
+      "content": "The team decided to use PostgreSQL as the primary database",
+      "content_type": "Decision",
+      "context": { "session_id": 1 }
+    }
+  ],
+  "query": {
+    "text": "What database are we using?",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": { "session_id": 2 }
+  },
+  "ground_truth": {
+    "relevant": ["m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Entity"],
+    "expected_warnings": [],
+    "expected_edges": []
+  }
+}

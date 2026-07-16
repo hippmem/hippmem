@@ -1,0 +1,31 @@
+{
+  "case_id": "state-change-001",
+  "task_type": "StateChange",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "The project is still in the design phase",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m2",
+      "content": "The storage module has been fully implemented",
+      "context": { "session_id": 2 }
+    }
+  ],
+  "query": {
+    "text": "What phase is the project in",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": { "session_id": 3 }
+  },
+  "ground_truth": {
+    "relevant": ["m2"],
+    "also_acceptable": ["m1"],
+    "expected_dimensions": ["Temporal", "Topic"],
+    "expected_warnings": [],
+    "expected_edges": [
+      { "from": "m2", "to": "m1", "link_type": "TemporalAdjacent" }
+    ]
+  }
+}

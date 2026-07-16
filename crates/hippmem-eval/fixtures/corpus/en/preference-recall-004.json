@@ -1,0 +1,43 @@
+{
+  "case_id": "preference-recall-004",
+  "task_type": "PreferenceRecall",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "The user thinks Rust's error handling is remarkably elegant",
+      "content_type": "Preference",
+      "context": {
+        "session_id": 1
+      }
+    },
+    {
+      "local_id": "m2",
+      "content": "Compared to Go's error handling, Rust's Result type is much more favored",
+      "content_type": "Reflection",
+      "context": {
+        "session_id": 1
+      }
+    }
+  ],
+  "query": {
+    "text": "What does the user think about Rust",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": {
+      "session_id": 2
+    }
+  },
+  "ground_truth": {
+    "relevant": ["m1"],
+    "also_acceptable": ["m2"],
+    "expected_dimensions": ["Entity"],
+    "expected_warnings": [],
+    "expected_edges": [
+      {
+        "from": "m2",
+        "to": "m1",
+        "link_type": "EntityOverlap"
+      }
+    ]
+  }
+}

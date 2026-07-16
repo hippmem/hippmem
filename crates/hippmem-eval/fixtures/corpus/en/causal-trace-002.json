@@ -1,0 +1,33 @@
+{
+  "case_id": "causal-trace-002",
+  "task_type": "CausalTrace",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "The service went down because the disk ran out of space",
+      "content_type": "Event",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m2",
+      "content": "In response to the outage, we added disk space monitoring and alerting",
+      "content_type": "Decision",
+      "context": { "session_id": 1 }
+    }
+  ],
+  "query": {
+    "text": "Why were monitoring alerts added",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": { "session_id": 2 }
+  },
+  "ground_truth": {
+    "relevant": ["m2", "m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Causal"],
+    "expected_warnings": [],
+    "expected_edges": [
+      { "from": "m2", "to": "m1", "link_type": "Causal" }
+    ]
+  }
+}

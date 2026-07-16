@@ -1,0 +1,43 @@
+{
+  "case_id": "preference-recall-003",
+  "task_type": "PreferenceRecall",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "Alex prefers local-first tools and dislikes depending on cloud services",
+      "content_type": "Preference",
+      "context": {
+        "session_id": 1
+      }
+    },
+    {
+      "local_id": "m2",
+      "content": "Since the network is unreliable, try to use solutions that work offline whenever possible",
+      "content_type": "Decision",
+      "context": {
+        "session_id": 1
+      }
+    }
+  ],
+  "query": {
+    "text": "What are Alex's tool preferences",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": {
+      "session_id": 2
+    }
+  },
+  "ground_truth": {
+    "relevant": ["m1"],
+    "also_acceptable": ["m2"],
+    "expected_dimensions": ["Entity"],
+    "expected_warnings": [],
+    "expected_edges": [
+      {
+        "from": "m2",
+        "to": "m1",
+        "link_type": "Causal"
+      }
+    ]
+  }
+}

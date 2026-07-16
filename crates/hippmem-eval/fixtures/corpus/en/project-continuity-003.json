@@ -1,0 +1,33 @@
+{
+  "case_id": "project-continuity-003",
+  "task_type": "ProjectContinuity",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "Built a prototype using Python for the initial validation",
+      "content_type": "ProjectKnowledge",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m2",
+      "content": "Rewrote the second version in Rust, achieving 10x performance improvement",
+      "content_type": "Decision",
+      "context": { "session_id": 2 }
+    }
+  ],
+  "query": {
+    "text": "How has the project's tech stack evolved",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": { "session_id": 2 }
+  },
+  "ground_truth": {
+    "relevant": ["m2", "m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Entity"],
+    "expected_warnings": [],
+    "expected_edges": [
+      { "from": "m2", "to": "m1", "link_type": "EntityOverlap" }
+    ]
+  }
+}

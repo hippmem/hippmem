@@ -1,0 +1,74 @@
+{
+  "case_id": "multi-dim-assoc-001",
+  "task_type": "ImplicitAssociation",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "Built full-text search with Tantivy in Rust today",
+      "context": { "session_id": 1, "project_id": 100 }
+    },
+    {
+      "local_id": "m2",
+      "content": "Tantivy's BM25 scoring algorithm delivers great retrieval results",
+      "context": { "session_id": 1, "project_id": 100 }
+    },
+    {
+      "local_id": "m3",
+      "content": "Optimized Tantivy index write performance this afternoon",
+      "context": { "session_id": 2, "project_id": 100 }
+    },
+    {
+      "local_id": "m4",
+      "content": "Wrote a data analysis script in Python",
+      "context": { "session_id": 3 }
+    },
+    {
+      "local_id": "m5",
+      "content": "Python pandas makes CSV processing really convenient",
+      "context": { "session_id": 3 }
+    },
+    {
+      "local_id": "m6",
+      "content": "Searched Python-related technical docs using Tantivy",
+      "context": { "session_id": 4, "project_id": 100 }
+    },
+    {
+      "local_id": "m7",
+      "content": "Migrated the Tantivy index to an SSD",
+      "context": { "session_id": 5, "project_id": 100 }
+    },
+    {
+      "local_id": "m8",
+      "content": "The project's CI pipeline needs build speed optimization",
+      "context": { "session_id": 5, "project_id": 100 }
+    },
+    {
+      "local_id": "m9",
+      "content": "Found Tantivy performance optimization tips on GitHub",
+      "context": { "session_id": 5, "project_id": 100 }
+    },
+    {
+      "local_id": "m10",
+      "content": "Finally decided to adopt Tantivy as the default full-text search engine",
+      "context": { "session_id": 6, "project_id": 100 }
+    }
+  ],
+  "query": {
+    "text": "Tantivy full-text search",
+    "mode": "Balanced",
+    "top_k": 10,
+    "context": { "session_id": 6, "project_id": 100 }
+  },
+  "ground_truth": {
+    "relevant": ["m1", "m2", "m3", "m7", "m10"],
+    "also_acceptable": ["m6", "m9"],
+    "expected_dimensions": ["Entity", "Topic", "Temporal"],
+    "expected_warnings": [],
+    "expected_edges": [
+      { "from": "m1", "to": "m2", "link_type": "EntityOverlap" },
+      { "from": "m1", "to": "m3", "link_type": "TopicRelated" },
+      { "from": "m3", "to": "m7", "link_type": "TopicRelated" },
+      { "from": "m7", "to": "m10", "link_type": "TopicRelated" }
+    ]
+  }
+}

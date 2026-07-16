@@ -1,0 +1,32 @@
+{
+  "case_id": "noise-resistance-002",
+  "task_type": "NoiseResistance",
+  "writes": [
+    {
+      "local_id": "noise_1",
+      "content": "The weather is great today, perfect for a walk",
+      "content_type": "UserStatement",
+      "context": { "session_id": 1 },
+      "n": 3
+    },
+    {
+      "local_id": "m1",
+      "content": "The project codebase has been migrated to GitHub",
+      "content_type": "ProjectKnowledge",
+      "context": { "session_id": 1 }
+    }
+  ],
+  "query": {
+    "text": "Where is the codebase hosted?",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": { "session_id": 2 }
+  },
+  "ground_truth": {
+    "relevant": ["m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Entity"],
+    "expected_warnings": [],
+    "expected_edges": []
+  }
+}

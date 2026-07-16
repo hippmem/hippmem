@@ -1,0 +1,239 @@
+{
+  "sample_texts": [
+    {
+      "content": "用户说今天天气不错，想去公园散步。",
+      "ct": "UserStatement"
+    },
+    {
+      "content": "决定将后端从 Node.js 迁移到 Rust，因为性能瓶颈明显。",
+      "ct": "Decision"
+    },
+    {
+      "content": "用户偏好深色主题的 IDE，不喜欢亮色背景。",
+      "ct": "Preference"
+    },
+    {
+      "content": "2026年6月 Code Review 会议讨论了 HNSW 索引优化方案。",
+      "ct": "Event"
+    },
+    {
+      "content": "V3 修复任务已完成，三个缺陷全部修复，CI 通过。",
+      "ct": "TaskState"
+    },
+    {
+      "content": "hippmem 使用 redb 做嵌入式存储，避免外部数据库依赖。",
+      "ct": "ProjectKnowledge"
+    },
+    {
+      "content": "回顾来看，选择 Rust 是正确的——编译时检查避免了大量运行时 bug。",
+      "ct": "Reflection"
+    },
+    {
+      "content": "之前说引擎不支持中文，实际已通过 jieba 分词支持了中文。",
+      "ct": "Correction"
+    }
+  ],
+  "sample_labels": [
+    "公园散步",
+    "Node.js 后端迁移 Rust",
+    "深色主题 IDE 偏好",
+    "HNSW 索引优化 Code Review",
+    "V3 修复 CI 通过",
+    "hippmem redb 嵌入式存储",
+    "选择 Rust 运行时 bug",
+    "中文分词 jieba 支持"
+  ],
+  "memories": [
+    {
+      "text": "陈明是一名软件工程师，在杭州西湖区工作，常用 Rust 和 Python。",
+      "ct": "Preference"
+    },
+    {
+      "text": "李明的团队在深圳南山科技园，他们的主要项目是自动驾驶感知算法。",
+      "ct": "ProjectKnowledge"
+    },
+    {
+      "text": "王芳负责产品设计，她偏好使用 Figma 做界面原型，认为 Sketch 已经过时了。",
+      "ct": "Preference"
+    }
+  ],
+  "queries": {
+    "person": {
+      "query": "陈明做什么工作？",
+      "keywords": [
+        "陈明",
+        "软件工程师",
+        "Rust"
+      ]
+    },
+    "team": {
+      "query": "深圳的团队在做什么？",
+      "keywords": [
+        "深圳",
+        "南山",
+        "自动驾驶"
+      ]
+    },
+    "tool": {
+      "query": "谁在用 Figma？",
+      "keywords": [
+        "Figma",
+        "王芳",
+        "产品设计"
+      ]
+    }
+  },
+  "causal_test": {
+    "memories": [
+      "因为 RocksDB 编译太慢，决定用 redb 替代做嵌入式存储。",
+      "hippmem 使用 Tantivy 做全文检索，BM25 算法比简单关键词匹配强。",
+      "存储层选型对比了 RocksDB、LMDB、sled 和 redb，最终选 redb 因为纯 Rust 且编译简单。",
+      "全文索引选 Tantivy 而非 Lucene，因为 Tantivy 是 Rust 原生，性能更好的同时编译也简单。",
+      "不喜欢用 Java 生态，因为需要装 JVM，编译链太重了。"
+    ],
+    "query": "为什么选择 redb 而不是 RocksDB？"
+  },
+  "oom_test": {
+    "memories": [
+      "生产环境每次部署后 OOM，内存飙升到 8GB，导致 Pod 重启。",
+      "根因分析：启动时全量加载索引到内存，需要改为懒加载。",
+      "决策：将索引加载改为 mmap + lazy page fault，预计内存降到 200MB。",
+      "部署 lazy load 方案后，启动内存稳定在 180MB，OOM 消失，验证通过。"
+    ],
+    "query": "OOM 问题怎么解决的？完整过程是什么？",
+    "keywords": [
+      "根因",
+      "全量加载"
+    ],
+    "verify_keywords": [
+      "180MB",
+      "验证"
+    ]
+  },
+  "noise_test": {
+    "memories": [
+      "Rust 是一种系统编程语言，具有零成本抽象。",
+      "系统编程语言（如 C++/Rust）通常比脚本语言（如 Python）运行快 10-100 倍。",
+      "现代游戏引擎（Unreal/Unity）对性能要求极高，通常需要系统编程语言实现。"
+    ],
+    "query": "Rust 适合做游戏引擎吗？",
+    "keyword": "游戏引擎"
+  },
+  "drift_test": {
+    "memories": [
+      "用户偏好使用 MySQL 做数据库，因为熟悉 SQL 语法。",
+      "用户说 MySQL 性能不够，已经全面迁移到 PostgreSQL，不再使用 MySQL。"
+    ],
+    "query": "用户现在用什么数据库？"
+  },
+  "noise_topics": [
+    "今天午饭吃了宫保鸡丁，味道不错。",
+    "地铁 10 号线今天又延误了 15 分钟。",
+    "猫把水杯推到了地上，碎了一地。",
+    "周末打算去爬香山，希望天气好。",
+    "Netflix 新出的纪录片挺有意思。"
+  ],
+  "activation_test": {
+    "memory": "HIPPMEM 的扩散激活算法基于 Collins & Loftus 的语义网络模型。",
+    "query": "HIPPMEM 的扩散激活算法有什么理论基础？",
+    "keywords": [
+      "扩散激活",
+      "HIPPMEM"
+    ]
+  },
+  "noise_filter_keywords": [
+    "午饭",
+    "地铁",
+    "猫",
+    "香山"
+  ],
+  "rust_memory_test": {
+    "memory": "Rust 的所有权系统确保线程安全，通过编译时 borrow checker 实现。",
+    "query": "Rust 内存安全机制",
+    "query2": "Rust 内存安全"
+  },
+  "causal_migration_test": {
+    "memories": [
+      "因为编译速度太慢，团队决定从 C++ 迁移到 Go。",
+      "Go 语言的编译速度比 C++ 快 10 倍以上，大幅提升了开发效率。"
+    ],
+    "query": "为什么从 C++ 迁移到 Go？"
+  },
+  "long_tail_test": {
+    "memory": "用户在第 3 次对话中提到，他在 2020 年参与过一个量化交易项目，用 Rust 写了撮合引擎。",
+    "followups": [
+      "今天天气真好，适合出去走走。",
+      "我最近在看一本关于系统设计的书。",
+      "Kubernetes 的配置管理真复杂。",
+      "周末打算去超市买菜。",
+      "我发现了一家很不错的咖啡店。"
+    ],
+    "query": "用户有没有量化交易的经验？",
+    "keywords": [
+      "量化交易",
+      "撮合引擎",
+      "2020"
+    ]
+  },
+  "embed_texts": [
+    "你好世界",
+    "HIPPMEM 是一个 Rust 原生记忆引擎"
+  ],
+  "_flat": {
+    "s0": "全文索引选 Tantivy 而非 Lucene，因为 Tantivy 是 Rust 原生，性能更好的同时编译也简单。",
+    "s1": "存储层选型对比了 RocksDB、LMDB、sled 和 redb，最终选 redb 因为纯 Rust 且编译简单。",
+    "s2": "用户在第 3 次对话中提到，他在 2020 年参与过一个量化交易项目，用 Rust 写了撮合引擎。",
+    "s3": "系统编程语言（如 C++/Rust）通常比脚本语言（如 Python）运行快 10-100 倍。",
+    "s4": "决策：将索引加载改为 mmap + lazy page fault，预计内存降到 200MB。",
+    "s5": "用户说 MySQL 性能不够，已经全面迁移到 PostgreSQL，不再使用 MySQL。",
+    "s6": "HIPPMEM 的扩散激活算法基于 Collins & Loftus 的语义网络模型。",
+    "s7": "部署 lazy load 方案后，启动内存稳定在 180MB，OOM 消失，验证通过。",
+    "s8": "hippmem 使用 Tantivy 做全文检索，BM25 算法比简单关键词匹配强。",
+    "s9": "Rust 的所有权系统确保线程安全，通过编译时 borrow checker 实现。",
+    "s10": "现代游戏引擎（Unreal/Unity）对性能要求极高，通常需要系统编程语言实现。",
+    "s11": "Go 语言的编译速度比 C++ 快 10 倍以上，大幅提升了开发效率。",
+    "s12": "因为 RocksDB 编译太慢，决定用 redb 替代做嵌入式存储。",
+    "s13": "生产环境每次部署后 OOM，内存飙升到 8GB，导致 Pod 重启。",
+    "s14": "不喜欢用 Java 生态，因为需要装 JVM，编译链太重了。",
+    "s15": "用户偏好使用 MySQL 做数据库，因为熟悉 SQL 语法。",
+    "s16": "根因分析：启动时全量加载索引到内存，需要改为懒加载。",
+    "s17": "因为编译速度太慢，团队决定从 C++ 迁移到 Go。",
+    "s18": "HIPPMEM 的扩散激活算法有什么理论基础？",
+    "s19": "Rust 是一种系统编程语言，具有零成本抽象。",
+    "s20": "为什么选择 redb 而不是 RocksDB？",
+    "s21": "HIPPMEM 是一个 Rust 原生记忆引擎",
+    "s22": "地铁 10 号线今天又延误了 15 分钟。",
+    "s23": "OOM 问题怎么解决的？完整过程是什么？",
+    "s24": "Kubernetes 的配置管理真复杂。",
+    "s25": "Netflix 新出的纪录片挺有意思。",
+    "s26": "为什么从 C++ 迁移到 Go？",
+    "s27": "今天午饭吃了宫保鸡丁，味道不错。",
+    "s28": "我最近在看一本关于系统设计的书。",
+    "s29": "猫把水杯推到了地上，碎了一地。",
+    "s30": "周末打算去爬香山，希望天气好。",
+    "s31": "Rust 适合做游戏引擎吗？",
+    "s32": "今天天气真好，适合出去走走。",
+    "s33": "我发现了一家很不错的咖啡店。",
+    "s34": "用户有没有量化交易的经验？",
+    "s35": "用户现在用什么数据库？",
+    "s36": "Rust 内存安全机制",
+    "s37": "周末打算去超市买菜。",
+    "s38": "Rust 内存安全",
+    "s39": "你好世界",
+    "s40": "游戏引擎",
+    "s41": "全量加载",
+    "s42": "撮合引擎",
+    "s43": "扩散激活",
+    "s44": "量化交易",
+    "s45": "验证",
+    "s46": "午饭",
+    "s47": "根因",
+    "s48": "香山",
+    "s49": "地铁",
+    "s50": "猫"
+  },
+  "_meta": {
+    "locale": "zh",
+    "description": "Chinese user perspective eval data"
+  }
+}

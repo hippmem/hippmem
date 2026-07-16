@@ -1,0 +1,43 @@
+{
+  "case_id": "implicit-association-005",
+  "task_type": "ImplicitAssociation",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "The service handles millions of requests per day",
+      "content_type": "Event",
+      "context": {
+        "session_id": 1
+      }
+    },
+    {
+      "local_id": "m2",
+      "content": "So we implemented caching optimizations and index sharding",
+      "content_type": "Decision",
+      "context": {
+        "session_id": 1
+      }
+    }
+  ],
+  "query": {
+    "text": "What optimizations were made to handle high concurrency",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": {
+      "session_id": 2
+    }
+  },
+  "ground_truth": {
+    "relevant": ["m2", "m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Causal"],
+    "expected_warnings": [],
+    "expected_edges": [
+      {
+        "from": "m2",
+        "to": "m1",
+        "link_type": "Causal"
+      }
+    ]
+  }
+}

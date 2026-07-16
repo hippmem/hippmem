@@ -1,0 +1,30 @@
+{
+  "case_id": "noise-resistance-001",
+  "task_type": "NoiseResistance",
+  "writes": [
+    {
+      "local_id": "noise_1",
+      "content": "The weather is beautiful today, great for heading outdoors",
+      "context": { "session_id": 1 },
+      "n": 5
+    },
+    {
+      "local_id": "m1",
+      "content": "Database selection finalized — decided to go with redb",
+      "context": { "session_id": 2 }
+    }
+  ],
+  "query": {
+    "text": "What was the database selection outcome?",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": { "session_id": 3 }
+  },
+  "ground_truth": {
+    "relevant": ["m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Entity"],
+    "expected_warnings": [],
+    "expected_edges": []
+  }
+}

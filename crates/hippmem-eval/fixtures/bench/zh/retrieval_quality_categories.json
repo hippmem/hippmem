@@ -1,0 +1,64 @@
+{
+  "categories": [
+    {
+      "category": "Rust",
+      "texts": [
+        "Rust 的所有权系统确保内存安全",
+        "用 cargo build 编译 Rust 项目",
+        "Rust 的 trait 类似其他语言的 interface",
+        "Rust 异步编程使用 async/await 语法",
+        "Rust 的 match 表达式支持模式匹配"
+      ]
+    },
+    {
+      "category": "Python",
+      "texts": [
+        "Python 的列表推导式很简洁",
+        "用 pip install 安装 Python 包",
+        "Python 的装饰器可以修改函数行为",
+        "Python 的 pandas 库用于数据分析",
+        "Python 是动态类型语言"
+      ]
+    },
+    {
+      "category": "数据库",
+      "texts": [
+        "关系型数据库使用 SQL 查询语言",
+        "redb 是一个纯 Rust 的嵌入式数据库",
+        "索引可以加速数据库查询",
+        "NoSQL 数据库放弃关系模型换取扩展性",
+        "事务保证数据库操作的 ACID 特性"
+      ]
+    },
+    {
+      "category": "编译",
+      "texts": [
+        "Rust 编译器 borrow checker 检查所有权",
+        "编译型语言比解释型语言运行更快",
+        "JIT 编译结合了解释和编译的优势",
+        "交叉编译可以为不同平台构建二进制",
+        "增量编译只重新构建修改过的部分"
+      ]
+    },
+    {
+      "category": "AI",
+      "texts": [
+        "深度学习使用神经网络进行模式识别",
+        "大语言模型基于 Transformer 架构",
+        "嵌入向量可以将文本映射到语义空间",
+        "RAG 结合检索和生成提高回答准确性",
+        "微调让预训练模型适应特定任务"
+      ]
+    },
+    {
+      "category": "工具",
+      "texts": [
+        "Git 是最流行的版本控制系统",
+        "Docker 容器化简化了部署流程",
+        "VS Code 是常用的代码编辑器",
+        "CI/CD 流水线自动化测试和部署",
+        "Linux 命令行工具高效处理文本"
+      ]
+    }
+  ]
+}

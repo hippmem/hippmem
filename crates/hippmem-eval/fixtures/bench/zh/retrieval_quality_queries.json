@@ -1,0 +1,54 @@
+{
+  "queries": [
+    {
+      "query": "Rust",
+      "expected_categories": ["Rust"],
+      "description": "单类别查询:Rust 语言"
+    },
+    {
+      "query": "Python 编程",
+      "expected_categories": ["Python"],
+      "description": "单类别查询:Python 语言"
+    },
+    {
+      "query": "数据库",
+      "expected_categories": ["数据库"],
+      "description": "单类别查询:数据库"
+    },
+    {
+      "query": "编译器",
+      "expected_categories": ["编译"],
+      "description": "单类别查询:编译"
+    },
+    {
+      "query": "机器学习 AI",
+      "expected_categories": ["AI"],
+      "description": "单类别查询:AI"
+    },
+    {
+      "query": "开发工具",
+      "expected_categories": ["工具"],
+      "description": "单类别查询:工具"
+    },
+    {
+      "query": "Rust 编译",
+      "expected_categories": ["Rust", "编译"],
+      "description": "跨类别查询:Rust + 编译"
+    },
+    {
+      "query": "Python 数据分析",
+      "expected_categories": ["Python"],
+      "description": "单类别查询:Python 数据分析"
+    },
+    {
+      "query": "神经网络深度学习",
+      "expected_categories": ["AI"],
+      "description": "单类别查询:AI 深度学习"
+    },
+    {
+      "query": "数据库索引",
+      "expected_categories": ["数据库"],
+      "description": "单类别查询:数据库索引"
+    }
+  ]
+}

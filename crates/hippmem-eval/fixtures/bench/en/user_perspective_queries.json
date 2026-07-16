@@ -1,0 +1,79 @@
+{
+  "queries": [
+    {
+      "query": "Why was Rust chosen?",
+      "expected_categories": ["Tech Decisions"],
+      "description": "tech-decision recall"
+    },
+    {
+      "query": "What editor does the user prefer?",
+      "expected_categories": ["User Preferences"],
+      "description": "user-preference recall"
+    },
+    {
+      "query": "What is HIPPMEM?",
+      "expected_categories": ["Project Background"],
+      "description": "factual recall"
+    },
+    {
+      "query": "How was the HNSW performance issue resolved?",
+      "expected_categories": ["Problem Solving"],
+      "description": "causal tracing"
+    },
+    {
+      "query": "What are the user's work habits?",
+      "expected_categories": ["Personal Habits"],
+      "description": "habit recall"
+    },
+    {
+      "query": "What tools are used for monitoring and deployment?",
+      "expected_categories": ["Toolchain"],
+      "description": "toolchain recall"
+    },
+    {
+      "query": "What tech decisions were made around storage?",
+      "expected_categories": ["Tech Decisions", "Project Background"],
+      "description": "cross-category association"
+    },
+    {
+      "query": "Which Rust ecosystem libraries does the project use?",
+      "expected_categories": ["Tech Decisions", "Project Background"],
+      "description": "Rust ecosystem association"
+    },
+    {
+      "query": "What editor does the user prefer and why?",
+      "expected_categories": ["User Preferences"],
+      "description": "preference explanation"
+    },
+    {
+      "query": "How is Chinese tokenization supported?",
+      "expected_categories": ["Problem Solving"],
+      "description": "long-tail recall"
+    },
+    {
+      "query": "How is CI/CD configured?",
+      "expected_categories": ["Toolchain"],
+      "description": "precise recall"
+    },
+    {
+      "query": "What software qualities does the user value most?",
+      "expected_categories": ["User Preferences", "Tech Decisions"],
+      "description": "implicit association"
+    },
+    {
+      "query": "What is the core design philosophy of the project?",
+      "expected_categories": ["Project Background"],
+      "description": "core-principle recall"
+    },
+    {
+      "query": "What performance optimization work has been done?",
+      "expected_categories": ["Problem Solving"],
+      "description": "optimization tracing"
+    },
+    {
+      "query": "What should I eat for lunch today?",
+      "expected_categories": [],
+      "description": "no-answer query (should exclude noise)"
+    }
+  ]
+}

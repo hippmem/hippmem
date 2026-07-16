@@ -1,0 +1,33 @@
+{
+  "case_id": "project-continuity-004",
+  "task_type": "ProjectContinuity",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "Task A completed: implemented the BM25 full-text search module",
+      "content_type": "TaskState",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m2",
+      "content": "Task B in progress: integrating Tantivy indexing, depends on A's interface",
+      "content_type": "TaskState",
+      "context": { "session_id": 2 }
+    }
+  ],
+  "query": {
+    "text": "Project task progress",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": { "session_id": 2 }
+  },
+  "ground_truth": {
+    "relevant": ["m2", "m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Entity"],
+    "expected_warnings": [],
+    "expected_edges": [
+      { "from": "m2", "to": "m1", "link_type": "EntityOverlap" }
+    ]
+  }
+}

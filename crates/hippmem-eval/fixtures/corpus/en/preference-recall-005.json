@@ -1,0 +1,43 @@
+{
+  "case_id": "preference-recall-005",
+  "task_type": "PreferenceRecall",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "The user hates YAML config and strongly prefers TOML format",
+      "content_type": "Preference",
+      "context": {
+        "session_id": 1
+      }
+    },
+    {
+      "local_id": "m2",
+      "content": "A YAML indentation error previously caused a production outage",
+      "content_type": "Event",
+      "context": {
+        "session_id": 1
+      }
+    }
+  ],
+  "query": {
+    "text": "What are the user's preferences for config formats",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": {
+      "session_id": 2
+    }
+  },
+  "ground_truth": {
+    "relevant": ["m1"],
+    "also_acceptable": ["m2"],
+    "expected_dimensions": ["Entity"],
+    "expected_warnings": [],
+    "expected_edges": [
+      {
+        "from": "m2",
+        "to": "m1",
+        "link_type": "Causal"
+      }
+    ]
+  }
+}

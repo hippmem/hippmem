@@ -1,0 +1,43 @@
+{
+  "case_id": "project-continuity-002",
+  "task_type": "ProjectContinuity",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "Project goal: build a high-performance search service with target latency under 50ms",
+      "content_type": "ProjectKnowledge",
+      "context": {
+        "session_id": 1
+      }
+    },
+    {
+      "local_id": "m2",
+      "content": "Last week's load test showed latency at 80ms, needs further optimization",
+      "content_type": "TaskState",
+      "context": {
+        "session_id": 2
+      }
+    }
+  ],
+  "query": {
+    "text": "What is the current status of the project",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": {
+      "session_id": 2
+    }
+  },
+  "ground_truth": {
+    "relevant": ["m2", "m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Entity"],
+    "expected_warnings": [],
+    "expected_edges": [
+      {
+        "from": "m2",
+        "to": "m1",
+        "link_type": "EntityOverlap"
+      }
+    ]
+  }
+}

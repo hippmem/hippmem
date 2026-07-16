@@ -1,0 +1,29 @@
+{
+  "_meta": {
+    "locale": "en",
+    "description": "English write performance test corpus"
+  },
+  "corpus": [
+    "Decided to migrate the backend from Node.js to Rust due to clear performance bottlenecks.",
+    "Storage layer migrated from RocksDB to redb — simpler compilation and pure Rust.",
+    "Selected Tantivy for full-text search — BM25 algorithm beats simple keyword matching.",
+    "The user prefers dark theme IDEs and dislikes bright backgrounds that strain the eyes.",
+    "The user is accustomed to using Vim editor for 10 years.",
+    "The user enjoys functional programming style and dislikes excessive mutable state.",
+    "The user prefers Rust for its safest type system.",
+    "The user prefers PostgreSQL over MySQL for its richer feature set.",
+    "HIPPMEM is a Rust-native associative memory engine providing long-term memory for AI agents.",
+    "hippmem uses redb for embedded storage, avoiding external database dependencies.",
+    "The engine supports 14 association edge types including entity overlap, topic overlap, and causal links.",
+    "Previously said the engine did not support tokenization, but it actually does via jieba.",
+    "Previously used REST API, later found gRPC to be better — corrected the architecture choice.",
+    "The user is John Chen, a senior software engineer based in San Francisco.",
+    "The user believes distributed system complexity is often underestimated — avoid distribution when a monolith suffices.",
+    "Discovered HNSW index slowdown at million-scale data — root cause was excessive distance calculations.",
+    "By adding IVF coarse quantization pre-filtering, HNSW search speed improved 5x.",
+    "Production deployment experienced OOM — memory spiked to 8GB causing Pod restart.",
+    "The weather is nice today, perfect for going out for a walk.",
+    "Had Kung Pao chicken for lunch, it was quite good."
+  ],
+  "hippmem_desc": "HIPPMEM is a Rust-native associative memory engine providing long-term memory for AI agents."
+}

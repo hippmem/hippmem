@@ -1,0 +1,79 @@
+{
+  "queries": [
+    {
+      "query": "为什么选择 Rust？",
+      "expected_categories": ["技术决策"],
+      "description": "tech-decision recall"
+    },
+    {
+      "query": "用户喜欢什么编辑器？",
+      "expected_categories": ["用户偏好"],
+      "description": "user-preference recall"
+    },
+    {
+      "query": "HIPPMEM 是什么？",
+      "expected_categories": ["项目背景"],
+      "description": "factual recall"
+    },
+    {
+      "query": "HNSW 性能问题怎么解决的？",
+      "expected_categories": ["问题解决"],
+      "description": "causal tracing"
+    },
+    {
+      "query": "用户的工作习惯是什么？",
+      "expected_categories": ["个人习惯"],
+      "description": "habit recall"
+    },
+    {
+      "query": "用什么做监控和部署？",
+      "expected_categories": ["工具链"],
+      "description": "toolchain recall"
+    },
+    {
+      "query": "存储相关的技术决策有哪些？",
+      "expected_categories": ["技术决策", "项目背景"],
+      "description": "cross-category association"
+    },
+    {
+      "query": "项目用了哪些 Rust 生态库？",
+      "expected_categories": ["技术决策", "项目背景"],
+      "description": "Rust ecosystem association"
+    },
+    {
+      "query": "用户对编辑器有什么偏好？为什么？",
+      "expected_categories": ["用户偏好"],
+      "description": "preference explanation"
+    },
+    {
+      "query": "中文分词是怎么支持的？",
+      "expected_categories": ["问题解决"],
+      "description": "long-tail recall"
+    },
+    {
+      "query": "CI/CD 怎么配置的？",
+      "expected_categories": ["工具链"],
+      "description": "precise recall"
+    },
+    {
+      "query": "用户最看重软件的什么特性？",
+      "expected_categories": ["用户偏好", "技术决策"],
+      "description": "implicit association"
+    },
+    {
+      "query": "项目的核心设计理念是什么？",
+      "expected_categories": ["项目背景"],
+      "description": "core-principle recall"
+    },
+    {
+      "query": "性能优化做了哪些工作？",
+      "expected_categories": ["问题解决"],
+      "description": "optimization tracing"
+    },
+    {
+      "query": "今天中午吃什么？",
+      "expected_categories": [],
+      "description": "no-answer query (should exclude noise)"
+    }
+  ]
+}

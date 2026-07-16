@@ -1,0 +1,19 @@
+{
+  "queries": [
+    {"query": "What is HIPPMEM?", "expected_categories": ["proj"], "description": "fact:project definition"},
+    {"query": "What does hippmem use for storage?", "expected_categories": ["proj", "tech"], "description": "fact:storage solution"},
+    {"query": "How many associative edge types does the engine support?", "expected_categories": ["proj"], "description": "fact:edge types"},
+    {"query": "What editor does the user prefer?", "expected_categories": ["pref"], "description": "preference:editor"},
+    {"query": "What is the user's preference for databases?", "expected_categories": ["pref"], "description": "preference:database"},
+    {"query": "Why was Rust chosen?", "expected_categories": ["tech", "ident"], "description": "decision:Rust"},
+    {"query": "Why was redb chosen?", "expected_categories": ["tech"], "description": "decision:redb"},
+    {"query": "How was the OOM issue resolved?", "expected_categories": ["event", "tech"], "description": "causal:OOM"},
+    {"query": "How was the HNSW performance issue solved?", "expected_categories": ["solve"], "description": "causal:HNSW"},
+    {"query": "How is Chinese tokenization supported?", "expected_categories": ["solve", "tech"], "description": "causal:tokenization"},
+    {"query": "What is the core design philosophy of the project?", "expected_categories": ["proj"], "description": "project:philosophy"},
+    {"query": "What does the user value most in software?", "expected_categories": ["pref", "tech"], "description": "implicit:values"},
+    {"query": "What is the user's view on system architecture?", "expected_categories": ["pref", "ident"], "description": "implicit:architecture"},
+    {"query": "What changed regarding the Chinese language support claims?", "expected_categories": ["corr"], "description": "correction:chinese"},
+    {"query": "What did the user have for lunch today?", "expected_categories": ["noise"], "description": "noise:lunch"}
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "_meta": {
+    "locale": "en",
+    "description": "English personal memory eval data"
+  },
+  "m1_identity": "My name is John Chen, a software engineer who prefers building backend services with Rust and likes redb for embedded storage.",
+  "m2_projects": "I have contributed to several Rust open-source projects, including CLI tools and database bindings.",
+  "m3_causal": "Because RocksDB compilation was too slow, I decided to use redb instead for embedded storage.",
+  "why_query": "Why did I choose redb?",
+  "who_query": "Who am I?",
+  "job_query": "What do I do for work?",
+  "identity_keywords": [
+    "John Chen",
+    "software engineer"
+  ],
+  "causal_keywords": [
+    "RocksDB",
+    "compilation"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "case_id": "fact-recall-001",
+  "task_type": "FactRecall",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "We are using redb for storage",
+      "content_type": "ProjectKnowledge",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m2",
+      "content": "RocksDB compilation was too heavy, so we replaced it",
+      "content_type": "Decision",
+      "context": { "session_id": 1 }
+    }
+  ],
+  "query": {
+    "text": "Why not use RocksDB for storage",
+    "mode": "Balanced",
+    "top_k": 10,
+    "context": { "session_id": 2 }
+  },
+  "ground_truth": {
+    "relevant": ["m2"],
+    "also_acceptable": ["m1"],
+    "expected_dimensions": ["Causal", "Entity"],
+    "expected_warnings": [],
+    "expected_edges": [
+      { "from": "m2", "to": "m1", "link_type": "Causal" }
+    ]
+  }
+}

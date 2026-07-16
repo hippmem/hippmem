@@ -1,0 +1,43 @@
+{
+  "case_id": "implicit-association-004",
+  "task_type": "ImplicitAssociation",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "The project needed to support text tokenization for NLP preprocessing",
+      "content_type": "ProjectKnowledge",
+      "context": {
+        "session_id": 1
+      }
+    },
+    {
+      "local_id": "m2",
+      "content": "Integrated tokenizers-rs for text tokenization, and the results met expectations",
+      "content_type": "Decision",
+      "context": {
+        "session_id": 1
+      }
+    }
+  ],
+  "query": {
+    "text": "How is text tokenization implemented",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": {
+      "session_id": 2
+    }
+  },
+  "ground_truth": {
+    "relevant": ["m2", "m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Entity"],
+    "expected_warnings": [],
+    "expected_edges": [
+      {
+        "from": "m2",
+        "to": "m1",
+        "link_type": "EntityOverlap"
+      }
+    ]
+  }
+}

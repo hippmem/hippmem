@@ -1,0 +1,31 @@
+{
+  "case_id": "state-change-005",
+  "task_type": "StateChange",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "The user was previously skeptical of AI",
+      "content_type": "Preference",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m2",
+      "content": "After trying Claude Code, found it very efficient and changed their perspective",
+      "content_type": "Preference",
+      "context": { "session_id": 2 }
+    }
+  ],
+  "query": {
+    "text": "User's attitude change toward AI",
+    "mode": "Balanced",
+    "top_k": 5,
+    "context": { "session_id": 2 }
+  },
+  "ground_truth": {
+    "relevant": ["m2", "m1"],
+    "also_acceptable": [],
+    "expected_dimensions": ["Temporal"],
+    "expected_warnings": [],
+    "expected_edges": []
+  }
+}

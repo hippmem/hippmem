@@ -1,0 +1,31 @@
+{
+  "case_id": "explanation-quality-001",
+  "task_type": "ExplanationQuality",
+  "writes": [
+    {
+      "local_id": "m1",
+      "content": "redb has very low write latency",
+      "context": { "session_id": 1 }
+    },
+    {
+      "local_id": "m2",
+      "content": "We chose redb because of its strong performance characteristics",
+      "context": { "session_id": 2 }
+    }
+  ],
+  "query": {
+    "text": "Why did we choose redb",
+    "mode": "Diagnostic",
+    "top_k": 5,
+    "context": { "session_id": 3 }
+  },
+  "ground_truth": {
+    "relevant": ["m2"],
+    "also_acceptable": ["m1"],
+    "expected_dimensions": ["Causal", "Entity"],
+    "expected_warnings": [],
+    "expected_edges": [
+      { "from": "m2", "to": "m1", "link_type": "Causal" }
+    ]
+  }
+}
