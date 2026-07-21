@@ -130,6 +130,16 @@ for r in &results.results {
 cargo run --example basic_usage
 ```
 
+### 观看关联记忆的实际效果
+
+```bash
+cargo run --example project_memory
+```
+
+模拟一个 AI 编程助手跨 4 个会话记住项目信息。展示 5 通道种子召回（BM25 关键词、实体
+索引、语义稠密+二值向量、主题聚类）、RRF 融合，以及为什么关联检索能找到比关键词搜索更
+多的内容。
+
 ## 下一步
 
 - [用户指南](user-guide.md) — 理解核心概念和完整工作流

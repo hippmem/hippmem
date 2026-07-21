@@ -128,6 +128,17 @@ Full example: `crates/hippmem-engine/examples/basic_usage.rs`
 cargo run --example basic_usage
 ```
 
+### See associative memory in action
+
+```bash
+cargo run --example project_memory
+```
+
+Simulates an AI coding assistant that remembers a project across 4 sessions.
+Shows multi-channel seed recall across 5 channels (BM25 keyword, entity index,
+semantic dense + binary, topic clustering), RRF fusion, and why associative
+retrieval finds more than keyword search alone.
+
 ## Next steps
 
 - [User Guide](user-guide.md) — understand core concepts and the full workflow

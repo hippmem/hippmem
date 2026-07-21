@@ -57,6 +57,18 @@ No GPU, API key, or network connection is needed — the deterministic fallback 
 
 For a 5-minute walkthrough, see the [Quick Start guide](docs/quickstart.md).
 
+### Run a demo in 10 seconds
+
+```bash
+# See the engine in action — cross-session associative memory
+cargo run --example project_memory
+
+# Minimal library usage (1 write + 1 retrieve)
+cargo run --example basic_usage
+```
+
+No API key, no network, no GPU required.
+
 ---
 
 ## Architecture Overview
