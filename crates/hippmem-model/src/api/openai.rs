@@ -4,6 +4,7 @@
 
 use crate::error::{ModelError, ModelResult};
 use crate::traits::Embedder;
+use std::time::Duration;
 
 /// OpenAI-compatible embedder: calls any compatible service via an
 /// OpenAI-compatible REST API.
@@ -60,7 +61,11 @@ impl OpenAiEmbedder {
             base_url: base_url.to_string(),
             model: model.to_string(),
             dim,
-            client: reqwest::Client::new(),
+            client: reqwest::Client::builder()
+                .connect_timeout(Duration::from_secs(10))
+                .timeout(Duration::from_secs(30))
+                .build()
+                .map_err(|e| ModelError::Network(format!("reqwest client build: {e}")))?,
         })
     }
 
@@ -77,10 +82,16 @@ impl Embedder for OpenAiEmbedder {
     }
 
     async fn embed(&self, texts: &[String]) -> ModelResult<Vec<Vec<f32>>> {
-        let body = serde_json::json!({
+        let mut body = serde_json::json!({
             "model": self.model,
             "input": texts,
         });
+        // Send the configured dimension so the API truncates vectors to match
+        // `EmbedderConfig::Neural { dimensions }`; the configured dim would
+        // otherwise be ignored (test_12 asserts the returned vector length).
+        if self.dim > 0 {
+            body["dimensions"] = serde_json::json!(self.dim);
+        }
 
         let url = format!("{}/embeddings", self.base_url);
         let resp = self
@@ -155,12 +166,25 @@ mod tests {
         assert_eq!(e.backend_id(), "text-embedding-3-small");
     }
 
-    /// Error handling: a Network error should be caught when there is no real network.
+    /// Error handling: a connection-refused endpoint returns a Network error.
+    /// Targets a locally closed port so no outbound request ever leaves the
+    /// machine (previously hit the real api.openai.com with a fake key).
     #[test]
     fn embed_without_network_returns_error() {
-        let e = OpenAiEmbedder::new("sk-test".into());
+        // Bind a port, then drop the listener so the port is guaranteed closed.
+        let port = std::net::TcpListener::bind("127.0.0.1:0")
+            .unwrap()
+            .local_addr()
+            .unwrap()
+            .port();
+        let e = OpenAiEmbedder::new_with_base_url(
+            "sk-test".into(),
+            &format!("http://127.0.0.1:{port}/v1"),
+            "text-embedding-3-small",
+            1536,
+        )
+        .expect("explicit key, no env lookup");
         let result = e.embed_sync(&["hello".into()]);
-        // Without network it should return a Network error (not panic)
-        assert!(result.is_err());
+        assert!(result.is_err(), "closed port should return a Network error");
     }
 }
