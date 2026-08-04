@@ -2,6 +2,10 @@
 
 > 本文档为 HIPPMEM 项目的中文导航入口。英文文档为权威版本，中文翻译为参考。
 
+<p align="center">
+  <img src="../../assets/images/hero_spreading_activation_zh.jpg" alt="记忆不是被搜索出来的，记忆是被激活出来的" width="80%">
+</p>
+
 ## 🚀 我想使用 HIPPMEM
 
 | 文档 | 预计时间 | 内容 |

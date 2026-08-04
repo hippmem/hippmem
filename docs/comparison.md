@@ -14,6 +14,10 @@
 | **Memory engine** (Mem0/Graphiti/Zep) | Long-term memory for AI agents |
 | **HIPPMEM** | Discover associations at write time + spreading activation at retrieval + evolves with use |
 
+<p align="center">
+  <img src="../assets/images/rag_vs_hippmem.jpg" alt="Search-based memory (RAG) vs association-based memory (HIPPMEM)" width="80%">
+</p>
+
 ---
 
 ## Feature matrix

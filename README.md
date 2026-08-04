@@ -11,6 +11,10 @@ HIPPMEM gives an AI agent long-term memory that works like a colleague who remem
 
 It runs fully offline with a deterministic fallback backend (no GPU, no API key, no network required), yet plugs into OpenAI / Anthropic for higher semantic accuracy when available.
 
+<p align="center">
+  <img src="assets/images/hero_spreading_activation.jpg" alt="Memories are activated, not searched — multi-channel seed discovery and spreading activation over an association graph" width="80%">
+</p>
+
 ---
 
 ## What is HIPPMEM?
@@ -20,6 +24,10 @@ Most memory solutions today are either vector databases (store embeddings, searc
 HIPPMEM takes a different approach: **associations are discovered when a memory is written**, while the full context — conversation, entities, goals, causality — is available. Retrieval then spreads activation from seed memories along typed association edges, surfacing a connected context network rather than a bag of similar texts. The graph also evolves with use: frequently co-activated connections strengthen (Hebbian learning), and stale ones decay.
 
 The result is memory with continuity — closer to a long-term collaborator than a search box.
+
+<p align="center">
+  <img src="assets/images/rag_vs_hippmem.jpg" alt="Search-based memory (RAG) vs association-based memory (HIPPMEM) — similarity finds what matches, association finds what matters" width="80%">
+</p>
 
 ---
 
@@ -32,6 +40,10 @@ The result is memory with continuity — closer to a long-term collaborator than
 - **Deterministic fallback backend** — the entire pipeline (embedding, extraction, rerank, summarization) works offline with zero external API calls.
 - **Single-file storage** — all state in one redb file plus a Tantivy full-text directory and HNSW vector index. No external database.
 - **Rust library + CLI + gRPC server** — one core, three deployment shapes.
+
+<p align="center">
+  <img src="assets/images/twelve_association_dimensions.jpg" alt="One memory, 12 ways to connect — typed association dimensions beyond semantic similarity" width="80%">
+</p>
 
 ---
 
@@ -88,6 +100,10 @@ MemoryUnit                                       ▼
 ```
 
 HIPPMEM is a Cargo workspace of nine crates with strictly downward, acyclic dependencies. See [docs/architecture/design.md](docs/architecture/design.md) for the full crate topology, and [docs/architecture/](docs/architecture/) for deep dives into each subsystem.
+
+<p align="center">
+  <img src="assets/images/memory_lifecycle.jpg" alt="Not a retrieval library — a memory system that grows: write, activate, reinforce, consolidate" width="80%">
+</p>
 
 ---
 

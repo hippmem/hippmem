@@ -62,6 +62,10 @@ When two memories share entities, topics, or have causal/temporal relationships,
    (close in time)      (contradict each other) (B corrects A)
 ```
 
+<p align="center">
+  <img src="../assets/images/twelve_association_dimensions.jpg" alt="One memory, 12 ways to connect — the typed association dimensions HIPPMEM discovers" width="80%">
+</p>
+
 ### Strong edges vs weak edges vs observation zone
 
 - **Strong edge** (strength ≥ 0.55): high-confidence association hit on multiple dimensions. Directly participates in spreading activation.
@@ -118,6 +122,10 @@ By the time `engine.write()` returns, the memory is already in the Indexed stage
 
 ## 4. Spreading activation: retrieval works like human recall
 
+<p align="center">
+  <img src="../assets/images/hero_spreading_activation.jpg" alt="Memories are activated, not searched — multi-channel seed discovery and spreading activation" width="80%">
+</p>
+
 HIPPMEM's retrieval is not "sort by match score"; it simulates the brain's spreading activation process:
 
 ```
@@ -167,6 +175,10 @@ HIPPMEM's retrieval is not "sort by match score"; it simulates the brain's sprea
 | Explainability | "vector distance 0.87" | "spread from memory_42 via a Causal edge" |
 | Cold start | Requires building a vector index first | BM25 + entity rules always available |
 
+<p align="center">
+  <img src="../assets/images/rag_vs_hippmem.jpg" alt="Search-based memory (RAG) vs association-based memory (HIPPMEM)" width="80%">
+</p>
+
 ---
 
 ## 5. Deterministic degradation: runs with zero dependencies
@@ -190,6 +202,10 @@ Degraded semantic accuracy is indeed lower (256d SimHash is no match for 1536d d
 ---
 
 ## 6. Consolidation: "forgetting" and "reinforcement" of memories
+
+<p align="center">
+  <img src="../assets/images/memory_lifecycle.jpg" alt="Not a retrieval library — a memory system that grows: write, activate, reinforce, consolidate" width="80%">
+</p>
 
 ### Hebbian learning — "neurons that fire together, wire together"
 
