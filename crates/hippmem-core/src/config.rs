@@ -350,30 +350,31 @@ fn default_embed_dim() -> usize {
     256
 }
 
-/// Default base URL for the OpenAI-compatible API.
-fn default_openai_base_url() -> String {
+/// Default base URL for the Neural embedder API.
+fn default_embedder_base_url() -> String {
     "https://api.openai.com/v1".to_string()
 }
 
-/// Embedder backend configuration: distinguished by the `provider` field.
+/// Embedder backend configuration (D10: Hash / Neural naming).
 ///
 /// Corresponds to 08#model-backends, V4 Embedding backend upgrade.
 /// TOML example:
 ///
 /// ```toml
-/// # Deterministic fallback (default)
+/// # Hash embedder (default, offline)
 /// [embedder]
-/// provider = "deterministic"
+/// provider = "hash"
 /// dimensions = 256
 ///
-/// # DashScope online API
+/// # Neural embedder (API-based)
 /// [embedder]
-/// provider = "openai-compatible"
-/// base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-/// model = "text-embedding-v4"
-/// dimensions = 1024
+/// provider = "neural"
+/// base_url = "https://api.openai.com/v1"
+/// model = "text-embedding-3-small"
+/// api_key = "sk-..."
+/// dimensions = 1536
 ///
-/// # Offline ONNX (reserved, not yet implemented)
+/// # Offline ONNX (reserved)
 /// [embedder]
 /// provider = "onnx"
 /// model_name = "bge-small-zh-v1.5"
@@ -383,24 +384,23 @@ fn default_openai_base_url() -> String {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "provider", rename_all = "kebab-case")]
 pub enum EmbedderConfig {
-    /// Deterministic fallback backend: 256d SimHash, zero dependencies, CI default.
-    Deterministic {
+    /// Hash embedder: 256d SimHash, zero dependencies, deterministic, offline. (Default)
+    Hash {
         /// Vector dimension, default 256.
         #[serde(default = "default_embed_dim")]
         dimensions: usize,
     },
-    /// OpenAI-compatible API backend: supports DashScope / OpenAI / vLLM etc.
-    #[serde(rename = "openai-compatible")]
-    OpenAiCompatible {
+    /// Neural embedder: transformer-based, higher semantic accuracy, requires API.
+    Neural {
         /// API base URL, default `"https://api.openai.com/v1"`.
-        #[serde(default = "default_openai_base_url")]
+        #[serde(default = "default_embedder_base_url")]
         base_url: String,
-        /// Model name, e.g. `"text-embedding-v4"` (DashScope) or `"text-embedding-3-small"` (OpenAI).
+        /// Model name, e.g. `"text-embedding-3-small"`.
         model: String,
         /// API key, optional; read from env var `OPENAI_API_KEY` when not provided.
         #[serde(default)]
         api_key: Option<String>,
-        /// Vector dimension, determined by the chosen model (DashScope=1024, OpenAI=1536).
+        /// Vector dimension, determined by the chosen model.
         dimensions: usize,
     },
     /// Offline ONNX backend: local inference, no network required. (Reserved, not yet implemented)
@@ -416,7 +416,7 @@ pub enum EmbedderConfig {
 
 impl Default for EmbedderConfig {
     fn default() -> Self {
-        Self::Deterministic {
+        Self::Hash {
             dimensions: default_embed_dim(),
         }
     }
@@ -426,8 +426,8 @@ impl EmbedderConfig {
     /// Returns the vector dimension specified by the current configuration.
     pub fn dimensions(&self) -> usize {
         match self {
-            Self::Deterministic { dimensions } => *dimensions,
-            Self::OpenAiCompatible { dimensions, .. } => *dimensions,
+            Self::Hash { dimensions } => *dimensions,
+            Self::Neural { dimensions, .. } => *dimensions,
             Self::Onnx { dimensions, .. } => *dimensions,
         }
     }
@@ -454,18 +454,18 @@ mod tests {
     // ── EmbedderConfig tests ──
 
     #[test]
-    fn embedder_config_default_is_deterministic_256() {
+    fn embedder_config_default_is_hash_256() {
         let cfg = EmbedderConfig::default();
-        assert_eq!(cfg, EmbedderConfig::Deterministic { dimensions: 256 });
+        assert_eq!(cfg, EmbedderConfig::Hash { dimensions: 256 });
     }
 
     #[test]
-    fn deserialize_deterministic_from_toml() {
+    fn deserialize_hash_from_toml() {
         let toml_str = r#"
-provider = "deterministic"
+provider = "hash"
 "#;
         let cfg: EmbedderConfig = toml::from_str(toml_str).unwrap();
-        assert_eq!(cfg, EmbedderConfig::Deterministic { dimensions: 256 });
+        assert_eq!(cfg, EmbedderConfig::Hash { dimensions: 256 });
         // Round-trip: serialize then deserialize should be equivalent
         let serialized = toml::to_string(&cfg).unwrap();
         let cfg2: EmbedderConfig = toml::from_str(&serialized).unwrap();
@@ -473,19 +473,19 @@ provider = "deterministic"
     }
 
     #[test]
-    fn deserialize_deterministic_custom_dim() {
+    fn deserialize_hash_custom_dim() {
         let toml_str = r#"
-provider = "deterministic"
+provider = "hash"
 dimensions = 512
 "#;
         let cfg: EmbedderConfig = toml::from_str(toml_str).unwrap();
-        assert_eq!(cfg, EmbedderConfig::Deterministic { dimensions: 512 });
+        assert_eq!(cfg, EmbedderConfig::Hash { dimensions: 512 });
     }
 
     #[test]
-    fn deserialize_openai_compatible_full() {
+    fn deserialize_neural_full() {
         let toml_str = r#"
-provider = "openai-compatible"
+provider = "neural"
 base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 model = "text-embedding-v4"
 api_key = "sk-test123"
@@ -494,7 +494,7 @@ dimensions = 1024
         let cfg: EmbedderConfig = toml::from_str(toml_str).unwrap();
         assert_eq!(
             cfg,
-            EmbedderConfig::OpenAiCompatible {
+            EmbedderConfig::Neural {
                 base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1".into(),
                 model: "text-embedding-v4".into(),
                 api_key: Some("sk-test123".into()),
@@ -508,17 +508,17 @@ dimensions = 1024
     }
 
     #[test]
-    fn deserialize_openai_compatible_minimal() {
+    fn deserialize_neural_minimal() {
         // Only specify provider + model + dimensions; base_url and api_key take defaults
         let toml_str = r#"
-provider = "openai-compatible"
+provider = "neural"
 model = "text-embedding-3-small"
 dimensions = 1536
 "#;
         let cfg: EmbedderConfig = toml::from_str(toml_str).unwrap();
         assert_eq!(
             cfg,
-            EmbedderConfig::OpenAiCompatible {
+            EmbedderConfig::Neural {
                 base_url: "https://api.openai.com/v1".into(),
                 model: "text-embedding-3-small".into(),
                 api_key: None,
@@ -548,12 +548,12 @@ dimensions = 512
         // Compile-time verification: all variants can be handled via match
         fn match_config(c: &EmbedderConfig) -> &'static str {
             match c {
-                EmbedderConfig::Deterministic { .. } => "deterministic",
-                EmbedderConfig::OpenAiCompatible { .. } => "openai",
+                EmbedderConfig::Hash { .. } => "hash",
+                EmbedderConfig::Neural { .. } => "neural",
                 EmbedderConfig::Onnx { .. } => "onnx",
             }
         }
-        assert_eq!(match_config(&EmbedderConfig::default()), "deterministic");
+        assert_eq!(match_config(&EmbedderConfig::default()), "hash");
         assert_eq!(
             match_config(&EmbedderConfig::Onnx {
                 model_name: "test".into(),

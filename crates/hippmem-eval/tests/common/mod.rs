@@ -57,7 +57,7 @@ pub fn api_embedder_config() -> Option<EmbedderConfig> {
         .unwrap_or_else(|_| "https://api.openai.com/v1".to_string());
     let model = std::env::var("HIPPMEM_EMBEDDER_MODEL")
         .unwrap_or_else(|_| "text-embedding-3-small".to_string());
-    Some(EmbedderConfig::OpenAiCompatible {
+    Some(EmbedderConfig::Neural {
         base_url,
         model,
         api_key: Some(api_key),

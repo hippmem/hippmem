@@ -1,7 +1,7 @@
 //! HIPPMEM quick-start example.
 //!
-//! Run: cargo run --example basic_usage --features api-backends
-//! (without an API key: cargo run --example basic_usage, uses the degraded backend)
+//! Run: cargo run --example basic_usage
+//! Uses the Hash embedder by default (offline, no API key needed).
 
 use hippmem_core::model::enums::ContentType;
 use hippmem_core::model::unit::WriteContext;

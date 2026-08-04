@@ -1,6 +1,6 @@
 //! Deep diagnostic: analyze channel score distribution for 6 P@1-miss queries.
 //!
-//! Run: cargo run -p hippmem-eval --example diagnose_p1_miss --features api-backends
+//! Run: cargo run -p hippmem-eval --example diagnose_p1_miss
 //!
 //! Backend is configured via environment variables:
 //!   OPENAI_API_KEY           — required
@@ -47,7 +47,7 @@ fn open_engine(dir: &tempfile::TempDir) -> Engine {
                 .unwrap_or_else(|_| "https://api.openai.com/v1".to_string());
             let model = std::env::var("HIPPMEM_EMBEDDER_MODEL")
                 .unwrap_or_else(|_| "text-embedding-3-small".to_string());
-            config.embedder = EmbedderConfig::OpenAiCompatible {
+            config.embedder = EmbedderConfig::Neural {
                 base_url,
                 model,
                 api_key: Some(api_key),

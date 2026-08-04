@@ -139,8 +139,8 @@ HIPPMEM 支持三种 embedding 后端，通过 `EmbedderConfig` 配置：
 
 | 提供商 | 向量维度 | 描述 | 适用场景 |
 |----------|---------|------|---------|
-| `deterministic`（默认） | 256d SimHash | 确定性降级模式，零依赖，无需网络，纯计算 | CI、离线、隐私保护、测试 |
-| `openai-compatible` | 取决于模型 | 在线 API，高语义精度 | 生产环境，高质量检索 |
+| `hash`（默认） | 256d SimHash | 离线、零依赖、确定性，无需 API 密钥 | CI、离线、隐私保护、测试 |
+| `neural` | 取决于模型 | 在线 API，高语义精度，需要 API 密钥 | 生产环境，高质量检索 |
 | `onnx`（预留） | 取决于模型 | 离线本地推理 | 未来：隐私 + 高精度 |
 
 ### 5.2 配置方式
@@ -149,7 +149,7 @@ HIPPMEM 支持三种 embedding 后端，通过 `EmbedderConfig` 配置：
 
 ```bash
 # Embedder 后端
-export HIPPMEM__EMBEDDER__PROVIDER="openai-compatible"
+export HIPPMEM__EMBEDDER__PROVIDER="neural"
 export HIPPMEM__EMBEDDER__BASE_URL="https://api.openai.com/v1"
 export HIPPMEM__EMBEDDER__MODEL="text-embedding-3-small"
 export HIPPMEM__EMBEDDER__DIMENSIONS=1536
@@ -163,7 +163,7 @@ export OPENAI_API_KEY="sk-xxxxxxxx"
 ```toml
 # hippmem.toml
 [embedder]
-provider = "openai-compatible"
+provider = "neural"
 base_url = "https://api.openai.com/v1"
 model = "text-embedding-3-small"
 api_key = "sk-xxxxxxxx"   # 可选；不填则从环境变量 OPENAI_API_KEY 读取
@@ -176,12 +176,12 @@ dimensions = 1536
 use hippmem_core::config::EmbedderConfig;
 use hippmem_engine::EngineConfig;
 
-// 确定性降级模式（默认，无需配置）
+// Hash 降级模式（默认，无需配置）
 let config = EngineConfig::default();
 
-// OpenAI API
+// Neural 嵌入器（在线 API）
 let config = EngineConfig {
-    embedder: EmbedderConfig::OpenAiCompatible {
+    embedder: EmbedderConfig::Neural {
         base_url: "https://api.openai.com/v1".into(),
         model: "text-embedding-3-small".into(),
         api_key: None,  // 从环境变量 OPENAI_API_KEY 读取
@@ -194,7 +194,7 @@ let config = EngineConfig {
 **方式 4：CLI 参数**
 
 ```bash
-hippmem --embedding-provider openai-compatible \
+hippmem --embedding-provider neural \
         --embedding-base-url "https://api.openai.com/v1" \
         --embedding-model "text-embedding-3-small" \
         write -c "A decision worth remembering."
@@ -243,7 +243,7 @@ let config = EngineConfig {
         channel_coeff_bm25: 0.8,
         ..AlgoParams::default()
     },
-    embedder: EmbedderConfig::OpenAiCompatible { /* ... */ },
+    embedder: EmbedderConfig::Neural { /* ... */ },
     ..EngineConfig::default()
 };
 ```
@@ -252,17 +252,10 @@ let config = EngineConfig {
 > API Key 查找顺序：`EmbedderConfig.api_key` → 环境变量 `OPENAI_API_KEY`。
 > 如果两者都不存在，`Engine::open()` 返回 `EngineError::Model("auth/missing key")`。
 
-### 5.5 构建 Feature
+### 5.5 嵌入器选择
 
-使用 `openai-compatible` 后端需在构建时启用 feature：
-
-```bash
-cargo build --features api-backends
-```
-
-如果未启用 feature，指定 `openai-compatible` 将返回 `ModelError::Unavailable`。
-
-> 默认配置（`deterministic`）无需任何 feature，零依赖即可编译——在离线/CI 环境中完全可用。
+`hash` 与 `neural` 两种嵌入器始终编译、始终可用，无需任何构建期 feature flag。
+通过配置、环境变量或 CLI 参数在运行时选择。
 
 ---
 

@@ -113,7 +113,7 @@ Aggregation: per `task_type` average plus a global average. Output is an `EvalRe
 
 ### 5.2 Quality metrics (LLM judge, local real-backend only, not CI-gated)
 
-- **User Outcome** — a real LLM judges whether the answer with HIPPMEM is more helpful. Runs only with `--features api-backends` and keys present.
+- **User Outcome** — a real LLM judges whether the answer with HIPPMEM is more helpful. Runs only when the Neural embedder and an API key are configured.
 - **Explanation naturalness** — LLM scores explanation path readability.
 - **Cost** — aggregate API token / call counts (from trace backend stats), reported locally.
 

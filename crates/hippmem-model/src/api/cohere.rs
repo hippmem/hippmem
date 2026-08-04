@@ -1,4 +1,4 @@
-//! Cohere API backend (08 §3). feature-gated: api-backends.
+//! Cohere API backend (08 §3).
 
 use crate::error::ModelResult;
 use crate::traits::Reranker;

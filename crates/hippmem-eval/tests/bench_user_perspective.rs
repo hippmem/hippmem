@@ -1506,12 +1506,11 @@ fn test_11_long_tail_recall() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Test 12: API backend connectivity — verify OpenAiCompatible config can be
+// Test 12: API backend connectivity — verify Neural embedder config can be
 // successfully built and returns vectors
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #[test]
-#[cfg(feature = "api-backends")]
 fn test_12_api_backend_connectivity() {
     // Use the shared API config helper, which reads OPENAI_API_KEY +
     // HIPPMEM_EMBEDDER_BASE_URL env vars (no hardcoded URL).

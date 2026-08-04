@@ -9,7 +9,7 @@ distribution to understand why certain queries fail to rank a correct answer
 at position 1.
 
 ```bash
-cargo run -p hippmem-eval --example diagnose_p1_miss --features api-backends
+cargo run -p hippmem-eval --example diagnose_p1_miss
 ```
 
 Requires `OPENAI_API_KEY` (or compatible) for the embedding backend.
@@ -23,4 +23,4 @@ Micro-benchmark for the write pipeline. Measures per-phase timing
 cargo run -p hippmem-eval --example write_perf_profile --release
 ```
 
-No network dependency — uses the deterministic fallback backend.
+No network dependency — uses the Hash fallback backend.

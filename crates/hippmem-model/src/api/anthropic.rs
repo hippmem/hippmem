@@ -1,4 +1,4 @@
-//! Anthropic API backend (08 §3). feature-gated: api-backends.
+//! Anthropic API backend (08 §3).
 
 use crate::error::ModelResult;
 use crate::traits::Extractor;

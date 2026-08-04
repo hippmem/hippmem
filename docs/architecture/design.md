@@ -155,10 +155,10 @@ Feature flags are deliberately minimal.
 
 | Feature | Crate | Effect | Default |
 |---------|-------|--------|---------|
-| `api-backends` | `hippmem-model` | Compile OpenAI/Anthropic clients | **off** (CI and defaults build with the deterministic fallback only) |
 | `grpc` | workspace | Compile `hippmem-grpc` | off |
 
-Runtime backend selection (Api / Deterministic / Auto) is **configuration**, orthogonal to features. With `api-backends` off, only the deterministic fallback is available, so CI builds and tests require no network and no API keys.
+Both Hash and Neural embedders are always compiled (no feature flag since D10).
+Runtime embedder selection is controlled by `EmbedderConfig`.
 
 ---
 
@@ -360,12 +360,12 @@ In production, logs go to stdout (optionally JSON) and are collected by an exter
 
 HIPPMEM defines four model capabilities as traits in `hippmem-model`: `Embedder`, `Extractor`, `Reranker`, and `Summarizer`. Each has two implementations:
 
-- **API backends** — thin `reqwest` clients for OpenAI (embedding) and Anthropic (extraction/summarization). Compiled in only with the `api-backends` feature; require API keys from environment variables (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`).
+- **API backends** — thin `reqwest` clients for OpenAI (embedding) and Anthropic (extraction/summarization). Always compiled (no feature flag since D10); require API keys from environment variables (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`).
 - **Deterministic fallback** — local, dependency-free implementations that produce stable, reproducible output. Hash-based embeddings, rule-based extraction, identity reranker, extractive summarizer.
 
 Backend selection is per-capability and configuration-driven (`Api` / `Deterministic` / `Auto`):
 
-- `Auto` (default) — use the API backend when a key is present and the feature is compiled in; otherwise fall back to deterministic.
+- `Auto` (default) — use the API backend when a key is present; otherwise fall back to deterministic.
 - `Api` — require the API backend; fail with `BackendUnavailable` if the key is missing.
 - `Deterministic` — always use the fallback, regardless of keys.
 

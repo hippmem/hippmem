@@ -137,8 +137,8 @@ HIPPMEM supports three embedding backends, configured via `EmbedderConfig`:
 
 | Provider | Vector Dimensions | Description | Use Case |
 |----------|---------|------|---------|
-| `deterministic` (default) | 256d SimHash | deterministic degraded mode, zero dependencies, no network, pure compute | CI, offline, privacy, testing |
-| `openai-compatible` | depends on model | online API, high semantic precision | production, high-quality retrieval |
+| `hash` (default) | 256d SimHash | offline, zero dependencies, deterministic, no API key needed | CI, offline, privacy, testing |
+| `neural` | depends on model | online API, high semantic precision, requires API key | production, high-quality retrieval |
 | `onnx` (reserved) | depends on model | offline local inference | future: privacy + high precision |
 
 ### 5.2 Configuration Methods
@@ -147,7 +147,7 @@ HIPPMEM supports three embedding backends, configured via `EmbedderConfig`:
 
 ```bash
 # Embedder backend
-export HIPPMEM__EMBEDDER__PROVIDER="openai-compatible"
+export HIPPMEM__EMBEDDER__PROVIDER="neural"
 export HIPPMEM__EMBEDDER__BASE_URL="https://api.openai.com/v1"
 export HIPPMEM__EMBEDDER__MODEL="text-embedding-3-small"
 export HIPPMEM__EMBEDDER__DIMENSIONS=1536
@@ -161,7 +161,7 @@ export OPENAI_API_KEY="sk-xxxxxxxx"
 ```toml
 # hippmem.toml
 [embedder]
-provider = "openai-compatible"
+provider = "neural"
 base_url = "https://api.openai.com/v1"
 model = "text-embedding-3-small"
 api_key = "sk-xxxxxxxx"   # optional; if not provided, read from the OPENAI_API_KEY env var
@@ -174,12 +174,12 @@ dimensions = 1536
 use hippmem_core::config::EmbedderConfig;
 use hippmem_engine::EngineConfig;
 
-// Deterministic degraded mode (default, no configuration needed)
+// Hash degraded mode (default, no configuration needed)
 let config = EngineConfig::default();
 
-// OpenAI API
+// Neural embedder (online API)
 let config = EngineConfig {
-    embedder: EmbedderConfig::OpenAiCompatible {
+    embedder: EmbedderConfig::Neural {
         base_url: "https://api.openai.com/v1".into(),
         model: "text-embedding-3-small".into(),
         api_key: None,  // read from the OPENAI_API_KEY env var
@@ -192,7 +192,7 @@ let config = EngineConfig {
 **Method 4: CLI Arguments**
 
 ```bash
-hippmem --embedding-provider openai-compatible \
+hippmem --embedding-provider neural \
         --embedding-base-url "https://api.openai.com/v1" \
         --embedding-model "text-embedding-3-small" \
         write -c "A decision worth remembering."
@@ -241,7 +241,7 @@ let config = EngineConfig {
         channel_coeff_bm25: 0.8,
         ..AlgoParams::default()
     },
-    embedder: EmbedderConfig::OpenAiCompatible { /* ... */ },
+    embedder: EmbedderConfig::Neural { /* ... */ },
     ..EngineConfig::default()
 };
 ```
@@ -250,17 +250,10 @@ let config = EngineConfig {
 > API Key lookup order: `EmbedderConfig.api_key` → environment variable `OPENAI_API_KEY`.
 > If neither is present, `Engine::open()` returns `EngineError::Model("auth/missing key")`.
 
-### 5.5 Build Features
+### 5.5 Embedder Selection
 
-Using the `openai-compatible` backend requires enabling a feature at build time:
-
-```bash
-cargo build --features api-backends
-```
-
-If the feature is not enabled, specifying `openai-compatible` returns `ModelError::Unavailable`.
-
-> The default configuration (`deterministic`) requires no features and compiles with zero dependencies — fully usable in offline/CI environments.
+Both `hash` and `neural` embedders are always compiled and available.
+No feature flags needed — choose at runtime via config, env var, or CLI flag.
 
 ---
 

@@ -12,7 +12,7 @@ Passed in when constructing `Engine::open()`.
 |------|------|--------|------|
 | `store_dir` | `PathBuf` | `"./hippmem_data"` | Storage directory. The redb file is created here, the Tantivy index under the `fulltext/` subdirectory |
 | `algo` | `AlgoParams` | `AlgoParams::default()` | All algorithm parameters |
-| `embedder` | `EmbedderConfig` | `EmbedderConfig::default()` | **Embedder backend configuration**. Defaults to deterministic 256d SimHash |
+| `embedder` | `EmbedderConfig` | `EmbedderConfig::default()` | **Embedder backend configuration**. Defaults to hash 256d SimHash |
 | `backend` | `BackendSelection` | `BackendSelection::default()` | Model backend selection (extractor/reranker/summarizer; embedder has moved to `EmbedderConfig`) |
 | `background` | `BackgroundConfig` | `BackgroundConfig::default()` | Background worker configuration |
 
@@ -48,17 +48,17 @@ Passed in when constructing `Engine::open()`.
 
 ### Three Providers
 
-#### 1. Deterministic (default)
+#### 1. Hash (default)
 
 Deterministic 256d SimHash degraded backend. **Zero dependencies, no network, pure computation** — the same text always yields the same vector. CI and default configurations use this option.
 
 ```toml
 [embedder]
-provider = "deterministic"
+provider = "hash"
 dimensions = 256  # optional, default 256
 ```
 
-#### 2. OpenAI-Compatible (online API)
+#### 2. Neural (online API)
 
 Services compatible with the OpenAI Embeddings API format. Supported:
 
@@ -72,14 +72,14 @@ Services compatible with the OpenAI Embeddings API format. Supported:
 ```toml
 # OpenAI
 [embedder]
-provider = "openai-compatible"
+provider = "neural"
 model = "text-embedding-3-small"
 dimensions = 1536
 # base_url defaults to "https://api.openai.com/v1"; no need to specify explicitly
 
 # Ollama (local)
 [embedder]
-provider = "openai-compatible"
+provider = "neural"
 base_url = "http://localhost:11434/v1"
 model = "nomic-embed-text"
 dimensions = 768
@@ -87,13 +87,13 @@ dimensions = 768
 
 - `api_key` is optional: when not provided, it is read automatically from the `OPENAI_API_KEY` environment variable
 - If neither is present -> `Engine::open()` returns `EngineError::Model(auth/missing key)`
-- Requires the `api-backends` feature at compile time: `cargo build --features api-backends`
+- Both `hash` and `neural` embedders are always compiled; no build-time feature flag is needed (D10)
 
-> **Online API backend**: when using an online embedding API, true semantic vectors (e.g., 1536d from OpenAI) provide richer representations than the deterministic 256d SimHash fallback.
+> **Online API backend**: when using an online embedding API, true semantic vectors (e.g., 1536d from OpenAI) provide richer representations than the hash 256d SimHash fallback.
 > It is recommended to also raise the weight of the SemanticDense channel so the semantic advantage shows through:
 > ```toml
 > [embedder]
-> provider = "openai-compatible"
+> provider = "neural"
 > model = "text-embedding-3-small"
 > dimensions = 1536
 >
@@ -121,7 +121,7 @@ Selecting `onnx` without a compiled runtime returns `ModelError::Unavailable`.
 All `EmbedderConfig` fields can be overridden via environment variables (figment layering):
 
 ```bash
-export HIPPMEM__EMBEDDER__PROVIDER="openai-compatible"
+export HIPPMEM__EMBEDDER__PROVIDER="neural"
 export HIPPMEM__EMBEDDER__BASE_URL="https://api.openai.com/v1"
 export HIPPMEM__EMBEDDER__MODEL="text-embedding-3-small"
 export HIPPMEM__EMBEDDER__DIMENSIONS=1536
@@ -136,8 +136,8 @@ export OPENAI_API_KEY="sk-xxxxxxxx"
 
 | Switch direction | Impact | Handling |
 |----------|------|------|
-| Deterministic -> API | 256d -> 1024d+ | Need to rebuild the semantic index (`consolidate(Reindex)`) |
-| API -> Deterministic | 1024d+ -> 256d | Same as above |
+| Hash -> Neural | 256d -> 1024d+ | Need to rebuild the semantic index (`consolidate(Reindex)`) |
+| Neural -> Hash | 1024d+ -> 256d | Same as above |
 | OpenAI small → large | 1536d → 3072d | Same as above |
 
 Index rebuild currently requires a manual step. Automatic migration is on the roadmap.

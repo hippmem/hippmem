@@ -39,12 +39,12 @@ struct Cli {
     )]
     store_dir: PathBuf,
 
-    /// Embedding backend: deterministic (default) | openai-compatible (requires api-backends feature)
+    /// Embedding backend: hash (default, offline) | neural (API-based)
     #[arg(
         long,
         global = true,
         env = "HIPPMEM_EMBEDDING_PROVIDER",
-        value_parser = ["deterministic", "openai-compatible"]
+        value_parser = ["hash", "neural"]
     )]
     embedding_provider: Option<String>,
 
@@ -188,7 +188,7 @@ fn main_impl() {
 
     // Build EmbedderConfig from CLI args (CLI > env vars > defaults)
     let embedder = match cli.embedding_provider.as_deref() {
-        Some("openai-compatible") => EmbedderConfig::OpenAiCompatible {
+        Some("neural") => EmbedderConfig::Neural {
             base_url: cli
                 .embedding_base_url
                 .clone()
@@ -196,9 +196,9 @@ fn main_impl() {
             model: cli
                 .embedding_model
                 .clone()
-                .unwrap_or_else(|| "text-embedding-v4".into()),
+                .unwrap_or_else(|| "text-embedding-3-small".into()),
             api_key: None,    // read by build_embedder from the OPENAI_API_KEY env var
-            dimensions: 1024, // DashScope text-embedding-v4 default dimensions
+            dimensions: 1536, // OpenAI text-embedding-3-small default dimensions
         },
         _ => EmbedderConfig::default(),
     };

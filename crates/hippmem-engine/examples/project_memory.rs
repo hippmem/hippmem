@@ -9,9 +9,9 @@
 //!   3. Per-channel seed breakdown: which channel found what
 //!
 //! Run: cargo run --example project_memory
-//! No API key required — uses the deterministic degraded backend (zero-config).
-//! With real model backends, the graph edges and spreading activation add
-//! another dimension (see --features api-backends).
+//! No API key required — uses the Hash embedder (offline, zero-config).
+//! With the Neural embedder, graph edges and spreading activation add
+//! another dimension.
 
 use hippmem_core::model::enums::ContentType;
 use hippmem_core::model::links::{RecallChannel, RetrievalMode};
@@ -305,8 +305,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("  Different channels find different memories. RRF fusion combines them");
     println!("  so the final ranking is stronger than any single channel alone.");
     println!();
-    println!("  With --features api-backends, real models also populate Entity,",);
-    println!("  Causal, and Topic dimensions, and the graph edges enable multi-hop");
+    println!("  With the Neural embedder, Entity, Causal, and Topic dimensions are");
+    println!("  populated by real models, and the graph edges enable multi-hop");
     println!("  spreading activation for deeper associative recall.");
     println!();
 

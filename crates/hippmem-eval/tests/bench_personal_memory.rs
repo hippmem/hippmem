@@ -1,6 +1,6 @@
 //! Personal memory evaluation
 //!
-//! This test uses the API Embedding backend (non-degraded) to persist a set of personal memories
+//! This test uses the Neural embedder (API backend) to persist a set of personal memories
 //! and asserts ranking correctness for key queries.
 //! Design goals:
 //!   1. Verify that the Top-1 of a causal query ("Why did I choose redb?") is the causal explanation, not a factual statement
@@ -8,7 +8,7 @@
 //!   3. Output full diagnostic information for tuning analysis
 //!
 //! Prerequisite: set the OPENAI_API_KEY environment variable
-//! Run: cargo test -p hippmem-eval --test chenming_personal_eval --features api-backends -- --nocapture
+//! Run: cargo test -p hippmem-eval --test bench_personal_memory -- --nocapture
 
 #![allow(dead_code)] // test helpers enabled on demand
 //!
@@ -21,7 +21,6 @@ mod common;
 use hippmem_core::model::enums::ContentType;
 use hippmem_core::model::links::RetrievalMode;
 use hippmem_engine::{Engine, RetrieveInput, WriteMemoryInput};
-#[cfg(feature = "api-backends")]
 use tempfile::tempdir;
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -127,8 +126,13 @@ fn retrieve_diagnostic(engine: &Engine, query: &str, top_k: usize) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #[test]
-#[cfg(feature = "api-backends")]
 fn test_causal_query_why_redb() {
+    // Reuse the shared config check: it also rejects an empty-but-set key
+    // (otherwise the test would silently run on the Hash fallback backend).
+    if common::api_embedder_config().is_none() {
+        eprintln!("SKIP: OPENAI_API_KEY not set");
+        return;
+    }
     println!("\n╔══════════════════════════════════════════════════════════════╗");
     println!("║  Test 1: Causal query — Why did I choose redb?               ║");
     println!("╚══════════════════════════════════════════════════════════════╝");
@@ -213,8 +217,13 @@ fn test_causal_query_why_redb() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #[test]
-#[cfg(feature = "api-backends")]
 fn test_identity_query_who_am_i() {
+    // Reuse the shared config check: it also rejects an empty-but-set key
+    // (otherwise the test would silently run on the Hash fallback backend).
+    if common::api_embedder_config().is_none() {
+        eprintln!("SKIP: OPENAI_API_KEY not set");
+        return;
+    }
     println!("\n╔══════════════════════════════════════════════════════════════╗");
     println!("║  Test 2: Identity query — Who am I?                          ║");
     println!("╚══════════════════════════════════════════════════════════════╝");
@@ -290,8 +299,13 @@ fn test_identity_query_who_am_i() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #[test]
-#[cfg(feature = "api-backends")]
 fn test_all_queries_ranking() {
+    // Reuse the shared config check: it also rejects an empty-but-set key
+    // (otherwise the test would silently run on the Hash fallback backend).
+    if common::api_embedder_config().is_none() {
+        eprintln!("SKIP: OPENAI_API_KEY not set");
+        return;
+    }
     println!("\n╔══════════════════════════════════════════════════════════════╗");
     println!("║  Test 3: Comprehensive ranking check                          ║");
     println!("╚══════════════════════════════════════════════════════════════╝");

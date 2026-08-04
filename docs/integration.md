@@ -120,7 +120,7 @@ Run tests in CI using the deterministic degraded backend.
 
 ```rust
 // Use the default config in test code (deterministic 256d SimHash)
-let config = EngineConfig::default();  // embedder defaults to Deterministic
+let config = EngineConfig::default();  // embedder defaults to Hash (256d SimHash, offline)
 let engine = Engine::open(config)?;
 ```
 

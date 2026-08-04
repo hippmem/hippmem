@@ -101,7 +101,7 @@ Key points:
 
 API backends are **not** exercised in CI (no keys). Their correctness is verified by local real-backend runs and by contract tests with mock HTTP servers that validate client parsing logic.
 
-> The Embedder backend has evolved beyond a single OpenAI client. The current `EmbedderConfig` supports three variants: `Deterministic` (256d hash), `OpenAiCompatible` (OpenAI / Ollama / vLLM, configurable model and dimension), and `Onnx` (local ONNX runtime). All variants implement the same `Embedder` trait.
+> The Embedder backend has evolved beyond a single OpenAI client. The current `EmbedderConfig` supports three variants: `Hash` (256d SimHash), `Neural` (OpenAI / Ollama / vLLM, configurable model and dimension), and `Onnx` (local ONNX runtime, reserved). All variants implement the same `Embedder` trait.
 
 ---
 

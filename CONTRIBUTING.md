@@ -51,10 +51,10 @@ No GPU, API key, or network connection is needed for the default build or tests.
 
 ### Optional: API backends
 
-To exercise the OpenAI/Anthropic backends (feature-gated, not required for CI):
+To exercise the Neural embedder (requires OPENAI_API_KEY env var):
 
 ```bash
-cargo test --workspace --features api-backends
+OPENAI_API_KEY=sk-... cargo test --workspace
 ```
 
 ## Code Style

@@ -4,7 +4,7 @@
 //! per P7 (test-data locale symmetry). All 100 items organized in 8 sections.
 //! Default locale: "zh". Override via first CLI arg.
 //!
-//! Run: cargo run --example seed_100 --features api-backends [locale]
+//! Run: cargo run --example seed_100 [locale]
 
 use hippmem_core::model::enums::ContentType;
 use hippmem_core::model::unit::WriteContext;
@@ -31,7 +31,7 @@ fn load_fixture(locale: &str) -> SeedFixture {
         locale = locale
     );
     let data = std::fs::read_to_string(&path).unwrap_or_else(|e| {
-        panic!("failed to read seed_100/{locale}.json: {e}\nUsage: cargo run --example seed_100 --features api-backends [zh|en]")
+        panic!("failed to read seed_100/{locale}.json: {e}\nUsage: cargo run --example seed_100 [zh|en]")
     });
     serde_json::from_str(&data).expect("invalid fixture")
 }

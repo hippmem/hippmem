@@ -299,7 +299,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let dir = tempfile::tempdir()?;
     let engine = Engine::open(EngineConfig {
         store_dir: dir.path().join("offline.redb"),
-        // embedder defaults to Deterministic 256d SimHash, no API needed
+        // embedder defaults to Hash 256d SimHash, no API needed
         ..Default::default()
     })?;
 

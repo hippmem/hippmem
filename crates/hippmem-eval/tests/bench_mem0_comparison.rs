@@ -6,7 +6,7 @@
 //!   3. Metrics: Precision@1/3/5, Recall@5, MRR, NDCG@5
 //!   4. Only memory effectiveness is evaluated; architecture, business model, etc. are ignored
 //!
-//! Run: cargo test -p hippmem-eval --test bench_mem0_comparison --features api-backends -- --nocapture
+//! Run: cargo test -p hippmem-eval --test bench_mem0_comparison -- --nocapture
 
 mod common;
 
@@ -319,8 +319,13 @@ fn run_hippmem_eval(
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #[test]
-#[cfg(feature = "api-backends")]
 fn test_hippmem_100_items_benchmark() {
+    // Reuse the shared config check: it also rejects an empty-but-set key
+    // (otherwise the test would silently run on the Hash fallback backend).
+    if common::api_embedder_config().is_none() {
+        eprintln!("SKIP: OPENAI_API_KEY not set");
+        return;
+    }
     for locale in common::discover_bench_locales() {
         println!("\n╔══════════════════════════════════════════════════════════════════╗");
         println!("║  HIPPMEM 100-item small-batch memory effectiveness benchmark      ║");
