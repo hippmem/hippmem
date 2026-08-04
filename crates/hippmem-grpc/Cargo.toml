@@ -18,8 +18,8 @@ documentation = "https://docs.rs/hippmem-grpc"
 grpc = ["dep:tonic", "dep:prost", "dep:tokio", "dep:tonic-build"]
 
 [dependencies]
-hippmem-core = { path = "../hippmem-core", version = "0.1.0" }
-hippmem-engine = { path = "../hippmem-engine", version = "0.1.0" }
+hippmem-core = { path = "../hippmem-core", version = "0.2.0" }
+hippmem-engine = { path = "../hippmem-engine", version = "0.2.0" }
 tonic = { version = "0.12", optional = true }
 prost = { version = "0.13", optional = true }
 tokio = { workspace = true, optional = true }

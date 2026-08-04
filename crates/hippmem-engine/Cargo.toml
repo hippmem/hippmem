@@ -14,17 +14,13 @@ keywords = ["memory", "ai", "agent", "rag", "associative"]
 categories = ["database", "command-line-interface"]
 documentation = "https://docs.rs/hippmem-engine"
 
-[features]
-default = ["api-backends"]
-api-backends = ["hippmem-model/api-backends"]
-
 [dependencies]
-hippmem-core = { path = "../hippmem-core", version = "0.1.0" }
-hippmem-store = { path = "../hippmem-store", version = "0.1.0" }
-hippmem-model = { path = "../hippmem-model", version = "0.1.0" }
-hippmem-write = { path = "../hippmem-write", version = "0.1.0" }
-hippmem-retrieval = { path = "../hippmem-retrieval", version = "0.1.0" }
-hippmem-consolidation = { path = "../hippmem-consolidation", version = "0.1.0" }
+hippmem-core = { path = "../hippmem-core", version = "0.2.0" }
+hippmem-store = { path = "../hippmem-store", version = "0.2.0" }
+hippmem-model = { path = "../hippmem-model", version = "0.2.0" }
+hippmem-write = { path = "../hippmem-write", version = "0.2.0" }
+hippmem-retrieval = { path = "../hippmem-retrieval", version = "0.2.0" }
+hippmem-consolidation = { path = "../hippmem-consolidation", version = "0.2.0" }
 
 # storage (internal use, bypasses store trait for direct redb::Database access)
 redb = "3"
