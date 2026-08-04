@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.2.0] — 2026-07-30
+
+### Changed
+- **Embedder naming** (D10): `Deterministic` → **`Hash`** (256d SimHash, offline default),
+  `OpenAiCompatible` → **`Neural`** (API-based, higher semantic accuracy).
+- **No more feature flags**: both embedders are always compiled. Choose at runtime
+  via config (`provider = "hash" | "neural"`), env vars, or CLI (`--embedding-provider`).
+- CLI default model: `text-embedding-v4` (DashScope) → `text-embedding-3-small` (OpenAI).
+- All user documentation updated to the Hash/Neural terminology (EN + ZH).
+
+### Fixed
+- Removed dead-code `#[cfg(feature = "api-backends")]` guards; API-dependent tests
+  now skip at runtime when `OPENAI_API_KEY` is missing.
+- Mock HTTP test now performs a real round-trip against a local server.
+
+### Added
+- `hippmem-eval` bumped to 0.2.0 (aligned MINOR with the engine).
+
+[0.2.0]: https://github.com/hippmem/hippmem/releases/tag/v0.2.0
+
 ## [0.1.0] — 2026-07-12
 
 Initial public release of HIPPMEM.
