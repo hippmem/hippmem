@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [0.2.0] — 2026-07-30
 
 ### Changed
-- **Embedder naming** (D10): `Deterministic` → **`Hash`** (256d SimHash, offline default),
+- **Embedder naming**: `Deterministic` → **`Hash`** (256d SimHash, offline default),
   `OpenAiCompatible` → **`Neural`** (API-based, higher semantic accuracy).
 - **No more feature flags**: both embedders are always compiled. Choose at runtime
   via config (`provider = "hash" | "neural"`), env vars, or CLI (`--embedding-provider`).
