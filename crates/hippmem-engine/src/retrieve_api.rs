@@ -360,7 +360,8 @@ impl Engine {
         };
 
         // 10. Record activation log (for the RecentActivation channel and Hebbian)
-        {
+        //     and surface the retrieval_id to the caller for feedback.
+        let retrieval_id = {
             let act_log = ActivationLogger::new(self.store.db_arc());
             let used_ids: Vec<u64> = results.iter().map(|r| r.memory.id.0 as u64).collect();
             let now_ms =
@@ -375,9 +376,11 @@ impl Engine {
                 signal: "retrieve".into(),
                 recorded_at_ms: now_ms,
             });
-        }
+            now_ms as u64
+        };
 
         Ok(RetrieveOutput {
+            retrieval_id,
             results,
             trace: crate::RetrievalTrace {
                 seeds: seed_result

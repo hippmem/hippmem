@@ -118,6 +118,8 @@ pub struct RetrieveInput {
 
 /// Retrieval output.
 pub struct RetrieveOutput {
+    /// Identifier for this retrieval, used for feedback (see `Engine::feedback`).
+    pub retrieval_id: u64,
     pub results: Vec<RetrievalResult>,
     pub trace: RetrievalTrace,
     pub diagnostics: RetrievalDiagnostics,
