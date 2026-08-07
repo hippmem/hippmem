@@ -16,5 +16,5 @@ awk -v v="$VERSION" '
   $0 ~ "^## \\[" v "\\]" { found = 1; next }
   found && $0 ~ "^## \\[" { exit }
   found && $0 ~ /^\[.*\]:/ { next }   # skip changelog footer link lines like "[0.2.0]: url"
-  found { print }
+  found && $0 !~ /^[[:space:]]*$/ { print }   # skip blank lines (leading/trailing)
 ' "$CHANGELOG"
