@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.2.1] — 2026-08-07
+
+### Added
+- `RetrieveOutput` now exposes a `retrieval_id` so callers can link an
+  `Engine::feedback` record back to the retrieval that produced it.
+
+[0.2.1]: https://github.com/hippmem/hippmem/releases/tag/v0.2.1
+
 ## [0.2.0] — 2026-07-30
 
 ### Changed
