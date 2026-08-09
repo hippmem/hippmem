@@ -5,6 +5,8 @@
 [![Documentation](https://docs.rs/hippmem-engine/badge.svg)](https://docs.rs/hippmem-engine)
 [![License](https://img.shields.io/badge/license-AGPL--3.0--only-blue.svg)](LICENSE)
 
+**Ecosystem**: [Rust engine](https://github.com/hippmem/hippmem) · [Python bindings](https://github.com/hippmem/hippmem-py) · [MCP server](https://github.com/hippmem/hippmem-mcp)
+
 **A native associative memory engine for AI agents, written in Rust.**
 
 HIPPMEM gives an AI agent long-term memory that works like a colleague who remembers context. Instead of storing text chunks and searching them by vector similarity, it discovers associations between memories at write time and retrieves them via spreading activation at read time — so the agent recalls not just *what* was said, but *how things connect* and *why*.
@@ -44,6 +46,21 @@ The result is memory with continuity — closer to a long-term collaborator than
 <p align="center">
   <img src="assets/images/twelve_association_dimensions.jpg" alt="One memory, 12 ways to connect — typed association dimensions beyond semantic similarity" width="80%">
 </p>
+
+---
+
+## Ecosystem
+
+HIPPMEM is one core engine with three ways to use it — pick the one that fits your stack:
+
+| Project | What it is | Use it when |
+|---------|-----------|-------------|
+| **hippmem** (this repo) | The Rust engine + CLI + gRPC server | You build in Rust, or want the full engine API |
+| [**hippmem-py**](https://github.com/hippmem/hippmem-py) | Python bindings (`pip install hippmem`) | You build in Python — the most common AI-agent stack |
+| [**hippmem-mcp**](https://github.com/hippmem/hippmem-mcp) | MCP server (`pip install hippmem-mcp`) | You want any MCP-compatible tool (Claude Code, Claude Desktop, Codex, …) to gain persistent memory |
+
+All three share the same engine — same write-time association discovery, same
+spreading-activation retrieval, same offline Hash embedder by default.
 
 ---
 
