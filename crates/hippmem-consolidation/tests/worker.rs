@@ -1,6 +1,6 @@
 //! acceptance tests: compaction/merge + background worker cycle.
 
-use hippmem_consolidation::summarize::{build_summary_unit, should_summarize};
+use hippmem_consolidation::summarize::build_summary_unit;
 use hippmem_consolidation::worker::ConsolidationWorker;
 use hippmem_core::ids::MemoryId;
 use hippmem_core::model::unit::MemoryUnit;
@@ -78,13 +78,6 @@ fn make_mini_unit(id: u128, text: &str) -> MemoryUnit {
 }
 
 #[test]
-fn should_summarize_threshold() {
-    let ids: Vec<MemoryId> = (0..15).map(MemoryId).collect();
-    assert!(should_summarize(&ids, 12));
-    assert!(!should_summarize(&ids[..5], 12));
-}
-
-#[test]
 fn build_summary_creates_covers_chain() {
     let sources: Vec<MemoryUnit> = vec![
         make_mini_unit(1, "Fixed a performance regression in the query pipeline"),
@@ -128,7 +121,7 @@ fn worker_runs_consolidation_cycle() {
     let now = hippmem_core::time::Timestamp::from_millis(1_700_000_000_000);
 
     // Run one cycle (empty co-activation, normal timestamp)
-    let stats = worker.run_cycle(&mut units, &[], now, None);
+    let stats = worker.run_cycle(&mut units, &[], now);
     assert_eq!(worker.cycle_count(), 1);
     assert!(
         stats.edges_decayed < 100,
@@ -136,7 +129,7 @@ fn worker_runs_consolidation_cycle() {
     );
 
     // Empty data should not panic
-    let stats = worker.run_cycle(&mut Vec::new(), &[], now, None);
+    let stats = worker.run_cycle(&mut Vec::new(), &[], now);
     assert_eq!(worker.cycle_count(), 2);
     assert_eq!(stats.edges_archived, 0);
 }

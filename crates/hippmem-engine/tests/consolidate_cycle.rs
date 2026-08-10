@@ -158,13 +158,16 @@ fn scenario_2_engine_hebbian_full_chain() {
         "associated memories should have edges between them"
     );
 
-    // Verify consolidate persistence is effective: pre/post edge sets are identical (no edges lost)
+    // Verify consolidate persistence is effective: post ≥ pre (no edges lost).
+    // Hebbian legitimately ADDS CoActivation edges (此前 u64 截断 bug 使 Hebbian 从不
+    // 生效、post 恒等于 pre；修复后共现对匹配真实 id，边数会增加)。
     // Decay lowers non-protected edge scores, but Hebbian may partially offset that
     // Core assertion: edges still exist after consolidate (no data loss)
-    assert_eq!(
+    assert!(
+        post_strengths.len() >= pre_strengths.len(),
+        "consolidate should not lose edges: pre={} post={}",
         pre_strengths.len(),
-        post_strengths.len(),
-        "consolidate should not lose edges"
+        post_strengths.len()
     );
 
     engine.close().unwrap();
@@ -345,9 +348,8 @@ fn scenario_5_summary_creation_full_chain() {
         let output = engine
             .write(WriteMemoryInput {
                 content: format!(
-                    "Build output: warning E{:04} fixed at src/main.rs line {}.",
-                    i,
-                    i * 10 + 1
+                    "Build output: warning E{:04} fixed at src/main.rs line 42.",
+                    i
                 ),
                 content_type: Some(ContentType::ToolResult),
                 context: ctx(),
@@ -372,13 +374,140 @@ fn scenario_5_summary_creation_full_chain() {
     );
 
     // ── verify source memories are still inspectable (Constitution C7: keep originals, no physical deletion) ──
+    let mut summary_id = None;
     for id in &memory_ids {
+        let report = engine.inspect(InspectQuery::Memory(*id)).unwrap();
+        match report {
+            InspectReport::Memory(m) => {
+                // 0.3.0: 源记忆必须标记 Compressed{into: summary.id}
+                match m.lifecycle {
+                    hippmem_core::model::unit::MemoryLifecycle::Compressed { into } => {
+                        if let Some(prev) = summary_id {
+                            assert_eq!(prev, into, "所有源记忆必须压缩进同一摘要");
+                        }
+                        summary_id = Some(into);
+                    }
+                    other => panic!("源记忆 lifecycle 应为 Compressed{{into}}, 实际 {other:?}"),
+                }
+            }
+            _ => panic!("expected Memory inspect report"),
+        }
+    }
+
+    // ── verify covers chain: 摘要 covers 全部 15 个源记忆 ──
+    let summary_id = summary_id.expect("应存在摘要 id");
+    match engine.inspect(InspectQuery::Memory(summary_id)).unwrap() {
+        InspectReport::Memory(m) => {
+            assert_eq!(
+                m.unit.context.preceding_memory_ids.len(),
+                15,
+                "摘要 covers 应覆盖全部 15 个源记忆"
+            );
+            assert_eq!(
+                m.unit.provenance.generated_by,
+                hippmem_core::model::unit::GeneratedBy::Consolidation
+            );
+        }
+        _ => panic!("expected Memory inspect report"),
+    }
+
+    engine.close().unwrap();
+}
+
+/// 0.3.0 §8：检索默认返回摘要，压缩源记忆不直接命中。
+#[test]
+fn scenario_7_retrieval_hides_compressed_sources_shows_summary() {
+    let dir = tempdir().unwrap();
+    let engine = Engine::open(EngineConfig {
+        store_dir: dir.path().join("hippmem.redb"),
+        ..Default::default()
+    })
+    .unwrap();
+
+    for i in 0..15 {
+        engine
+            .write(WriteMemoryInput {
+                content: format!(
+                    "Build output: warning E{:04} fixed at src/main.rs line 42.",
+                    i
+                ),
+                content_type: Some(ContentType::ToolResult),
+                context: ctx(),
+                importance_hint: Some(0.2),
+                source_refs: vec![],
+            })
+            .unwrap();
+    }
+    engine.consolidate(ConsolidationScope::Incremental).unwrap();
+
+    let out = engine
+        .retrieve(RetrieveInput {
+            query: "warning E".into(),
+            context: RetrieveContext::default(),
+            top_k: 5,
+            max_hops: None,
+            retrieval_mode: RetrievalMode::Balanced,
+        })
+        .unwrap();
+
+    assert!(!out.results.is_empty(), "摘要应可被检索到");
+    let has_summary = out.results.iter().any(|r| {
+        r.memory.provenance.generated_by == hippmem_core::model::unit::GeneratedBy::Consolidation
+    });
+    assert!(
+        has_summary,
+        "检索结果应包含摘要（top: {:?}）",
+        out.results
+            .iter()
+            .map(|r| &r.memory.content.raw)
+            .collect::<Vec<_>>()
+    );
+    for r in &out.results {
         assert!(
-            engine.inspect(InspectQuery::Memory(*id)).is_ok(),
-            "source memory {} should be retained",
-            id.0
+            !matches!(
+                r.memory.lifecycle,
+                hippmem_core::model::unit::MemoryLifecycle::Compressed { .. }
+            ),
+            "压缩源记忆不得直接出现在检索结果中: {:?}",
+            r.memory.content.raw
         );
     }
+
+    engine.close().unwrap();
+}
+
+/// 0.3.0 covers 去重：同一簇二次 consolidate 不重复创建摘要。
+#[test]
+fn scenario_8_second_consolidate_does_not_resummarize() {
+    let dir = tempdir().unwrap();
+    let engine = Engine::open(EngineConfig {
+        store_dir: dir.path().join("hippmem.redb"),
+        ..Default::default()
+    })
+    .unwrap();
+
+    for i in 0..15 {
+        engine
+            .write(WriteMemoryInput {
+                content: format!(
+                    "Build output: warning E{:04} fixed at src/main.rs line 42.",
+                    i
+                ),
+                content_type: Some(ContentType::ToolResult),
+                context: ctx(),
+                importance_hint: Some(0.2),
+                source_refs: vec![],
+            })
+            .unwrap();
+    }
+
+    let first = engine.consolidate(ConsolidationScope::Incremental).unwrap();
+    assert_eq!(first.summaries_created, 1);
+    let second = engine.consolidate(ConsolidationScope::Incremental).unwrap();
+    assert_eq!(
+        second.summaries_created, 0,
+        "已被摘要覆盖/压缩的源记忆不得再次触发摘要"
+    );
 
     engine.close().unwrap();
 }

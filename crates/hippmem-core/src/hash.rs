@@ -17,6 +17,19 @@ pub fn stable_hash64(text: &str) -> u64 {
     xxhash_rust::xxh3::xxh3_64(text.as_bytes())
 }
 
+/// SimHash similarity of two 256-bit signatures: fraction of identical bits in [0, 1].
+///
+/// Deterministic; used for write-time candidate filtering (Semantic dimension hits)
+/// and consolidation summary clustering (§8). Same input → 1.0; orthogonal → ~0.0.
+pub fn simhash_similarity(a: &[u64; 4], b: &[u64; 4]) -> f32 {
+    let same: u32 = a
+        .iter()
+        .zip(b.iter())
+        .map(|(x, y)| 64 - (x ^ y).count_ones())
+        .sum();
+    same as f32 / 256.0
+}
+
 /// Tokenizes by language: Chinese goes through jieba; English/code goes through whitespace + punctuation splitting and lowercasing.
 ///
 /// `language` takes values such as `"zh"`, `"zh-CN"`, `"en"`, `"ja"`, etc.
@@ -65,5 +78,21 @@ mod tests {
         let h1 = stable_hash64("test text");
         let h2 = stable_hash64("test text");
         assert_eq!(h1, h2);
+    }
+
+    #[test]
+    fn simhash_similarity_identical_and_orthogonal() {
+        let a = [0x0123_4567_89AB_CDEF, 1, 2, 3];
+        assert_eq!(
+            simhash_similarity(&a, &a),
+            1.0,
+            "identical signatures → 1.0"
+        );
+        let zeros = [0u64; 4];
+        let ones = [u64::MAX; 4];
+        assert_eq!(simhash_similarity(&zeros, &ones), 0.0, "orthogonal → 0.0");
+        // 一半位相同 → 0.5
+        let half = [0x0000_0000_FFFF_FFFFu64; 4];
+        assert_eq!(simhash_similarity(&zeros, &half), 0.5);
     }
 }

@@ -1,10 +1,12 @@
 //! Engine::consolidate — consolidation API (05 §5, 09 §4.4).
 
+use crate::signals::is_positive_signal;
 use crate::{ConsolidationReport, ConsolidationScope, Engine, EngineError, EngineResult};
 use hippmem_consolidation::hebbian::ActivationLog;
+use hippmem_consolidation::summarize::{build_summary_unit, plan_summary_clusters};
 use hippmem_consolidation::worker::ConsolidationWorker;
 use hippmem_core::ids::MemoryId;
-use hippmem_core::model::unit::MemoryUnit;
+use hippmem_core::model::unit::{MemoryLifecycle, MemoryUnit};
 use hippmem_core::time::{Clock, SystemClock};
 use hippmem_model::deterministic::summarize::DeterministicSummarizer;
 use hippmem_store::activation_log::ActivationLogger;
@@ -36,14 +38,19 @@ impl Engine {
         let mut units = crate::retrieve_api::load_all_units(self.store.db_arc());
 
         // 2. Read activation_log and build co-activation pairs
+        //    0.3.0: only positive signals contribute (UserRejected excluded, 05 §6)
         let logger = ActivationLogger::new(self.store.db_arc());
         let mut activation_log = ActivationLog::default();
         if let Ok(records) = logger.read_all() {
             for rec in &records {
+                if !is_positive_signal(&rec.signal) {
+                    continue;
+                }
                 for i in 0..rec.used_memory_ids.len() {
                     for j in (i + 1)..rec.used_memory_ids.len() {
-                        let a = MemoryId(rec.used_memory_ids[i] as u128);
-                        let b = MemoryId(rec.used_memory_ids[j] as u128);
+                        // P1 回归：used_memory_ids 是完整 u128（MemoryId 原值），禁止截断
+                        let a = MemoryId(rec.used_memory_ids[i]);
+                        let b = MemoryId(rec.used_memory_ids[j]);
                         let ts = hippmem_core::time::Timestamp::from_millis(rec.recorded_at_ms);
                         activation_log.record(a, ts, 0.5);
                         activation_log.record(b, ts, 0.5);
@@ -53,10 +60,44 @@ impl Engine {
         }
         let co_activations = activation_log.co_activation_pairs(3_600_000);
 
-        // 3. Run consolidation cycle (Hebbian→decay→compaction→summary)
-        let summarizer = DeterministicSummarizer;
+        // 3. Run consolidation cycle (Hebbian→decay→compaction)
         let mut worker = ConsolidationWorker::default();
-        let cycle_stats = worker.run_cycle(&mut units, &co_activations, now, Some(&summarizer));
+        let cycle_stats = worker.run_cycle(&mut units, &co_activations, now);
+
+        // 3b. Summary planning (03 §8) — 由 Engine 层负责：按 simhash 相似簇触发，
+        //     covers 去重，源单元标记 Compressed{into: summary.id}
+        let params = self.params.read();
+        let clusters = plan_summary_clusters(
+            &units,
+            params.summary_similarity_threshold,
+            params.summary_trigger_count,
+            params.summary_low_importance_threshold,
+        );
+        let mut summaries: Vec<MemoryUnit> = Vec::new();
+        for cluster in &clusters {
+            let members: Vec<MemoryUnit> = cluster
+                .iter()
+                .filter_map(|id| units.iter().find(|u| u.id == *id).cloned())
+                .collect();
+            if members.len() != cluster.len() {
+                continue; // 防御：簇成员必须全部可解析
+            }
+            let summary_unit = build_summary_unit(&members, &DeterministicSummarizer);
+            // Confidence gating: low confidence (<0.35) does not create a summary (Constitution C7)
+            if summary_unit.understanding.confidence.value() >= 0.35 {
+                summaries.push(summary_unit);
+            }
+        }
+        // 源单元标记 Compressed（随下方持久化循环一起落库）
+        for summary_unit in &summaries {
+            for unit in units.iter_mut() {
+                if summary_unit.context.preceding_memory_ids.contains(&unit.id) {
+                    unit.lifecycle = MemoryLifecycle::Compressed {
+                        into: summary_unit.id,
+                    };
+                }
+            }
+        }
 
         // 4. Persist the modified units back to the store
         let kv = KvStore::new(self.store.db_arc());
@@ -67,33 +108,54 @@ impl Engine {
                 .map_err(|e| EngineError::Store(e.to_string()))?;
         }
 
-        // 4b. Persist summary memory
-        if let Some(ref summary_unit) = cycle_stats.summary_unit {
-            let bincode_summary =
-                bincode::serde::encode_to_vec(summary_unit, bincode::config::standard())
-                    .map_err(|e| EngineError::Internal(e.to_string()))?;
-            kv.put(summary_unit.id.0, &bincode_summary)
-                .map_err(|e| EngineError::Store(e.to_string()))?;
+        // 4b. Persist summary memories — 全索引写入（P3 回归：摘要必须可被检索，
+        //     且写入 memory_log，reindex 不丢失）
+        for summary_unit in &summaries {
+            let input = crate::WriteMemoryInput {
+                content: summary_unit.content.raw.clone(),
+                content_type: Some(summary_unit.content.content_type),
+                context: summary_unit.context.clone(),
+                importance_hint: Some(summary_unit.understanding.importance.value()),
+                source_refs: summary_unit.context.source_refs.clone(),
+            };
+            crate::write_api::write_internal(self, summary_unit.id, input, false, None)?;
+
+            // 保留摘要的身份与 covers 链：
+            // write_internal 按相似度重建了普通边/元数据，这里以摘要单元自身的
+            // Elaboration 出边 + provenance/stage/content.summary 覆盖写回的单元，
+            // 保持图、单元、身份一致（索引仍用 write_internal 生成的键）。
             let graph = hippmem_store::graph::GraphStore::new(self.store.db_arc());
             graph
                 .put_outgoing(summary_unit.id, &summary_unit.links)
                 .map_err(EngineError::Store)?;
+            if let Some(raw) = kv
+                .get(&summary_unit.id.0)
+                .map_err(|e| EngineError::Store(e.to_string()))?
+            {
+                let (mut patched, _): (MemoryUnit, _) =
+                    bincode::serde::decode_from_slice(&raw, bincode::config::standard())
+                        .map_err(|e| EngineError::Internal(e.to_string()))?;
+                patched.links = summary_unit.links.clone();
+                patched.provenance = summary_unit.provenance.clone();
+                patched.stage = summary_unit.stage;
+                patched.content.summary = summary_unit.content.summary.clone();
+                let re_bincode =
+                    bincode::serde::encode_to_vec(&patched, bincode::config::standard())
+                        .map_err(|e| EngineError::Internal(e.to_string()))?;
+                kv.put(summary_unit.id.0, &re_bincode)
+                    .map_err(|e| EngineError::Store(e.to_string()))?;
+            }
         }
 
         let elapsed_ms = start.elapsed().as_millis() as u64;
 
         Ok(ConsolidationReport {
-            memories_processed: units.len() as u64
-                + if cycle_stats.summary_unit.is_some() {
-                    1
-                } else {
-                    0
-                },
+            memories_processed: units.len() as u64 + summaries.len() as u64,
             edges_decayed: cycle_stats.edges_decayed,
             edges_archived: cycle_stats.edges_archived,
             edges_merged: cycle_stats.hebbian_applied,
             observation_promoted: 0,
-            summaries_created: cycle_stats.summaries_created,
+            summaries_created: summaries.len() as u64,
             contradictions_found: 0,
             reindexed: false,
             elapsed_ms,

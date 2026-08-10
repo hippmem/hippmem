@@ -7,7 +7,7 @@
 //!   3. Confidence gating: low-confidence summary does not replace the originals
 //!   4. 5 dissimilar memories → no summary triggered
 
-use hippmem_consolidation::summarize::{build_summary_unit, should_summarize};
+use hippmem_consolidation::summarize::{build_summary_unit, plan_summary_clusters};
 use hippmem_core::ids::MemoryId;
 use hippmem_core::model::enums::ContentType;
 use hippmem_core::model::links::LinkType;
@@ -93,6 +93,12 @@ fn make_unit(id: u128, raw: &str, importance: f32) -> MemoryUnit {
     }
 }
 
+/// 设置单元的文本（簇规划依据：token 集合 Jaccard）。
+fn with_text(mut u: MemoryUnit, text: &str) -> MemoryUnit {
+    u.content.raw = text.into();
+    u
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // Scenario 1: Summary trigger — 15 similar low-importance memories
 // ═══════════════════════════════════════════════════════════════════
@@ -109,11 +115,13 @@ fn scenario_1_summary_triggered_with_15_similar_memories() {
         })
         .collect();
 
-    let ids: Vec<MemoryId> = sources.iter().map(|u| u.id).collect();
-    assert!(
-        should_summarize(&ids, 12),
-        "15 entries should trigger a summary (threshold=12)"
+    let clusters = plan_summary_clusters(&sources, 0.7, 12, 0.5);
+    assert_eq!(
+        clusters.len(),
+        1,
+        "15 条相似低 importance 记忆应规划出 1 个摘要簇"
     );
+    assert_eq!(clusters[0].len(), 15, "簇应包含全部 15 个成员");
 
     // Use DeterministicSummarizer to generate the summary
     let summarizer = DeterministicSummarizer;
@@ -148,7 +156,7 @@ fn scenario_1_summary_triggered_with_15_similar_memories() {
         15,
         "covers chain should cover all 15 source memories"
     );
-    for sid in &ids {
+    for sid in &clusters[0] {
         assert!(
             summary_unit.context.preceding_memory_ids.contains(sid),
             "covers chain should contain source memory {:?}",
@@ -160,7 +168,7 @@ fn scenario_1_summary_triggered_with_15_similar_memories() {
     for link in &summary_unit.links {
         assert_eq!(link.link_type, LinkType::Elaboration);
         assert!(
-            ids.contains(&link.target_id),
+            clusters[0].contains(&link.target_id),
             "Elaboration edge should point to a source memory"
         );
     }
@@ -246,9 +254,18 @@ fn scenario_3_confidence_gating_low_confidence_skip() {
 
 #[test]
 fn scenario_4_no_trigger_with_5_dissimilar() {
-    let ids: Vec<MemoryId> = (0..5).map(|i| MemoryId(i + 500)).collect();
+    // 5 条词汇互不重叠的记忆 → 无簇（且不足触发数）
+    let sources: Vec<MemoryUnit> = (0..5)
+        .map(|i| {
+            with_text(
+                make_unit(i + 500, "unrelated text", 0.3),
+                &format!("memtopic{i} alpha{i} beta{i} gamma{i} delta{i}"),
+            )
+        })
+        .collect();
+    let clusters = plan_summary_clusters(&sources, 0.7, 12, 0.5);
     assert!(
-        !should_summarize(&ids, 12),
+        clusters.is_empty(),
         "5 dissimilar memories should not trigger a summary (threshold=12)"
     );
 }

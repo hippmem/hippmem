@@ -1,9 +1,10 @@
 //! Staged write path: raw -> indexed (03/05).
 
-use crate::candidates::{discover_candidates, simhash_similarity};
+use crate::candidates::discover_candidates;
 use crate::edges::{build_edges, EdgeBuildParams};
 use crate::keys::generate_keys;
 use hippmem_core::config::AlgoParams;
+use hippmem_core::hash::simhash_similarity;
 use hippmem_core::ids::MemoryId;
 use hippmem_core::model::links::{ActivationState, AssociationLink, SemanticSignature};
 use hippmem_core::model::understanding::MemoryUnderstanding;

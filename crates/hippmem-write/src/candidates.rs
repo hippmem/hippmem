@@ -1,6 +1,7 @@
 //! Multi-dimensional candidate discovery: match on multiple dimensions based
 //! on AssociationKeys (03 §2).
 
+use hippmem_core::hash::simhash_similarity;
 use hippmem_core::model::links::{AssociationKeys, MatchDimension};
 use std::collections::HashSet;
 
@@ -154,15 +155,6 @@ pub fn discover_candidates(a: &AssociationKeys, b: &AssociationKeys) -> Candidat
         lexical_similarity,
         semantic_binary_similarity: binary_sim,
     }
-}
-
-pub(crate) fn simhash_similarity(a: &[u64; 4], b: &[u64; 4]) -> f32 {
-    let same: u32 = a
-        .iter()
-        .zip(b.iter())
-        .map(|(x, y)| 64 - (x ^ y).count_ones())
-        .sum();
-    same as f32 / 256.0
 }
 
 fn binary_similarity(a: &[u64; 2], b: &[u64; 2]) -> f32 {

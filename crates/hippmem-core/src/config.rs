@@ -67,6 +67,9 @@ pub struct AlgoParams {
     pub b_context_match: f32,
     /// Importance coefficient, default 0.15
     pub c_importance: f32,
+    /// Usage-score coefficient, default 0.5.
+    /// Neutral at usage_score = 0.5 (feedback has no effect until a signal is received).
+    pub c_usage: f32,
     /// Freshness coefficient, default 0.15
     pub d_freshness: f32,
     /// Reliability coefficient, default 0.10
@@ -187,6 +190,11 @@ pub struct AlgoParams {
     // ── Compaction (§8) ──
     /// Similar-memory count that triggers summarization, default 12
     pub summary_trigger_count: u32,
+    /// SimHash similarity threshold for summary cluster membership, default 0.7
+    pub summary_similarity_threshold: f32,
+    /// Memories with importance below this value count as "low importance"
+    /// for summary clustering (§8: clusters are mostly low-importance memories), default 0.5
+    pub summary_low_importance_threshold: f32,
 
     // ── Co-activation records ──
     /// Maximum neighbor count retained by ActivationState, default 16
@@ -223,6 +231,7 @@ impl Default for AlgoParams {
             a_query_match: 0.40,
             b_context_match: 0.20,
             c_importance: 0.60,
+            c_usage: 0.5,
             d_freshness: 0.15,
             e_reliability: 0.10,
             // Spreading
@@ -283,6 +292,8 @@ impl Default for AlgoParams {
             seed_merge_weight: 0.80, // V9 deprecated, kept for compilation
             // Compaction
             summary_trigger_count: 12,
+            summary_similarity_threshold: 0.7,
+            summary_low_importance_threshold: 0.5,
             // Co-activation
             co_activation_keep: 16,
         }
@@ -443,6 +454,10 @@ mod tests {
         let p2 = AlgoParams::default();
         assert_eq!(p1.w_entity, p2.w_entity);
         assert_eq!(p1.max_hops_default, p2.max_hops_default);
+        // 0.3.0 新增字段
+        assert_eq!(p1.c_usage, 0.5);
+        assert_eq!(p1.summary_similarity_threshold, 0.7);
+        assert_eq!(p1.summary_low_importance_threshold, 0.5);
     }
 
     #[test]

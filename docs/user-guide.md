@@ -29,6 +29,7 @@ You say something
 ├─────────────┤
 │ consolidated │  asynchronous (scheduled, default every hour)
 │              │  Hebbian reinforcement / decay / compaction / summary compression
+│              │  (similar low-importance memories → summary; sources marked compressed)
 └─────────────┘
 ```
 

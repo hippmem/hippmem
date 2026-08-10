@@ -185,8 +185,8 @@ impl Default for SummaryParams {
     }
 }
 
-// `should_summarize` and the summary-building logic have been unified into `crate::summarize`.
-// No duplicate declaration is kept here.
+// Summary planning and the summary-building logic live in `crate::summarize`
+// (03 §8); this module only handles Hebbian reinforcement.
 
 #[cfg(test)]
 mod tests {
@@ -341,9 +341,8 @@ mod tests {
     }
 
     #[test]
-    fn extractive_summary_covers_all() {
-        // `should_summarize` has been unified into `crate::summarize`
-        assert!(crate::summarize::should_summarize(&[MemoryId(1); 15], 12));
-        assert!(!crate::summarize::should_summarize(&[MemoryId(1); 5], 12));
+    fn summary_trigger_is_owned_by_summarize_module() {
+        // 摘要触发逻辑已移至 crate::summarize::plan_summary_clusters（03 §8）
+        assert!(crate::summarize::plan_summary_clusters(&[], 0.7, 12, 0.5).is_empty());
     }
 }

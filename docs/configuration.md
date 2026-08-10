@@ -223,16 +223,24 @@ Each recall channel has an independent energy coefficient, all defaulting to `1.
 | Parameter | Default | Range | Description |
 |------|--------|------|------|
 | `decay_per_cycle` | `0.97` | [0.5, 1.0] | Per-cycle strength multiplier. 0.97 means strength retains 97% each cycle |
-| `min_retained_strength` | `0.10` | [0, 1] | Below this strength -> archived |
+| `min_retained_strength` | `0.12` | [0, 1] | Below this strength -> archived |
 | `stale_observation_days` | `30` | [7, 365] | Memories in the observation zone that have not been activated for this many days -> evicted |
 
 ### Compaction Parameters
 
 | Parameter | Default | Range | Description |
 |------|--------|------|------|
-| `node_degree_limit` | `50` | [10, 500] | Maximum out-degree per node |
-| `compaction_min_edge_strength` | `0.05` | [0, 1] | Edges below this strength are archived by compaction |
-| `summary_similarity_threshold` | `0.7` | [0, 1] | Similarity above this -> triggers summary compression |
+| `node_degree_limit` | `64` | [10, 500] | Maximum out-degree per node |
+| `compaction_min_edge_strength` | `0.12` | [0, 1] | Edges below this strength are archived by compaction |
+| `summary_trigger_count` | `12` | [2, 1000] | Minimum similar-memory count in a cluster to trigger a summary |
+| `summary_similarity_threshold` | `0.7` | [0, 1] | Token-set Jaccard similarity above this -> cluster members for summary compression |
+| `summary_low_importance_threshold` | `0.5` | [0, 1] | Memories below this importance count as "low importance"; clusters must be mostly low-importance to be summarized |
+
+### Usage-score Parameters
+
+| Parameter | Default | Range | Description |
+|------|--------|------|------|
+| `c_usage` | `0.5` | [0, 1] | Usage-score coefficient in retrieval energy. Neutral at usage_score = 0.5 (no effect until feedback is received) |
 
 ### Cold-start Parameters
 

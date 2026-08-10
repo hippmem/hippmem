@@ -2,11 +2,12 @@
 //!
 //! Corresponds to 05#retrieve, 09 §4.2. Wires seed recall→energy→spreading→rerank→warnings→explain.
 
+use crate::signals::is_positive_signal;
 use crate::{Engine, EngineResult, RetrieveInput, RetrieveOutput};
 use hippmem_core::hash::stable_hash64;
 use hippmem_core::ids::MemoryId;
 use hippmem_core::model::links::{ActivationStep, RecallChannel, RetrievalResult};
-use hippmem_core::model::unit::MemoryUnit;
+use hippmem_core::model::unit::{MemoryLifecycle, MemoryUnit};
 use hippmem_core::time::Clock;
 use hippmem_model::deterministic::extract::DeterministicExtractor;
 use hippmem_model::lang::active_locales;
@@ -23,6 +24,7 @@ use std::collections::HashMap;
 impl Engine {
     /// Retrieves memories: multi-channel seeds→activation energy→spreading→rerank→warnings.
     pub fn retrieve(&self, input: RetrieveInput) -> EngineResult<RetrieveOutput> {
+        let start = std::time::Instant::now();
         let params = self.params.read();
 
         // 1. Lightweight understanding of the query (extract entities/topics for index lookup)
@@ -219,8 +221,13 @@ impl Engine {
             if let Ok(records) = act_log.read_all() {
                 let mut freq: HashMap<MemoryId, u32> = HashMap::new();
                 for rec in records.iter() {
-                    for mid_u64 in &rec.used_memory_ids {
-                        *freq.entry(MemoryId(*mid_u64 as u128)).or_default() += 1;
+                    // 0.3.0: UserRejected 不参与正向计数（05 §6，拒绝不得强化）
+                    if !is_positive_signal(&rec.signal) {
+                        continue;
+                    }
+                    for &mid in &rec.used_memory_ids {
+                        // P1 回归：used_memory_ids 是完整 u128（MemoryId 原值），禁止截断
+                        *freq.entry(MemoryId(mid)).or_default() += 1;
                     }
                 }
                 let max_freq = freq.values().max().copied().unwrap_or(1) as f32;
@@ -258,7 +265,11 @@ impl Engine {
         let fused_scores: HashMap<MemoryId, (f32, RecallChannel)> = if seed_result.seeds.is_empty()
         {
             // Fallback: no channel hits; take a few memories as RecentActivation seeds
-            let fallback = load_limited_units(self.store.db_arc(), 50);
+            // 0.3.0: 排除已压缩（Compressed）的单元，避免摘要源顶替摘要
+            let fallback = load_limited_units(self.store.db_arc(), 50)
+                .into_iter()
+                .filter(|u| !matches!(u.lifecycle, MemoryLifecycle::Compressed { .. }))
+                .collect::<Vec<_>>();
             fallback
                 .into_iter()
                 .map(|u| (u.id, (0.3_f32, RecallChannel::RecentActivation)))
@@ -278,6 +289,11 @@ impl Engine {
         let importance_map: HashMap<MemoryId, f32> = unit_map
             .iter()
             .map(|(id, unit)| (*id, unit.understanding.importance.value()))
+            .collect();
+        // 4a2. usage_map：feedback 驱动的 usage_score（0.5 = 中性）
+        let usage_map: HashMap<MemoryId, f32> = unit_map
+            .iter()
+            .map(|(id, unit)| (*id, unit.activation.usage_score.value()))
             .collect();
 
         let graph = hippmem_store::graph::GraphStore::new(self.store.db_arc());
@@ -308,8 +324,15 @@ impl Engine {
             unit_map.entry(unit.id).or_insert(unit);
         }
 
-        // 5. Spreading activation
-        let activated = spread_multi_hop_fused(&fused_scores, &links_map, &params, &importance_map);
+        // 5. Spreading activation (P2 回归：max_hops 必须透传；merged_count 如实报告)
+        let (activated, merged_count) = spread_multi_hop_fused(
+            &fused_scores,
+            &links_map,
+            &params,
+            &importance_map,
+            &usage_map,
+            input.max_hops.map(|h| h as u32),
+        );
         let max_k = input.top_k.min(activated.len());
 
         // 6. Load additional nodes discovered by spreading (for rerank)
@@ -332,6 +355,11 @@ impl Engine {
         // 7b. Question-type aware boost: detect the question type of the query, and apply a moderate score boost to matching answer patterns.
         //     Compensates for the deterministic embedder's inability, under a bag-of-tokens mechanism, to capture the "why"↔"because" semantic relation.
         apply_question_aware_boost(&input.query, &mut reranked, &params);
+
+        // 7c. 0.3.0: 过滤已压缩（Compressed）单元 —— 检索默认返回摘要，源记忆不直接命中（03 §8）
+        reranked.retain(|(_, _, _, unit)| {
+            !matches!(unit.lifecycle, MemoryLifecycle::Compressed { .. })
+        });
 
         // 8. Build results
         let results: Vec<RetrievalResult> = reranked
@@ -363,7 +391,8 @@ impl Engine {
         //     and surface the retrieval_id to the caller for feedback.
         let retrieval_id = {
             let act_log = ActivationLogger::new(self.store.db_arc());
-            let used_ids: Vec<u64> = results.iter().map(|r| r.memory.id.0 as u64).collect();
+            // P1 回归：记录完整 u128 id（截断会导致 RecentActivation/Hebbian 指向幽灵 id）
+            let used_ids: Vec<u128> = results.iter().map(|r| r.memory.id.0).collect();
             let now_ms =
                 if let Ok(t) = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH) {
                     t.as_millis() as i64
@@ -397,8 +426,13 @@ impl Engine {
                     .iter()
                     .flat_map(|(_, _, trace)| trace.clone())
                     .collect(),
-                hops_used: 0,
-                merged_count: 0,
+                hops_used: activated
+                    .iter()
+                    .flat_map(|(_, _, trace)| trace.iter())
+                    .map(|s| s.hop)
+                    .max()
+                    .unwrap_or(0),
+                merged_count,
             },
             diagnostics: crate::RetrievalDiagnostics {
                 channel_contributions,
@@ -408,7 +442,7 @@ impl Engine {
                     embedder: self.embedder.backend_id().to_string(),
                     reranker: Some("rule".into()),
                 },
-                latency_ms: 0,
+                latency_ms: start.elapsed().as_millis() as u32,
             },
         })
     }

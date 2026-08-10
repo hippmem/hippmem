@@ -22,6 +22,7 @@ pub fn spread_one_hop_fused(
     links_map: &HashMap<MemoryId, Vec<AssociationLink>>,
     params: &AlgoParams,
     importance_map: &HashMap<MemoryId, f32>,
+    usage_map: &HashMap<MemoryId, f32>,
 ) -> Vec<(MemoryId, f32, Vec<ActivationStep>)> {
     // V9: RRF fused score → seed energy
     let max_fused: f32 = fused_scores
@@ -31,12 +32,16 @@ pub fn spread_one_hop_fused(
     let mut seed_energies: Vec<(MemoryId, f32, RecallChannel)> = Vec::new();
     for (seed_id, (fused_score, seed_channel)) in fused_scores.iter() {
         let imp = importance_map.get(seed_id).copied().unwrap_or(0.0);
+        // usage_score 中性设计：0.5 时与旧公式逐位一致；feedback 确认 ↑ / 拒绝 ↓
+        let usage = usage_map.get(seed_id).copied().unwrap_or(0.5);
         let norm_score = if max_fused > 0.0 {
             fused_score / max_fused
         } else {
             0.0
         };
-        let seed_energy = (norm_score * params.a_query_match * (1.0 + imp * params.c_importance))
+        let seed_energy = (norm_score
+            * params.a_query_match
+            * (1.0 + imp * params.c_importance + (usage - 0.5) * params.c_usage))
             .min(params.seed_energy_cap);
         if seed_energy >= params.min_propagation_energy {
             seed_energies.push((*seed_id, seed_energy, *seed_channel));
@@ -117,10 +122,17 @@ pub fn spread_one_hop_fused(
 
 /// Multi-hop spreading: starts from RRF-fused seeds and propagates energy along association edges over multiple hops (03 §4.3).
 ///
-/// Returns all reached nodes (MemoryId, final energy, activation trace).
+/// Returns all reached nodes (MemoryId, final energy, activation trace),
+/// plus the number of multi-path energy merges (for `merged_count` reporting).
 /// Implements cycle elimination (expanded set), fan-out pruning, energy threshold filtering,
 /// multi-path merge (max + merge_secondary_weight * min),
 /// and stopping conditions (max_hops / empty frontier / energy exhausted).
+///
+/// `max_hops_override`: caller-specified traversal depth (e.g. the public API's
+/// `max_hops` parameter); `None` falls back to `params.max_hops_default`.
+///
+/// `usage_map`: per-memory usage_score (feedback-driven); absent entries default to
+/// 0.5 (neutral — the energy formula is bit-identical to the pre-0.3.0 form at 0.5).
 ///
 /// V9: Seed fusion is already done by the caller via RRF; each MemoryId in `fused_scores` has a single fused score.
 /// The internal seed_best/merge_energy deduplication logic is no longer needed.
@@ -129,7 +141,9 @@ pub fn spread_multi_hop_fused(
     links_map: &HashMap<MemoryId, Vec<AssociationLink>>,
     params: &AlgoParams,
     importance_map: &HashMap<MemoryId, f32>,
-) -> Vec<(MemoryId, f32, Vec<ActivationStep>)> {
+    usage_map: &HashMap<MemoryId, f32>,
+    max_hops_override: Option<u32>,
+) -> (Vec<(MemoryId, f32, Vec<ActivationStep>)>, usize) {
     // Set of expanded nodes (cycle elimination: a node is not expanded twice)
     let mut expanded: HashSet<MemoryId> = HashSet::new();
     // Final energy map (multi-path merge)
@@ -148,12 +162,16 @@ pub fn spread_multi_hop_fused(
         .fold(0.0f32, f32::max);
     for (seed_id, (fused_score, seed_channel)) in fused_scores.iter() {
         let imp = importance_map.get(seed_id).copied().unwrap_or(0.0);
+        // usage_score 中性设计：0.5 时与旧公式逐位一致；feedback 确认 ↑ / 拒绝 ↓
+        let usage = usage_map.get(seed_id).copied().unwrap_or(0.5);
         let norm_score = if max_fused > 0.0 {
             fused_score / max_fused
         } else {
             0.0
         };
-        let seed_energy = (norm_score * params.a_query_match * (1.0 + imp * params.c_importance))
+        let seed_energy = (norm_score
+            * params.a_query_match
+            * (1.0 + imp * params.c_importance + (usage - 0.5) * params.c_usage))
             .min(params.seed_energy_cap);
         if seed_energy < params.min_propagation_energy {
             continue;
@@ -175,7 +193,10 @@ pub fn spread_multi_hop_fused(
         }
     }
 
-    let max_hops = params.max_hops_default;
+    let max_hops = max_hops_override.unwrap_or(params.max_hops_default);
+
+    // 多路径能量合并次数（merged_count 报告用）
+    let mut merged_count: usize = 0;
 
     for hop in 1..=max_hops {
         if frontier.is_empty() {
@@ -214,7 +235,10 @@ pub fn spread_multi_hop_fused(
 
                     // Multi-path energy merge: merge(existing, new)
                     let merged = match round_energy.get(&link.target_id) {
-                        Some(&existing) => merge_energy(existing, propagated, params),
+                        Some(&existing) => {
+                            merged_count += 1;
+                            merge_energy(existing, propagated, params)
+                        }
                         None => propagated,
                     };
 
@@ -262,7 +286,7 @@ pub fn spread_multi_hop_fused(
 
     // Sort by energy descending
     results.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-    results
+    (results, merged_count)
 }
 
 /// Multi-path energy merge function (03 §4.3).
@@ -296,7 +320,16 @@ pub fn spread_multi_hop(
     } else {
         seeds.iter().map(|s| (s.id, (s.score, s.channel))).collect()
     };
-    spread_multi_hop_fused(&fused, links_map, params, importance_map)
+    // usage 走空 map（默认 0.5，中性）
+    spread_multi_hop_fused(
+        &fused,
+        links_map,
+        params,
+        importance_map,
+        &HashMap::new(),
+        None,
+    )
+    .0
 }
 
 /// Single-hop spreading (V8-compatible signature).
@@ -312,5 +345,6 @@ pub fn spread_one_hop(
     } else {
         seeds.iter().map(|s| (s.id, (s.score, s.channel))).collect()
     };
-    spread_one_hop_fused(&fused, links_map, params, importance_map)
+    // usage 走空 map（默认 0.5，中性）
+    spread_one_hop_fused(&fused, links_map, params, importance_map, &HashMap::new())
 }

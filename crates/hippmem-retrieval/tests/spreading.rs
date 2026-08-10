@@ -9,7 +9,7 @@ use hippmem_core::score::UnitScore;
 use hippmem_core::time::Timestamp;
 use hippmem_retrieval::energy::{self, initial_energy};
 use hippmem_retrieval::seeds::Seed;
-use hippmem_retrieval::spreading::{spread_multi_hop, spread_one_hop};
+use hippmem_retrieval::spreading::{spread_multi_hop, spread_multi_hop_fused, spread_one_hop};
 use std::collections::HashMap;
 
 // ── Helper: build test edges ──
@@ -901,5 +901,51 @@ fn empty_seeds_returns_empty() {
     assert!(
         results.is_empty(),
         "empty seeds should return empty results"
+    );
+}
+
+// ── 0.3.0: usage_map 影响种子能量（中性设计） ──
+
+#[test]
+fn usage_map_affects_seed_energy() {
+    let params = AlgoParams::default();
+    let links_map: HashMap<MemoryId, Vec<AssociationLink>> = HashMap::new();
+
+    let mut fused: HashMap<MemoryId, (f32, hippmem_core::model::links::RecallChannel)> =
+        HashMap::new();
+    fused.insert(
+        MemoryId(1),
+        (1.0, hippmem_core::model::links::RecallChannel::Bm25),
+    );
+
+    // 空 usage_map → 默认 0.5，与中性公式逐位一致
+    let (neutral, _) = spread_multi_hop_fused(
+        &fused,
+        &links_map,
+        &params,
+        &HashMap::new(),
+        &HashMap::new(),
+        None,
+    );
+    let energy_neutral = neutral[0].1;
+
+    // usage=1.0 → 能量按 (usage-0.5)*c_usage 提升
+    let mut usage: HashMap<MemoryId, f32> = HashMap::new();
+    usage.insert(MemoryId(1), 1.0);
+    let (boosted, _) =
+        spread_multi_hop_fused(&fused, &links_map, &params, &HashMap::new(), &usage, None);
+    let energy_boosted = boosted[0].1;
+    let imp = 0.0; // importance_map 缺省
+    let expected_boosted = (1.0
+        * params.a_query_match
+        * (1.0 + imp * params.c_importance + (1.0 - 0.5) * params.c_usage))
+        .min(params.seed_energy_cap);
+    assert_eq!(
+        energy_boosted, expected_boosted,
+        "usage=1.0 时能量应计入提升项"
+    );
+    assert!(
+        energy_boosted > energy_neutral,
+        "usage=1.0 的能量应高于中性 0.5: {energy_neutral} → {energy_boosted}"
     );
 }

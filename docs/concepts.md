@@ -116,7 +116,7 @@ By the time `engine.write()` returns, the memory is already in the Indexed stage
 - **Hebbian reinforcement**: read co-activation pairs from activation_log, reinforce the corresponding edge strengths
 - **Decay**: every edge is multiplied by `decay_per_cycle` (default 0.97) per cycle
 - **Compaction**: weak edges below `min_retained_strength` get archived; nodes exceeding out-degree limits keep only their strongest edges
-- **Summary compression**: multiple similar low-level memories → Summarizer → one high-level summary memory + `covers` links
+- **Summary compression**: similar low-importance memories are grouped into clusters (token-set Jaccard ≥ `summary_similarity_threshold`) → each cluster → Summarizer → one high-level summary memory + `covers` links; source memories are marked compressed and hidden from retrieval results (sources stay in storage and remain inspectable), and memories already covered by a summary are not re-summarized
 
 ---
 

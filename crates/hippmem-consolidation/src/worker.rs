@@ -1,12 +1,13 @@
-//! Background consolidation Worker: periodically runs Hebbian / decay / compaction / summary (09 §3.3).
+//! Background consolidation Worker: periodically runs Hebbian / decay / compaction (09 §3.3).
+//!
+//! Summary creation (03 §8) is owned by the Engine layer: it has access to AlgoParams
+//! and performs cluster planning + persistence. The worker only mutates units/edges.
 
 use crate::decay::{apply_decay_with_protection, DecayParams};
 use crate::hebbian::{hebbian_reinforce, HebbianParams};
-use crate::summarize::{build_summary_unit, should_summarize};
 use hippmem_core::ids::MemoryId;
 use hippmem_core::model::unit::MemoryUnit;
 use hippmem_core::time::Timestamp;
-use hippmem_model::deterministic::summarize::DeterministicSummarizer;
 
 /// Consolidation cycle statistics.
 #[derive(Debug, Clone, Default)]
@@ -14,9 +15,6 @@ pub struct CycleStats {
     pub edges_decayed: u64,
     pub edges_archived: u64,
     pub hebbian_applied: u64,
-    pub summaries_created: u64,
-    /// Summary memory unit (if triggered and created this cycle); the Engine layer is responsible for persisting it.
-    pub summary_unit: Option<MemoryUnit>,
 }
 
 /// Simple consolidation Worker (synchronous version, for tests and single-threaded use).
@@ -34,13 +32,13 @@ impl ConsolidationWorker {
     /// 1. Hebbian reinforcement (based on feedback co-activation pairs)
     /// 2. Decay (non-protected edges)
     /// 3. Compaction (weak-edge archiving)
-    /// 4. Summary check + creation (Summarizer integration, 03 §8)
+    ///
+    /// (Summary creation is owned by the Engine layer, 03 §8)
     pub fn run_cycle(
         &mut self,
         units: &mut [MemoryUnit],
         co_activations: &[(MemoryId, MemoryId, u32)],
         now: Timestamp,
-        summarizer: Option<&DeterministicSummarizer>,
     ) -> CycleStats {
         let mut stats = CycleStats::default();
         let heb_params = HebbianParams::default();
@@ -95,19 +93,6 @@ impl ConsolidationWorker {
             unit.links = kept;
         }
         stats.edges_archived = archived;
-
-        // 4. Summary check + creation (Summarizer integration, 03 §8)
-        if let Some(summarizer) = summarizer {
-            let ids: Vec<_> = units.iter().map(|u| u.id).collect();
-            if should_summarize(&ids, 12) {
-                let summary_unit = build_summary_unit(units, summarizer);
-                // Confidence gating: low confidence (<0.35) does not create a summary (Constitution C7)
-                if summary_unit.understanding.confidence.value() >= 0.35 {
-                    stats.summaries_created = 1;
-                    stats.summary_unit = Some(summary_unit);
-                }
-            }
-        }
 
         self.cycle_count += 1;
         stats
