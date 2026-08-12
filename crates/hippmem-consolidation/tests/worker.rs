@@ -121,7 +121,7 @@ fn worker_runs_consolidation_cycle() {
     let now = hippmem_core::time::Timestamp::from_millis(1_700_000_000_000);
 
     // Run one cycle (empty co-activation, normal timestamp)
-    let stats = worker.run_cycle(&mut units, &[], now);
+    let stats = worker.run_cycle(&mut units, &[], &[], now);
     assert_eq!(worker.cycle_count(), 1);
     assert!(
         stats.edges_decayed < 100,
@@ -129,7 +129,7 @@ fn worker_runs_consolidation_cycle() {
     );
 
     // Empty data should not panic
-    let stats = worker.run_cycle(&mut Vec::new(), &[], now);
+    let stats = worker.run_cycle(&mut Vec::new(), &[], &[], now);
     assert_eq!(worker.cycle_count(), 2);
     assert_eq!(stats.edges_archived, 0);
 }

@@ -95,7 +95,7 @@ fn scenario_1_hebbian_then_decay_pipeline() {
     ];
 
     // ── Step 1: Hebbian reinforcement (edge A matches the co-activation pair) ──
-    let co_activations = vec![(MemoryId(1), MemoryId(2), 5u32)];
+    let co_activations = vec![(MemoryId(1), MemoryId(2), 5.0f32)];
     let heb_params = HebbianParams::default();
     hebbian_reinforce(&mut links, &co_activations, &heb_params, heb_now);
 
