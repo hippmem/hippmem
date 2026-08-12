@@ -68,7 +68,10 @@ pub struct AlgoParams {
     /// Importance coefficient, default 0.15
     pub c_importance: f32,
     /// Usage-score coefficient, default 0.5.
-    /// Neutral at usage_score = 0.5 (feedback has no effect until a signal is received).
+    /// **DEPRECATED (0.4.0, B4)**: usage_score no longer participates in seed
+    /// energy; feedback works through Hebbian edge reinforcement. Kept for
+    /// config parsing compatibility, no longer read by retrieval.
+    /// See docs-dev/proposals/usage-score-semantics-redesign.md.
     pub c_usage: f32,
     /// Freshness coefficient, default 0.15
     pub d_freshness: f32,

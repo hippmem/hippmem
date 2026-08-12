@@ -115,14 +115,18 @@ fn usage_score_updates_on_feedback_signals() {
     engine.close().unwrap();
 }
 
-/// 拒绝必须降权而非强化：被拒记忆分数下降（usage 降权），其它记忆不得上升。
+/// 拒绝必须降权而非强化：被拒记忆分数下降（B4 反向 Hebbian：拒绝削弱其关联边，
+/// consolidate 后经图传播生效），其它记忆不得上升。
 ///
-/// 注：本测试关闭 recent 通道（rrf_w_recent=0）以隔离 usage 降权效应——
-/// recent 通道的并列排名依赖 HashMap 布局（随累积记录变化），会引入非确定性；
-/// 拒绝记录的极性过滤由 signals 单测 + user_rejected_does_not_create_coactivation_edges 覆盖。
+/// 注：本测试关闭 recent 通道（rrf_w_recent=0）以隔离边削弱效应——recent 通道的
+/// 并列排名依赖 HashMap 布局（随累积记录变化），会引入非确定性；拒绝记录的极性过滤
+/// 由 signals 单测 + user_rejected_does_not_create_coactivation_edges 覆盖。
+/// 0.4.0 起 usage_score 不再参与检索能量（见 proposals/usage-score-semantics-redesign.md），
+/// 定向 reject 的检索效果 = 反向 Hebbian（需要一次 consolidate 生效）。
 #[test]
 fn user_rejected_demotes_instead_of_boosting() {
     use hippmem_core::config::AlgoParams;
+    use hippmem_engine::ConsolidationScope;
     let dir = tempdir().unwrap();
     let engine = Engine::open(EngineConfig {
         store_dir: dir.path().join("hippmem.redb"),
@@ -139,12 +143,21 @@ fn user_rejected_demotes_instead_of_boosting() {
     let rejected = write(&engine, "张伟是北京大学的教授。");
 
     let out1 = retrieve(&engine, "张伟在哪里工作？");
-    let target_before = out1
-        .results
-        .iter()
-        .find(|r| r.memory.id.0 == rejected.0)
-        .map(|r| r.final_score)
-        .expect("被拒记忆应在结果中");
+    assert!(
+        out1.results.iter().any(|r| r.memory.id.0 == rejected.0),
+        "被拒记忆应在结果中"
+    );
+
+    // B4: the retrieval-level effect is the edge weakening — capture the
+    // rejected memory's out-edge strengths before the reject.
+    let edges_before: Vec<f32> = match engine.inspect(InspectQuery::Memory(rejected)) {
+        Ok(InspectReport::Memory(m)) => m.out_edges.iter().map(|e| e.strength).collect(),
+        _ => panic!("inspect failed"),
+    };
+    assert!(
+        !edges_before.is_empty(),
+        "rejected memory should have edges (shared entities)"
+    );
 
     std::thread::sleep(std::time::Duration::from_millis(2));
     engine
@@ -154,19 +167,25 @@ fn user_rejected_demotes_instead_of_boosting() {
             signal: UsageSignal::UserRejected,
         })
         .unwrap();
+    // B4: the rejection weakens the rejected memory's edges; run one
+    // consolidation cycle so the reverse-Hebbian step takes effect.
+    engine
+        .consolidate(ConsolidationScope::Incremental)
+        .expect("consolidate should succeed");
+
+    let edges_after: Vec<f32> = match engine.inspect(InspectQuery::Memory(rejected)) {
+        Ok(InspectReport::Memory(m)) => m.out_edges.iter().map(|e| e.strength).collect(),
+        _ => panic!("inspect failed"),
+    };
+    assert_eq!(edges_before.len(), edges_after.len());
+    for (b, a) in edges_before.iter().zip(edges_after.iter()) {
+        assert!(
+            a < b,
+            "reject must weaken the rejected memory's out-edges ({b} → {a})"
+        );
+    }
 
     let out2 = retrieve(&engine, "张伟在哪里工作？");
-    let target_after = out2
-        .results
-        .iter()
-        .find(|r| r.memory.id.0 == rejected.0)
-        .map(|r| r.final_score)
-        .expect("被拒记忆仍应在结果中");
-
-    assert!(
-        target_after < target_before,
-        "拒绝后被拒记忆分数必须下降（usage 降权），{target_before} → {target_after}"
-    );
     // 其它记忆不得因拒绝而上升（经被拒记忆传播的邻居可能随之下降——合法效应）
     for r in &out2.results {
         if r.memory.id.0 == rejected.0 {

@@ -34,8 +34,14 @@ impl ActivationLog {
     }
 
     /// Returns recent co-activation pairs (for Hebbian + CoActivation).
-    pub fn co_activation_pairs(&self, window_ms: i64) -> Vec<(MemoryId, MemoryId, u32)> {
-        let mut pairs: HashMap<(MemoryId, MemoryId), u32> = HashMap::new();
+    ///
+    /// Each pair carries a **signal-weighted** count (E8, 0.4.0): the recorded
+    /// `energy` is the usage_signal of the feedback that produced the record
+    /// (referenced 0.5 / confirmed 1.0 / succeeded 0.8), so a pair formed by a
+    /// confirmation strengthens edges twice as much as one formed by a mere
+    /// reference — matching 03 §6's `strength += lr × usage_signal`.
+    pub fn co_activation_pairs(&self, window_ms: i64) -> Vec<(MemoryId, MemoryId, f32)> {
+        let mut pairs: HashMap<(MemoryId, MemoryId), f32> = HashMap::new();
         let len = self.entries.len();
         for i in 0..len {
             for j in (i + 1)..len {
@@ -47,11 +53,19 @@ impl ActivationLog {
                     } else {
                         (b.memory_id, a.memory_id)
                     };
-                    *pairs.entry(key).or_insert(0) += 1;
+                    *pairs.entry(key).or_insert(0.0) += a.energy.min(b.energy);
                 }
             }
         }
-        pairs.into_iter().map(|((a, b), c)| (a, b, c)).collect()
+        // Determinism: HashMap iteration order is randomized; when two pairs hit the
+        // same edge, strength updates cap at 1.0 and are order-sensitive — fix the
+        // order so consolidation cycles are bit-identical.
+        let mut sorted_pairs: Vec<((MemoryId, MemoryId), f32)> = pairs.into_iter().collect();
+        sorted_pairs.sort_by_key(|((a, b), _)| (*a, *b));
+        sorted_pairs
+            .into_iter()
+            .map(|((a, b), c)| (a, b, c))
+            .collect()
     }
 }
 
@@ -75,18 +89,22 @@ impl Default for HebbianParams {
 }
 
 /// Hebbian reinforcement: increases the strength of edges that are frequently co-activated.
+///
+/// `co_activations` carries signal-weighted counts (E8, 0.4.0): the applied
+/// delta is `lr × min(weight, 5)` — a confirmation (weight 1.0) strengthens
+/// twice as much as a reference (weight 0.5), matching 03 §6.
 pub fn hebbian_reinforce(
     links: &mut [AssociationLink],
-    co_activations: &[(MemoryId, MemoryId, u32)],
+    co_activations: &[(MemoryId, MemoryId, f32)],
     params: &HebbianParams,
     now: Timestamp,
 ) {
     for link in links.iter_mut() {
-        for (a, b, count) in co_activations {
-            if *count >= params.coactivation_threshold
+        for (a, b, weight) in co_activations {
+            if *weight >= params.coactivation_threshold as f32
                 && ((link.target_id == *a) || (link.target_id == *b))
             {
-                let delta = params.learning_rate * (*count as f32).min(5.0);
+                let delta = params.learning_rate * (*weight).min(5.0);
                 let new_strength = (link.strength.value() + delta).min(params.strength_max);
                 link.strength = UnitScore::new(new_strength);
                 link.last_activated_at = Some(now);
@@ -96,16 +114,48 @@ pub fn hebbian_reinforce(
     }
 }
 
+/// Reverse Hebbian (B4, 0.4.0): weakens the edges of explicitly rejected
+/// memories. A targeted reject (user named the memory as wrong) is the mirror
+/// of a confirmation — `strength -= lr × |reject_signal|`, floored at
+/// `min_retained_strength` so repeated rejection cannot destroy an edge.
+/// Unlike the (removed) global usage penalty this acts on the association
+/// graph, so it only weakens the memory in queries that reach it through its
+/// edges. Both directions are weakened: the rejected memory's own out-edges
+/// and every edge pointing at it. See
+/// docs-dev/proposals/usage-score-semantics-redesign.md §4.1.
+pub fn reject_weaken(
+    owner_id: MemoryId,
+    links: &mut [AssociationLink],
+    rejected_ids: &[MemoryId],
+    params: &HebbianParams,
+    now: Timestamp,
+) -> usize {
+    let owner_rejected = rejected_ids.contains(&owner_id);
+    let mut weakened: usize = 0;
+    for link in links.iter_mut() {
+        if owner_rejected || rejected_ids.contains(&link.target_id) {
+            let new_strength = (link.strength.value() - params.learning_rate).max(0.12);
+            if (new_strength - link.strength.value()).abs() > f32::EPSILON {
+                link.strength = UnitScore::new(new_strength);
+                link.last_activated_at = Some(now);
+                link.activation_count = link.activation_count.saturating_sub(1);
+                weakened += 1;
+            }
+        }
+    }
+    weakened
+}
+
 /// CoActivation edge creation: when co-activation exceeds the threshold and no edge exists,
 /// creates a new CoActivation edge.
 pub fn build_coactivation_links(
-    pairs: &[(MemoryId, MemoryId, u32)],
-    threshold: u32,
+    pairs: &[(MemoryId, MemoryId, f32)],
+    threshold: f32,
     now: Timestamp,
 ) -> Vec<(MemoryId, AssociationLink)> {
     let mut new_links = Vec::new();
-    for (a, b, count) in pairs {
-        if *count >= threshold {
+    for (a, b, weight) in pairs {
+        if *weight >= threshold {
             let link = AssociationLink {
                 target_id: *b,
                 link_type: LinkType::Causal, // CoActivation → possible causal relationship
@@ -116,11 +166,11 @@ pub fn build_coactivation_links(
                     contributing_dimensions: vec![],
                     score_breakdown: vec![],
                     text_spans: vec![],
-                    note: Some(format!("co-activated {} times", count)),
+                    note: Some(format!("co-activated {weight:.1} times")),
                 },
                 formed_at: now,
                 last_activated_at: Some(now),
-                activation_count: *count,
+                activation_count: (*weight).min(5.0) as u32,
                 observation: ObservationState::Observing { since: now },
             };
             new_links.push((*a, link));
@@ -220,7 +270,7 @@ mod tests {
     #[test]
     fn hebbian_strengthens_coactivated() {
         let mut links = vec![make_link(2, 0.4, None)];
-        let pairs = vec![(MemoryId(1), MemoryId(2), 5u32)];
+        let pairs = vec![(MemoryId(1), MemoryId(2), 5.0f32)];
         hebbian_reinforce(
             &mut links,
             &pairs,
@@ -233,7 +283,7 @@ mod tests {
     #[test]
     fn hebbian_respects_strength_cap() {
         let mut links = vec![make_link(2, 0.95, None)];
-        let pairs = vec![(MemoryId(1), MemoryId(2), 10u32)];
+        let pairs = vec![(MemoryId(1), MemoryId(2), 10.0f32)];
         hebbian_reinforce(
             &mut links,
             &pairs,
@@ -253,8 +303,8 @@ mod tests {
 
     #[test]
     fn coactivation_builds_links() {
-        let pairs = vec![(MemoryId(1), MemoryId(2), 3u32)];
-        let new = build_coactivation_links(&pairs, 3, Timestamp(1000));
+        let pairs = vec![(MemoryId(1), MemoryId(2), 3.0f32)];
+        let new = build_coactivation_links(&pairs, 3.0, Timestamp(1000));
         assert_eq!(new.len(), 1);
     }
 
