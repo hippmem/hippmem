@@ -22,26 +22,39 @@ pub fn spread_one_hop_fused(
     links_map: &HashMap<MemoryId, Vec<AssociationLink>>,
     params: &AlgoParams,
     importance_map: &HashMap<MemoryId, f32>,
-    usage_map: &HashMap<MemoryId, f32>,
+    _usage_map: &HashMap<MemoryId, f32>,
 ) -> Vec<(MemoryId, f32, Vec<ActivationStep>)> {
     // V9: RRF fused score → seed energy
     let max_fused: f32 = fused_scores
         .values()
         .map(|(s, _)| *s)
         .fold(0.0f32, f32::max);
+    // Determinism: HashMap iteration order is randomized per call (RandomState),
+    // and multi-path merge order depends on traversal order. Sort by fused score
+    // descending (id only as tie-break): parallel stores (same content, different
+    // ids) then traverse in the same order, and tied scores swap without changing
+    // the result because merge_energy is symmetric under argument swap.
+    let mut seed_items: Vec<(MemoryId, f32, RecallChannel)> = fused_scores
+        .iter()
+        .map(|(id, (s, ch))| (*id, *s, *ch))
+        .collect();
+    seed_items.sort_by(|(a_id, a_s, _), (b_id, b_s, _)| {
+        b_s.partial_cmp(a_s)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a_id.cmp(b_id))
+    });
     let mut seed_energies: Vec<(MemoryId, f32, RecallChannel)> = Vec::new();
-    for (seed_id, (fused_score, seed_channel)) in fused_scores.iter() {
+    for (seed_id, fused_score, seed_channel) in &seed_items {
         let imp = importance_map.get(seed_id).copied().unwrap_or(0.0);
-        // usage_score 中性设计：0.5 时与旧公式逐位一致；feedback 确认 ↑ / 拒绝 ↓
-        let usage = usage_map.get(seed_id).copied().unwrap_or(0.5);
+        // B4 (0.4.0): usage_score no longer participates in seed energy —
+        // feedback works through Hebbian edge reinforcement only
+        // (see docs-dev/proposals/usage-score-semantics-redesign.md).
         let norm_score = if max_fused > 0.0 {
             fused_score / max_fused
         } else {
             0.0
         };
-        let seed_energy = (norm_score
-            * params.a_query_match
-            * (1.0 + imp * params.c_importance + (usage - 0.5) * params.c_usage))
+        let seed_energy = (norm_score * params.a_query_match * (1.0 + imp * params.c_importance))
             .min(params.seed_energy_cap);
         if seed_energy >= params.min_propagation_energy {
             seed_energies.push((*seed_id, seed_energy, *seed_channel));
@@ -131,8 +144,9 @@ pub fn spread_one_hop_fused(
 /// `max_hops_override`: caller-specified traversal depth (e.g. the public API's
 /// `max_hops` parameter); `None` falls back to `params.max_hops_default`.
 ///
-/// `usage_map`: per-memory usage_score (feedback-driven); absent entries default to
-/// 0.5 (neutral — the energy formula is bit-identical to the pre-0.3.0 form at 0.5).
+/// `_usage_map`: kept for signature compatibility; usage_score no longer
+/// participates in seed energy (B4, 0.4.0 — see
+/// docs-dev/proposals/usage-score-semantics-redesign.md).
 ///
 /// V9: Seed fusion is already done by the caller via RRF; each MemoryId in `fused_scores` has a single fused score.
 /// The internal seed_best/merge_energy deduplication logic is no longer needed.
@@ -141,7 +155,7 @@ pub fn spread_multi_hop_fused(
     links_map: &HashMap<MemoryId, Vec<AssociationLink>>,
     params: &AlgoParams,
     importance_map: &HashMap<MemoryId, f32>,
-    usage_map: &HashMap<MemoryId, f32>,
+    _usage_map: &HashMap<MemoryId, f32>,
     max_hops_override: Option<u32>,
 ) -> (Vec<(MemoryId, f32, Vec<ActivationStep>)>, usize) {
     // Set of expanded nodes (cycle elimination: a node is not expanded twice)
@@ -160,18 +174,27 @@ pub fn spread_multi_hop_fused(
         .values()
         .map(|(s, _)| *s)
         .fold(0.0f32, f32::max);
-    for (seed_id, (fused_score, seed_channel)) in fused_scores.iter() {
+    // Determinism: same rationale as spread_one_hop_fused — sort by fused score
+    // descending, id only as tie-break.
+    let mut seed_items: Vec<(MemoryId, f32, RecallChannel)> = fused_scores
+        .iter()
+        .map(|(id, (s, ch))| (*id, *s, *ch))
+        .collect();
+    seed_items.sort_by(|(a_id, a_s, _), (b_id, b_s, _)| {
+        b_s.partial_cmp(a_s)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a_id.cmp(b_id))
+    });
+    for (seed_id, fused_score, seed_channel) in &seed_items {
         let imp = importance_map.get(seed_id).copied().unwrap_or(0.0);
-        // usage_score 中性设计：0.5 时与旧公式逐位一致；feedback 确认 ↑ / 拒绝 ↓
-        let usage = usage_map.get(seed_id).copied().unwrap_or(0.5);
+        // B4 (0.4.0): usage_score no longer participates in seed energy —
+        // feedback works through Hebbian edge reinforcement only.
         let norm_score = if max_fused > 0.0 {
             fused_score / max_fused
         } else {
             0.0
         };
-        let seed_energy = (norm_score
-            * params.a_query_match
-            * (1.0 + imp * params.c_importance + (usage - 0.5) * params.c_usage))
+        let seed_energy = (norm_score * params.a_query_match * (1.0 + imp * params.c_importance))
             .min(params.seed_energy_cap);
         if seed_energy < params.min_propagation_energy {
             continue;
@@ -271,7 +294,17 @@ pub fn spread_multi_hop_fused(
         }
 
         // Add this round's new nodes to results (dedup: those not in expanded)
-        for (target_id, merged_energy) in round_energy {
+        // Determinism: merge_energy is not associative (max + w*min nesting), so the
+        // merge order directly changes floating-point values. Sort by energy
+        // descending (id as tie-break): parallel stores traverse in the same order,
+        // and tied swaps don't change values (merge is symmetric under argument swap).
+        let mut round_items: Vec<(MemoryId, f32)> = round_energy.into_iter().collect();
+        round_items.sort_by(|(a_id, a_e), (b_id, b_e)| {
+            b_e.partial_cmp(a_e)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a_id.cmp(b_id))
+        });
+        for (target_id, merged_energy) in round_items {
             if expanded.insert(target_id) {
                 energy_map.insert(target_id, merged_energy);
                 let trace = round_traces.remove(&target_id).unwrap_or_default();
