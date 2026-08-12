@@ -1,6 +1,6 @@
 [package]
 name = "hippmem-engine"
-version = "0.3.0"
+version = "0.4.0"
 edition.workspace = true
 license = "AGPL-3.0-only"
 repository.workspace = true
@@ -15,12 +15,12 @@ categories = ["database", "command-line-interface"]
 documentation = "https://docs.rs/hippmem-engine"
 
 [dependencies]
-hippmem-core = { path = "../hippmem-core", version = "0.3.0" }
-hippmem-store = { path = "../hippmem-store", version = "0.3.0" }
-hippmem-model = { path = "../hippmem-model", version = "0.3.0" }
-hippmem-write = { path = "../hippmem-write", version = "0.3.0" }
-hippmem-retrieval = { path = "../hippmem-retrieval", version = "0.3.0" }
-hippmem-consolidation = { path = "../hippmem-consolidation", version = "0.3.0" }
+hippmem-core = { path = "../hippmem-core", version = "0.4.0" }
+hippmem-store = { path = "../hippmem-store", version = "0.4.0" }
+hippmem-model = { path = "../hippmem-model", version = "0.4.0" }
+hippmem-write = { path = "../hippmem-write", version = "0.4.0" }
+hippmem-retrieval = { path = "../hippmem-retrieval", version = "0.4.0" }
+hippmem-consolidation = { path = "../hippmem-consolidation", version = "0.4.0" }
 
 # storage (internal use, bypasses store trait for direct redb::Database access)
 redb = "3"

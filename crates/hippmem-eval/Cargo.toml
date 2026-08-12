@@ -1,6 +1,6 @@
 [package]
 name = "hippmem-eval"
-version = "0.3.0"
+version = "0.4.0"
 edition.workspace = true
 license = "AGPL-3.0-only"
 repository.workspace = true
@@ -15,13 +15,13 @@ categories = ["development-tools::testing"]
 documentation = "https://docs.rs/hippmem-eval"
 
 [dependencies]
-hippmem-core = { path = "../hippmem-core", version = "0.3.0" }
-hippmem-engine = { path = "../hippmem-engine", version = "0.3.0" }
+hippmem-core = { path = "../hippmem-core", version = "0.4.0" }
+hippmem-engine = { path = "../hippmem-engine", version = "0.4.0" }
 serde.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
 
 [dev-dependencies]
-hippmem-model = { path = "../hippmem-model", version = "0.3.0" }
-hippmem-write = { path = "../hippmem-write", version = "0.3.0" }
-hippmem-retrieval = { path = "../hippmem-retrieval", version = "0.3.0" }
+hippmem-model = { path = "../hippmem-model", version = "0.4.0" }
+hippmem-write = { path = "../hippmem-write", version = "0.4.0" }
+hippmem-retrieval = { path = "../hippmem-retrieval", version = "0.4.0" }

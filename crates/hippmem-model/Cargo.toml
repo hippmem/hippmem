@@ -15,7 +15,7 @@ categories = ["api-bindings", "text-processing"]
 documentation = "https://docs.rs/hippmem-model"
 
 [dependencies]
-hippmem-core = { path = "../hippmem-core", version = "0.3.0" }
+hippmem-core = { path = "../hippmem-core", version = "0.4.0" }
 async-trait.workspace = true
 serde.workspace = true
 jieba-rs.workspace = true
