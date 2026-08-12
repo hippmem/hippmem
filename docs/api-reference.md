@@ -349,17 +349,24 @@ Records usage feedback signals that drive Hebbian learning — association links
 | Field | Type | Description |
 |------|------|------|
 | `retrieval_id` | `u64` | Retrieval request ID |
-| `used_memory_ids` | `Vec<MemoryId>` | Memory IDs the user actually used |
+| `used_memory_ids` | `Vec<MemoryId>` | Memory IDs the user actually used; for `UserRejected`, the memories to weaken. **Empty + `UserRejected` = the whole result set was wrong** (result-set reject) |
 | `signal` | `UsageSignal` | Usage signal |
 
 **UsageSignal variants:**
 
-| Variant | Meaning | Hebbian effect |
+| Variant | Meaning | Effect |
 |------|------|-------------|
-| `Referenced` | User referenced this memory | Small strengthening of association links |
-| `UserConfirmedCorrect` | User confirmed the result is correct | Moderate strengthening of association links |
-| `TaskSucceeded` | A task based on this memory succeeded | Large strengthening of association links |
-| `UserRejected` | User rejected / flagged as wrong | Weakening of association links |
+| `Referenced` | User referenced this memory | Strengthens association links (weight 0.5) |
+| `UserConfirmedCorrect` | User confirmed the result is correct | Strengthens association links (weight 1.0) |
+| `TaskSucceeded` | A task based on this memory succeeded | Strengthens association links (weight 0.8) |
+| `UserRejected` | User rejected / flagged as wrong | **Targeted** (non-empty list): weakens the listed memories' association edges during the next consolidation — they become harder to reach through the graph. **Result-set** (empty list): the memories of that retrieval are excluded from recency boosts. Rejections never strengthen any memory |
+
+> **Note on feedback semantics:** feedback works through the association
+> graph (Hebbian edge reinforcement), not through a global score — a
+> confirmed memory is easier to recall in queries that reach it through its
+> associations, and a rejected memory is harder to reach. `usage_score`
+> remains observable via `inspect` as a record of feedback intensity but no
+> longer affects retrieval energy directly.
 
 ```rust
 use hippmem_engine::FeedbackInput;

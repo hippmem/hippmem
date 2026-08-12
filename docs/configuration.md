@@ -238,9 +238,19 @@ Each recall channel has an independent energy coefficient, all defaulting to `1.
 
 ### Usage-score Parameters
 
+> **DEPRECATED (0.4.0)**: the usage-score term in retrieval energy is being
+> removed (see the 0.4.0 changelog for the rationale).
+> hippmem models *associations*, not memory trustworthiness: trust is expressed
+> by later memories correcting/overriding earlier ones (Correction / Supersedes),
+> and feedback works through Hebbian edge reinforcement, which is naturally
+> query-relevant. The global usage weighting introduced in 0.3.0 made confirmed
+> memories score higher in *every* query, letting hub memories crowd out
+> correct answers. The `c_usage` parameter will be removed; setting it has no
+> effect once the change lands.
+
 | Parameter | Default | Range | Description |
 |------|--------|------|------|
-| `c_usage` | `0.5` | [0, 1] | Usage-score coefficient in retrieval energy. Neutral at usage_score = 0.5 (no effect until feedback is received) |
+| `c_usage` | `0.5` | [0, 1] | **DEPRECATED (0.4.0)** — Usage-score coefficient in retrieval energy (to be removed). Neutral at usage_score = 0.5 (no effect until feedback is received) |
 
 ### Cold-start Parameters
 

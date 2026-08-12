@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.4.0] — 2026-08-12
+
+### Added
+- A `user_rejected` feedback with an empty `used_memory_ids` now lowers the usage score of the whole result set returned by that retrieval (a weaker signal than a targeted rejection) — trap questions and noisy stores can now teach the engine "none of these were right".
+
+### Fixed
+- When consolidation compresses a cluster, edges pointing at the compressed sources are now redirected to the summary: previously they stayed as "ghost edges" to units that could no longer participate, silently losing the association. The summary also becomes reachable through the graph as an upward view. Edge changes made during consolidation are now written to the graph store, so reinforcement and rejection actually affect retrieval.
+- Retrieval is now deterministic: the same store state and query produce bit-identical scores. Previously, iteration-order randomness in channel ranking and multi-path energy merging made some scores vary between calls.
+- Consolidation no longer duplicates co-activation edges: running consolidation repeatedly no longer grows the edge count without bound.
+- Sources of a summary are now fully excluded from retrieval, including from the seed stage — a compressed source can no longer feed energy into its summary during search.
+
+### Changed
+- Summaries created by consolidation no longer hit the retrieval channels directly: their text is a concatenation of the source memories, so they used to rank above the concrete, correct memories in every related query. Summaries and their compressed sources are now excluded from retrieval seeds; the sources remain in storage and inspectable, and a drill-down path is planned.
+- Retrieval no longer reinforces itself: merely running a query no longer boosts the memories it returns — only explicit feedback does. This stops frequently-returned memories from snowballing across queries.
+- Confirmed memories no longer score higher in every query (the global usage weighting is removed): feedback now works through association edges, so it only lifts a memory in queries that reach it through its associations. Edge reinforcement now also scales with signal strength (a confirmation strengthens more than a reference).
+- A targeted `user_rejected` feedback now weakens the rejected memory's association edges during the next consolidation, so it becomes harder to retrieve through its connections; an empty `used_memory_ids` triggers the result-set reject above. Rejections never strengthen any memory.
+
+[0.4.0]: https://github.com/hippmem/hippmem/releases/tag/v0.4.0
+
+## [0.3.0] — 2026-08-10
+
+### Added
+- Feedback now updates each memory's usage score: confirmations and references raise it, rejections lower it, bounded to [0, 1]. Memories with high usage are weighted higher in retrieval energy.
+- New configuration options: `summary_similarity_threshold` (0.7), `summary_low_importance_threshold` (0.5), and `c_usage` (0.5). All defaults preserve existing retrieval behavior.
+- Retrieval traces now report real hop counts and latencies; `max_hops` is honored by the graph traversal.
+
+### Changed
+- Summarization now groups similar low-importance memories into clusters before creating a summary (previously the whole store was treated as one candidate set). Only clusters above the configured size with mostly low-importance members trigger a summary.
+- After a summary is created, its source memories are marked compressed and hidden from retrieval results; the summary itself is returned instead (sources remain in storage and inspectable).
+- New summaries exclude memories already covered by an existing summary.
+- The recent-activity recall channel and consolidation co-activation learning now ignore rejected feedback, so negative signals no longer strengthen memories.
+
+### Fixed
+- Feedback had no observable effect on retrieval: memory ids were truncated when recorded in the activation log, so reinforcement channels never matched the real memories. Ids are now stored in full.
+- Summaries created by consolidation were not searchable (missing from all recall indexes) and were lost by reindex; they are now fully indexed and persisted to the memory log.
+- `user_rejected` feedback previously boosted the rejected memories via the recent-activity channel; it now only lowers their usage score.
+
+[0.3.0]: https://github.com/hippmem/hippmem/releases/tag/v0.3.0
+
 ## [0.2.1] — 2026-08-07
 
 ### Added
