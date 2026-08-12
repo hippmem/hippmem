@@ -414,9 +414,10 @@ fn scenario_5_summary_creation_full_chain() {
     engine.close().unwrap();
 }
 
-/// 0.3.0 §8：检索默认返回摘要，压缩源记忆不直接命中。
+/// 0.4.0 §8（B1 修订）：摘要不参与检索种子——压缩源和摘要都不直接命中，
+/// 具体记忆正常出现在结果中。
 #[test]
-fn scenario_7_retrieval_hides_compressed_sources_shows_summary() {
+fn scenario_7_retrieval_hides_compressed_sources_and_summaries() {
     let dir = tempdir().unwrap();
     let engine = Engine::open(EngineConfig {
         store_dir: dir.path().join("hippmem.redb"),
@@ -450,19 +451,14 @@ fn scenario_7_retrieval_hides_compressed_sources_shows_summary() {
         })
         .unwrap();
 
-    assert!(!out.results.is_empty(), "摘要应可被检索到");
-    let has_summary = out.results.iter().any(|r| {
-        r.memory.provenance.generated_by == hippmem_core::model::unit::GeneratedBy::Consolidation
-    });
-    assert!(
-        has_summary,
-        "检索结果应包含摘要（top: {:?}）",
-        out.results
-            .iter()
-            .map(|r| &r.memory.content.raw)
-            .collect::<Vec<_>>()
-    );
+    // B1: 摘要不得作为种子直接命中（其文本是源的拼接，会压制具体记忆）。
     for r in &out.results {
+        assert!(
+            r.memory.provenance.generated_by
+                != hippmem_core::model::unit::GeneratedBy::Consolidation,
+            "摘要不得直接出现在检索结果中（B1）: {:?}",
+            r.memory.content.raw
+        );
         assert!(
             !matches!(
                 r.memory.lifecycle,

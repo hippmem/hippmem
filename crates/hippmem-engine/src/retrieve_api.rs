@@ -7,7 +7,7 @@ use crate::{Engine, EngineResult, RetrieveInput, RetrieveOutput};
 use hippmem_core::hash::stable_hash64;
 use hippmem_core::ids::MemoryId;
 use hippmem_core::model::links::{ActivationStep, RecallChannel, RetrievalResult};
-use hippmem_core::model::unit::{MemoryLifecycle, MemoryUnit};
+use hippmem_core::model::unit::{GeneratedBy, MemoryLifecycle, MemoryUnit};
 use hippmem_core::time::Clock;
 use hippmem_model::deterministic::extract::DeterministicExtractor;
 use hippmem_model::lang::active_locales;
@@ -91,11 +91,15 @@ impl Engine {
                 }
             }
         }
+        // Determinism: HashSet iteration order is randomized; sort by id so tied
+        // scores within the channel resolve to a fixed rank (RRF depends on rank).
+        let mut temporal_hit_vec: Vec<MemoryId> = temporal_hit_ids.into_iter().collect();
+        temporal_hit_vec.sort();
         let temporal_hits: Vec<(MemoryId, bool)> =
-            temporal_hit_ids.into_iter().map(|id| (id, true)).collect();
+            temporal_hit_vec.into_iter().map(|id| (id, true)).collect();
 
         // 2d. BM25: Tantivy fulltext search (03 §4.5), score normalized to [0,1] via tanh
-        let bm25_hits: Vec<(MemoryId, f32)> = self
+        let mut bm25_hits: Vec<(MemoryId, f32)> = self
             .fulltext_index
             .lock()
             .search(&input.query, params.seed_per_channel as usize)
@@ -106,6 +110,13 @@ impl Engine {
                 (MemoryId(id), norm)
             })
             .collect();
+        // Determinism: Tantivy's top-k order is unspecified for tied scores;
+        // sort by score descending (id as tie-break) so channel ranks are stable.
+        bm25_hits.sort_by(|(a_id, a_s), (b_id, b_s)| {
+            b_s.partial_cmp(a_s)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a_id.cmp(b_id))
+        });
 
         // 2e. SemanticDense: dense vector HNSW/FlatVectorIndex recall (03 §4.5)
         let semantic_hits: Vec<(MemoryId, f32)> = {
@@ -222,6 +233,8 @@ impl Engine {
                 let mut freq: HashMap<MemoryId, u32> = HashMap::new();
                 for rec in records.iter() {
                     // 0.3.0: UserRejected 不参与正向计数（05 §6，拒绝不得强化）
+                    // B2 (0.4.0): "retrieve" is no longer positive either —
+                    // only confirmed signals boost recency.
                     if !is_positive_signal(&rec.signal) {
                         continue;
                     }
@@ -238,9 +251,30 @@ impl Engine {
                         .and_modify(|s| *s = (*s + score).min(1.0))
                         .or_insert(score);
                 }
+
+                // B4 (0.4.0) §4.2: result-set rejects suppress the recent
+                // channel. A reject with empty used_memory_ids means "the
+                // whole result set was wrong" (trap questions, noisy stores);
+                // those memories must not be lifted by recency at all.
+                let result_set_rejected: std::collections::HashSet<MemoryId> = records
+                    .iter()
+                    .filter(|r| r.signal == "UserRejected" && r.used_memory_ids.is_empty())
+                    .filter_map(|r| {
+                        records
+                            .iter()
+                            .find(|p| p.retrieval_id == r.retrieval_id && p.signal == "retrieve")
+                    })
+                    .flat_map(|p| p.used_memory_ids.iter().map(|id| MemoryId(*id)))
+                    .collect();
+                if !result_set_rejected.is_empty() {
+                    recent_map.retain(|id, _| !result_set_rejected.contains(id));
+                }
             }
 
             let mut hits: Vec<(MemoryId, f32)> = recent_map.into_iter().collect();
+            // Determinism: stable sort keeps tied scores in iteration order; sort by
+            // id first so tied scores resolve to a fixed rank (RRF depends on rank).
+            hits.sort_by_key(|(id, _)| *id);
             hits.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
             hits.truncate(params.seed_per_channel as usize);
             hits
@@ -262,28 +296,37 @@ impl Engine {
         );
 
         // 3. RRF rank fusion (V9): multi-channel seeds → fuse into a single score per MemoryId
-        let fused_scores: HashMap<MemoryId, (f32, RecallChannel)> = if seed_result.seeds.is_empty()
-        {
-            // Fallback: no channel hits; take a few memories as RecentActivation seeds
-            // 0.3.0: 排除已压缩（Compressed）的单元，避免摘要源顶替摘要
-            let fallback = load_limited_units(self.store.db_arc(), 50)
-                .into_iter()
-                .filter(|u| !matches!(u.lifecycle, MemoryLifecycle::Compressed { .. }))
-                .collect::<Vec<_>>();
-            fallback
-                .into_iter()
-                .map(|u| (u.id, (0.3_f32, RecallChannel::RecentActivation)))
-                .collect()
-        } else {
-            rrf_fuse(&seed_result.seeds, &params)
-        };
+        let mut fused_scores: HashMap<MemoryId, (f32, RecallChannel)> =
+            if seed_result.seeds.is_empty() {
+                // Fallback: no channel hits; take a few memories as RecentActivation seeds
+                // F3/B1 (0.4.0): exclude compressed sources AND summaries.
+                let fallback = load_limited_units(self.store.db_arc(), 50)
+                    .into_iter()
+                    .filter(|u| !is_retrieval_seed_excluded(u))
+                    .collect::<Vec<_>>();
+                fallback
+                    .into_iter()
+                    .map(|u| (u.id, (0.3_f32, RecallChannel::RecentActivation)))
+                    .collect()
+            } else {
+                rrf_fuse(&seed_result.seeds, &params)
+            };
 
         // 4. Load on demand: seed units + seed outgoing edges + neighbor prefetch (supports 2-hop)
-        let seed_ids: Vec<MemoryId> = fused_scores.keys().cloned().collect();
         let mut unit_map: HashMap<MemoryId, MemoryUnit> = HashMap::new();
-        for unit in load_units_by_ids(self.store.db_arc(), &seed_ids) {
+        for unit in load_units_by_ids(
+            self.store.db_arc(),
+            &fused_scores.keys().cloned().collect::<Vec<_>>(),
+        ) {
             unit_map.insert(unit.id, unit);
         }
+        // F3/B1 (0.4.0): exclude compressed sources and summaries from the seed
+        // set, not just from the final results (7c). Compressed sources must not
+        // start a traversal (they would inject energy into their summary);
+        // summaries must not hit the direct channels at all (they crowd out
+        // concrete memories). Consistent with the fallback path above.
+        fused_scores.retain(|id, _| !unit_map.get(id).is_some_and(is_retrieval_seed_excluded));
+        let seed_ids: Vec<MemoryId> = fused_scores.keys().cloned().collect();
 
         // 4a. Build importance map from the loaded seed units
         let importance_map: HashMap<MemoryId, f32> = unit_map
@@ -314,14 +357,22 @@ impl Engine {
             .map(|l| l.target_id)
             .filter(|tid| !links_map.contains_key(tid))
             .collect();
+        // Load neighbor units first: their lifecycle decides whether they may expand.
+        for unit in load_units_by_ids(self.store.db_arc(), &neighbor_ids) {
+            unit_map.entry(unit.id).or_insert(unit);
+        }
+        // F3 (0.3.1): a compressed neighbor is a dead end — load no outgoing edges
+        // for it, so it cannot propagate energy onward (it is still reachable as a
+        // result candidate and removed by the 7c filter).
         for nid in &neighbor_ids {
+            // F3/B1: compressed sources and summaries are dead ends — load no
+            // outgoing edges, so they cannot propagate energy onward.
+            if unit_map.get(nid).is_some_and(is_retrieval_seed_excluded) {
+                continue;
+            }
             if let Ok(links) = graph.get_outgoing(nid) {
                 links_map.insert(*nid, links);
             }
-        }
-        // Load neighbor units on demand as well
-        for unit in load_units_by_ids(self.store.db_arc(), &neighbor_ids) {
-            unit_map.entry(unit.id).or_insert(unit);
         }
 
         // 5. Spreading activation (P2 回归：max_hops 必须透传；merged_count 如实报告)
@@ -379,9 +430,16 @@ impl Engine {
             .collect();
 
         // 9. Channel contributions
+        // F3 (0.3.1): report only the seeds actually used for spreading —
+        // compressed sources were dropped from fused_scores and must not be
+        // counted here either.
         let channel_contributions: Vec<(RecallChannel, u32)> = {
             let mut map: HashMap<RecallChannel, u32> = HashMap::new();
-            for seed in &seed_result.seeds {
+            for seed in seed_result
+                .seeds
+                .iter()
+                .filter(|s| !unit_map.get(&s.id).is_some_and(is_retrieval_seed_excluded))
+            {
                 *map.entry(seed.channel).or_default() += 1;
             }
             map.into_iter().collect()
@@ -408,6 +466,55 @@ impl Engine {
             now_ms as u64
         };
 
+        // 10b. E7 (0.4.0): update ActivationState of the returned memories —
+        // retrieval_count/last_retrieved_at/co_activations (03 §6: "每次检索后
+        // 由检索侧累加"). Bounded co-activation list (co_activation_keep);
+        // usage_score is owned by feedback and not touched here.
+        {
+            let kv = hippmem_store::kv::KvStore::new(self.store.db_arc());
+            let now_ts = hippmem_core::time::Timestamp::from_millis(retrieval_id as i64);
+            let max_co = params.co_activation_keep as usize;
+            for r in &results {
+                let raw = kv
+                    .get(&r.memory.id.0)
+                    .map_err(|e| crate::EngineError::Store(e.to_string()))?;
+                let Some(raw) = raw else { continue };
+                let (mut unit, _): (MemoryUnit, _) =
+                    bincode::serde::decode_from_slice(&raw, bincode::config::standard())
+                        .map_err(|e| crate::EngineError::Internal(e.to_string()))?;
+                unit.activation.retrieval_count = unit.activation.retrieval_count.saturating_add(1);
+                unit.activation.last_retrieved_at = Some(now_ts);
+                // Co-activation with the other memories of this result set.
+                let mut co: Vec<hippmem_core::model::links::CoActivationCount> =
+                    unit.activation.co_activations.clone();
+                for other in &results {
+                    if other.memory.id == r.memory.id {
+                        continue;
+                    }
+                    if let Some(existing) = co.iter_mut().find(|c| c.with == other.memory.id) {
+                        existing.count = existing.count.saturating_add(1);
+                        existing.last_at = now_ts;
+                    } else {
+                        co.push(hippmem_core::model::links::CoActivationCount {
+                            with: other.memory.id,
+                            count: 1,
+                            last_at: now_ts,
+                        });
+                    }
+                }
+                // Bound the list, dropping the least recently co-activated.
+                if co.len() > max_co {
+                    co.sort_by_key(|c| std::cmp::Reverse(c.last_at));
+                    co.truncate(max_co);
+                }
+                unit.activation.co_activations = co;
+                let encoded = bincode::serde::encode_to_vec(&unit, bincode::config::standard())
+                    .map_err(|e| crate::EngineError::Internal(e.to_string()))?;
+                kv.put(r.memory.id.0, &encoded)
+                    .map_err(|e| crate::EngineError::Store(e.to_string()))?;
+            }
+        }
+
         Ok(RetrieveOutput {
             retrieval_id,
             results,
@@ -415,6 +522,8 @@ impl Engine {
                 seeds: seed_result
                     .seeds
                     .iter()
+                    // F3/B1 (0.4.0): mirror the actual seed set used for spreading.
+                    .filter(|s| !unit_map.get(&s.id).is_some_and(is_retrieval_seed_excluded))
                     .map(|s| crate::SeedRecord {
                         id: s.id,
                         channel: s.channel,
@@ -904,6 +1013,20 @@ fn extract_query_events(text: &str) -> Vec<String> {
 }
 
 /// Loads at most `limit` memories from the MEMORY_KV table (for fallback, not a full scan).
+/// A unit that must not act as a retrieval seed (B1, 0.4.0):
+/// - `Compressed`: summary sources (F3) — a compressed source must not start
+///   a traversal, otherwise it injects energy into its summary via the
+///   Elaboration edges;
+/// - `GeneratedBy::Consolidation`: summaries themselves (B1) — a summary text
+///   is a concatenation of its sources, so it matches every query about them
+///   through the semantic/BM25/entity channels and crowds out the concrete
+///   memories (2026-08-11 test report P1-2). Summaries stay reachable via
+///   graph edges once an upward-rollout channel exists (planned with B5).
+fn is_retrieval_seed_excluded(unit: &MemoryUnit) -> bool {
+    matches!(unit.lifecycle, MemoryLifecycle::Compressed { .. })
+        || unit.provenance.generated_by == GeneratedBy::Consolidation
+}
+
 fn load_limited_units(db: std::sync::Arc<redb::Database>, limit: usize) -> Vec<MemoryUnit> {
     use redb::ReadableDatabase;
     use redb::ReadableTable;

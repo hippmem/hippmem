@@ -65,11 +65,15 @@ pub fn plan_summary_clusters(
         }
     }
 
-    // 候选：Active、未被覆盖、token 有信号（预计算 token 集，避免重复分词）
+    // 候选：Active、未被覆盖、非摘要本身（E12: 摘要不得作为簇候选，
+    // 否则会生成"摘要的摘要"，摘要链无限增长——covers 去重只挡已覆盖源）、
+    // token 有信号（预计算 token 集，避免重复分词）
     let mut candidates: Vec<(&MemoryUnit, HashSet<String>)> = units
         .iter()
         .filter(|u| {
-            !matches!(u.lifecycle, MemoryLifecycle::Compressed { .. }) && !covered.contains(&u.id)
+            !matches!(u.lifecycle, MemoryLifecycle::Compressed { .. })
+                && !covered.contains(&u.id)
+                && u.provenance.generated_by != GeneratedBy::Consolidation
         })
         .map(|u| (u, token_set(&u.content.raw)))
         .filter(|(_, toks)| !toks.is_empty())
@@ -407,5 +411,28 @@ mod tests {
         let a = plan_summary_clusters(&units, 0.7, 12, 0.5);
         let b = plan_summary_clusters(&units, 0.7, 12, 0.5);
         assert_eq!(a, b);
+    }
+
+    /// E12: 摘要（generated_by = Consolidation）不得作为簇候选——
+    /// 否则与新记忆相似时会把摘要本身卷入簇，生成"摘要的摘要"。
+    #[test]
+    fn plan_cluster_excludes_summaries_from_candidates() {
+        let mut units = make_cluster(13);
+        let mut summary = unit(
+            999,
+            "Build output: warning E0999 fixed at src/main.rs line 999.",
+            0.5,
+        );
+        summary.provenance.generated_by = GeneratedBy::Consolidation;
+        units.push(summary);
+
+        let clusters = plan_summary_clusters(&units, 0.7, 12, 0.5);
+        assert!(!clusters.is_empty(), "13 sources must still form a cluster");
+        for c in &clusters {
+            assert!(
+                !c.contains(&MemoryId(999)),
+                "summary must not become a cluster candidate (E12)"
+            );
+        }
     }
 }

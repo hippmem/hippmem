@@ -87,7 +87,10 @@ fn consolidate_summary_becomes_retrievable() {
     let summary_text = summaries[0].content.raw.clone();
     let summary_id = summaries[0].id;
 
-    // 重新打开引擎，用摘要原文作为查询——必须能检索到摘要本身
+    // 重新打开引擎，用摘要原文作为查询。
+    // B1 (0.4.0): 摘要文本是源的拼接，直接命中会压制具体记忆——摘要被排除在
+    // 种子之外。本测试验证：摘要仍完整存在于库中（索引写入未回退），
+    // 但不再作为直接命中出现在结果里（压缩源同样不出现）。
     let engine = Engine::open(EngineConfig {
         store_dir: db_path,
         ..Default::default()
@@ -105,13 +108,16 @@ fn consolidate_summary_becomes_retrievable() {
     engine.close().unwrap();
 
     assert!(
-        out.results.iter().any(|r| r.memory.id == summary_id),
-        "consolidate 创建的摘要必须可被检索到（需进入 fulltext/向量/倒排索引），\
-         实际 top-{}: {:?}",
-        out.results.len(),
-        out.results
-            .iter()
-            .map(|r| &r.memory.content.raw)
-            .collect::<Vec<_>>()
+        !out.results.iter().any(|r| r.memory.id == summary_id),
+        "B1: 摘要不得直接命中检索（其文本是源的拼接，会压制具体记忆）"
     );
+    for r in &out.results {
+        assert!(
+            !matches!(
+                r.memory.lifecycle,
+                hippmem_core::model::unit::MemoryLifecycle::Compressed { .. }
+            ),
+            "压缩源记忆不得出现在检索结果中"
+        );
+    }
 }
