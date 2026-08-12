@@ -349,7 +349,7 @@ Records usage feedback signals that drive Hebbian learning — association links
 | Field | Type | Description |
 |------|------|------|
 | `retrieval_id` | `u64` | Retrieval request ID |
-| `used_memory_ids` | `Vec<MemoryId>` | Memory IDs the user actually used; for `UserRejected`, the memories to weaken. **Empty + `UserRejected` = the whole result set was wrong** (result-set reject) |
+| `used_memory_ids` | `Vec<MemoryId>` | Memory IDs the user actually used; for `UserRejected`, the memories to weaken. **Empty + `UserRejected` = retrieval-quality signal only (0.4.1)**: recorded in the activation log for audit, with no memory-side effects (the 0.4.0 result-set reject was removed — trap questions trigger it by construction, and it permanently suppressed innocent memories that merely appeared in the rejected result set) |
 | `signal` | `UsageSignal` | Usage signal |
 
 **UsageSignal variants:**
@@ -359,7 +359,7 @@ Records usage feedback signals that drive Hebbian learning — association links
 | `Referenced` | User referenced this memory | Strengthens association links (weight 0.5) |
 | `UserConfirmedCorrect` | User confirmed the result is correct | Strengthens association links (weight 1.0) |
 | `TaskSucceeded` | A task based on this memory succeeded | Strengthens association links (weight 0.8) |
-| `UserRejected` | User rejected / flagged as wrong | **Targeted** (non-empty list): weakens the listed memories' association edges during the next consolidation — they become harder to reach through the graph. **Result-set** (empty list): the memories of that retrieval are excluded from recency boosts. Rejections never strengthen any memory |
+| `UserRejected` | User rejected / flagged as wrong | **Targeted** (non-empty list): weakens the listed memories' association edges during the next consolidation — they become harder to reach through the graph. **Empty list (0.4.1)**: retrieval-quality signal, no memory-side effects (recorded in the activation log for audit only). Rejections never strengthen any memory |
 
 > **Note on feedback semantics:** feedback works through the association
 > graph (Hebbian edge reinforcement), not through a global score — a

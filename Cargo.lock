@@ -732,7 +732,7 @@ checksum = "fc0fef456e4baa96da950455cd02c081ca953b141298e41db3fc7e36b1da849c"
 
 [[package]]
 name = "hippmem-consolidation"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "hippmem-core",
  "hippmem-model",
@@ -741,7 +741,7 @@ dependencies = [
 
 [[package]]
 name = "hippmem-core"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "bincode",
  "figment",
@@ -759,7 +759,7 @@ dependencies = [
 
 [[package]]
 name = "hippmem-engine"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "bincode",
  "clap",
@@ -783,7 +783,7 @@ dependencies = [
 
 [[package]]
 name = "hippmem-eval"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "hippmem-core",
  "hippmem-engine",
@@ -797,7 +797,7 @@ dependencies = [
 
 [[package]]
 name = "hippmem-grpc"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "hippmem-core",
  "hippmem-engine",
@@ -811,7 +811,7 @@ dependencies = [
 
 [[package]]
 name = "hippmem-model"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "async-trait",
  "hippmem-core",
@@ -826,7 +826,7 @@ dependencies = [
 
 [[package]]
 name = "hippmem-retrieval"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "hippmem-core",
  "hippmem-model",
@@ -836,7 +836,7 @@ dependencies = [
 
 [[package]]
 name = "hippmem-store"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "bincode",
  "hippmem-core",
@@ -851,7 +851,7 @@ dependencies = [
 
 [[package]]
 name = "hippmem-write"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "hippmem-core",
  "hippmem-model",

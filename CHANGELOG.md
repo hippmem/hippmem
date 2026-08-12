@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.4.1] — 2026-08-12
+
+### Changed
+- A `user_rejected` feedback with an empty `used_memory_ids` is no longer a result-set reject: it no longer lowers the usage scores of the returned memories, and it no longer removes them from the recent channel. Trap questions (queries with no answer in the store) trigger this signal by construction while retrieval must still return a list, so the 0.4.0 behavior permanently suppressed innocent memories that merely appeared in the rejected result set — even after they were explicitly confirmed. An empty rejection is now a retrieval-quality signal with no memory-side effects; it is still recorded in the activation log for audit. Targeted rejections (non-empty `used_memory_ids`) are unchanged: they still weaken the named memories' association edges during the next consolidation.
+
+[0.4.1]: https://github.com/hippmem/hippmem/releases/tag/v0.4.1
+
 ## [0.4.0] — 2026-08-12
 
 ### Added

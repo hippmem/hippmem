@@ -59,33 +59,18 @@ impl Engine {
             let ids: Vec<u128> = input.used_memory_ids.iter().map(|id| id.0).collect();
             apply_delta(&ids, delta)?;
         }
-        // D-B (0.4.0): result-set reject. An empty used_memory_ids with
-        // UserRejected means "the whole result set was wrong" (trap questions,
-        // noisy stores) — lower the usage score of every memory returned by
-        // that retrieval. The result set is recovered from the retrieval's
-        // own activation-log record (written by retrieve). A targeted reject
-        // (non-empty used_memory_ids) keeps the stronger -0.10 per memory.
-        if matches!(input.signal, crate::UsageSignal::UserRejected)
-            && input.used_memory_ids.is_empty()
-        {
-            if let Ok(records) = logger.read_all() {
-                if let Some(rec) = records
-                    .iter()
-                    .find(|r| r.retrieval_id == input.retrieval_id && r.signal == "retrieve")
-                {
-                    apply_delta(&rec.used_memory_ids, RESULT_SET_REJECT_DELTA)?;
-                }
-            }
-        }
+        // 0.4.1: an empty used_memory_ids + UserRejected is a *retrieval-quality*
+        // signal, not a *memory-quality* signal, and has no memory-side effects.
+        // The 0.4.0 result-set reject (D-B) lowered every memory returned by the
+        // retrieval and permanently removed them from the recent channel; trap
+        // questions (no answer in the store) trigger it by construction, so it
+        // permanently suppressed innocent memories that happened to be retrieved
+        // (2026-08-12 test report O1). Removed; only the activation-log record
+        // remains (audit trail).
 
         Ok(())
     }
 }
-
-/// Usage-score adjustment per memory for a result-set reject (D-B, 0.4.0):
-/// weaker than the targeted reject (-0.10) because no single memory was
-/// singled out as wrong.
-const RESULT_SET_REJECT_DELTA: f32 = -0.05;
 
 fn signal_to_string(s: &crate::UsageSignal) -> String {
     match s {

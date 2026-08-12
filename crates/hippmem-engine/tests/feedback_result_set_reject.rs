@@ -1,11 +1,18 @@
-//! Result-set reject tests (0.4.0, D-B / B4 §4.2).
+//! Result-set reject contract tests (0.4.1).
 //!
-//! An empty used_memory_ids + UserRejected means "the whole result set was
-//! wrong" (trap questions, noisy stores). Under the 0.4.0 usage semantics:
-//! - usage_score is still lowered by 0.05 per result-set memory (record field);
-//! - the observable retrieval effect is RecentActivation suppression: result-set
-//!   memories are excluded from recency boosts, so their prior confirmations
-//!   no longer lift them via the recent channel.
+//! An empty used_memory_ids + UserRejected is a *retrieval-quality* signal:
+//! "this retrieval returned no correct answer" (trap questions, noisy stores).
+//! Under the 0.4.1 semantics it is a no-op on memories:
+//! - usage_score is NOT lowered (the 0.4.0 D-B -0.05 was removed);
+//! - the recent channel is NOT suppressed (the 0.4.0 B4 §4.2 retain was removed).
+//!
+//! Why removed: trap questions trigger a result-set reject by construction
+//! (the store has no answer, retrieval must still return a list), so the
+//! 0.4.0 behavior permanently suppressed innocent memories that merely
+//! appeared in the rejected result set — even after explicit confirmation
+//! (2026-08-12 test report O1). Targeted rejects (non-empty used_memory_ids)
+//! are unaffected: they still weaken the named memories (see
+//! feedback_reject_weaken.rs).
 
 use hippmem_core::model::enums::ContentType;
 use hippmem_core::model::links::RetrievalMode;
@@ -91,7 +98,7 @@ fn build_store() -> (tempfile::TempDir, Engine) {
 }
 
 #[test]
-fn empty_reject_lowers_usage_score_as_a_record() {
+fn empty_reject_has_no_usage_score_side_effect() {
     let (_dir, engine) = build_store();
 
     let out = engine
@@ -117,25 +124,24 @@ fn empty_reject_lowers_usage_score_as_a_record() {
         })
         .unwrap();
 
-    // Record semantics (B4): usage_score still drops by 0.05 per memory.
+    // 0.4.1: result-set reject is a retrieval-quality signal with no memory
+    // side effects — usage_score stays neutral (0.4.0 lowered it by 0.05).
     for id in &result_ids {
         assert_eq!(
             usage_of(&engine, *id),
-            0.45,
-            "result-set reject must lower each returned memory's usage score by 0.05 (record)"
+            0.5,
+            "result-set reject must not lower usage_score (0.4.1 contract)"
         );
     }
 }
 
-/// The observable retrieval effect of a result-set reject: it cancels the
-/// recency boost of those memories. Confirm first (they get boosted via the
-/// recent channel), then result-set-reject, then the boost must be gone.
-///
-/// Confirms the third-ranked memory, not the top one: the top memory is
-/// already the RRF maximum, so its normalized seed energy (and thus its
-/// score) does not move when recency adds to it.
+/// A result-set reject must not undo the recency boost of a confirmed memory.
+/// Confirm a memory (it gets boosted via the recent channel), then result-set
+/// reject a later retrieval of the same query — the boost must survive.
+/// (0.4.0 removed the boost via `recent_map.retain`; that was the O1 bug:
+/// a trap question permanently suppressed a memory the user then confirmed.)
 #[test]
-fn result_set_reject_removes_recency_boost() {
+fn result_set_reject_keeps_confirmation_boost() {
     let (_dir, engine) = build_store();
     let q = "What work does Zhouyu do?";
 
@@ -174,7 +180,7 @@ fn result_set_reject_removes_recency_boost() {
          before={before_score}, after={confirmed_score}"
     );
 
-    // Result-set reject of the same query → the boost must disappear.
+    // Result-set reject of the same query → the boost must survive.
     let out = engine
         .retrieve(RetrieveInput {
             query: q.to_string(),
@@ -197,9 +203,9 @@ fn result_set_reject_removes_recency_boost() {
         .find(|(mid, _)| *mid == id)
         .map(|(_, s)| *s)
         .unwrap();
-    assert!(
-        after_score < confirmed_score,
-        "result-set reject must remove the recency boost, \
+    assert_eq!(
+        after_score, confirmed_score,
+        "result-set reject must not remove the confirmation boost, \
          confirmed={confirmed_score}, after-reject={after_score}"
     );
 }

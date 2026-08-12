@@ -14,8 +14,9 @@
 /// appeared in one result set was boosted in the next, snowballing hub memories
 /// (2026-08-11 test report D1). Retrieval has no user confirmation, so it no
 /// longer counts as a positive signal. The records are still written to the
-/// activation log (audit trail) and still power the result-set reject lookup
-/// (D-B), but they no longer strengthen anything.
+/// activation log (audit trail), but they no longer strengthen anything.
+/// (The 0.4.0 result-set reject that consumed these records was removed in
+/// 0.4.1: it permanently suppressed innocent memories — 2026-08-12 test report O1.)
 pub(crate) fn is_positive_signal(signal: &str) -> bool {
     matches!(
         signal,

@@ -251,24 +251,6 @@ impl Engine {
                         .and_modify(|s| *s = (*s + score).min(1.0))
                         .or_insert(score);
                 }
-
-                // B4 (0.4.0) §4.2: result-set rejects suppress the recent
-                // channel. A reject with empty used_memory_ids means "the
-                // whole result set was wrong" (trap questions, noisy stores);
-                // those memories must not be lifted by recency at all.
-                let result_set_rejected: std::collections::HashSet<MemoryId> = records
-                    .iter()
-                    .filter(|r| r.signal == "UserRejected" && r.used_memory_ids.is_empty())
-                    .filter_map(|r| {
-                        records
-                            .iter()
-                            .find(|p| p.retrieval_id == r.retrieval_id && p.signal == "retrieve")
-                    })
-                    .flat_map(|p| p.used_memory_ids.iter().map(|id| MemoryId(*id)))
-                    .collect();
-                if !result_set_rejected.is_empty() {
-                    recent_map.retain(|id, _| !result_set_rejected.contains(id));
-                }
             }
 
             let mut hits: Vec<(MemoryId, f32)> = recent_map.into_iter().collect();
