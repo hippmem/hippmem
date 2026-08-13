@@ -367,6 +367,17 @@ Records usage feedback signals that drive Hebbian learning — association links
 > associations, and a rejected memory is harder to reach. `usage_score`
 > remains observable via `inspect` as a record of feedback intensity but no
 > longer affects retrieval energy directly.
+>
+> **Immediate recency effect (0.4.1):** confirmation frequency no longer
+> seeds retrieval channels (0.4.0 boosted confirmed memories in *every*
+> query — even unrelated ones, crowding out more relevant results). It now
+> applies a small multiplicative tie-break inside the candidate set only:
+> a confirmed memory that already matched a query scores up to 15% higher
+> (`score × (1 + 0.15 × freq_ratio)`), so it can overtake memories within
+> that relative distance but cannot surface in unrelated queries.
+> `RetrieveContext.recent_memory_ids` remains the explicit working-memory
+> interface: memories the caller designates as recently used are seeded
+> directly (+0.3, neighbors +0.15).
 
 ```rust
 use hippmem_engine::FeedbackInput;

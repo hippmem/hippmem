@@ -202,7 +202,11 @@ impl Engine {
             .flatten()
             .collect();
 
-        // 2j. RecentActivation: recent_memory_ids graph neighbors + activation_log (03 §4.5)
+        // 2j. RecentActivation: recent_memory_ids graph neighbors (03 §4.5).
+        //     Explicit caller context is a reliable seed source (+0.3 direct,
+        //     +0.15 per graph neighbor). Confirmation frequency no longer seeds
+        //     here — it is applied as a candidate-set tie-break after rerank
+        //     (recency-candidate-correction proposal, 0.4.1).
         let recent_hits: Vec<(MemoryId, f32)> = {
             let mut recent_map: HashMap<MemoryId, f32> = HashMap::new();
 
@@ -227,10 +231,26 @@ impl Engine {
                 }
             }
 
-            // Take recently frequent memories from activation_log
+            let mut hits: Vec<(MemoryId, f32)> = recent_map.into_iter().collect();
+            // Determinism: stable sort keeps tied scores in iteration order; sort by
+            // id first so tied scores resolve to a fixed rank (RRF depends on rank).
+            hits.sort_by_key(|(id, _)| *id);
+            hits.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+            hits.truncate(params.seed_per_channel as usize);
+            hits
+        };
+
+        // 2j2. Recency correction: confirmation frequency from activation_log is
+        //      a candidate-set tie-break, NOT an independent seed
+        //      (recency-candidate-correction proposal, 0.4.1; 2026-08-13 test
+        //      report O2). The engine cannot know query context — frequency as
+        //      a seed boosted confirmed memories in every query, crowding out
+        //      more relevant ones. It now only lifts memories that already
+        //      reached the candidate set (applied after rerank, step 7d).
+        let freq_correction: HashMap<MemoryId, f32> = {
             let act_log = ActivationLogger::new(self.store.db_arc());
+            let mut freq: HashMap<MemoryId, u32> = HashMap::new();
             if let Ok(records) = act_log.read_all() {
-                let mut freq: HashMap<MemoryId, u32> = HashMap::new();
                 for rec in records.iter() {
                     // 0.3.0: UserRejected 不参与正向计数（05 §6，拒绝不得强化）
                     // B2 (0.4.0): "retrieve" is no longer positive either —
@@ -243,23 +263,11 @@ impl Engine {
                         *freq.entry(MemoryId(mid)).or_default() += 1;
                     }
                 }
-                let max_freq = freq.values().max().copied().unwrap_or(1) as f32;
-                for (mid, count) in freq {
-                    let score = (count as f32 / max_freq) * 0.25;
-                    recent_map
-                        .entry(mid)
-                        .and_modify(|s| *s = (*s + score).min(1.0))
-                        .or_insert(score);
-                }
             }
-
-            let mut hits: Vec<(MemoryId, f32)> = recent_map.into_iter().collect();
-            // Determinism: stable sort keeps tied scores in iteration order; sort by
-            // id first so tied scores resolve to a fixed rank (RRF depends on rank).
-            hits.sort_by_key(|(id, _)| *id);
-            hits.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-            hits.truncate(params.seed_per_channel as usize);
-            hits
+            let max_freq = freq.values().max().copied().unwrap_or(1) as f32;
+            freq.into_iter()
+                .map(|(mid, count)| (mid, (count as f32 / max_freq) * RECENCY_CORRECTION_ALPHA))
+                .collect()
         };
 
         let seed_result = multi_channel_seeds(
@@ -393,6 +401,27 @@ impl Engine {
         reranked.retain(|(_, _, _, unit)| {
             !matches!(unit.lifecycle, MemoryLifecycle::Compressed { .. })
         });
+
+        // 7d. Recency correction (recency-candidate-correction, 0.4.1):
+        //     confirmation frequency lifts candidates that were confirmed
+        //     recently — a tie-break within the candidate set, applied after
+        //     the compressed/summary filter so summaries never gain from it.
+        //     Multiplicative (score × (1 + α·ratio)): proportional to the
+        //     memory's own energy, so it amplifies the gap between strongly
+        //     and weakly relevant memories instead of flattening it (an
+        //     additive lift erased the gap and let weakly-related confirmed
+        //     memories crowd out more relevant ones — the 0.3412 tie-tier in
+        //     the O2 report). Re-sort with the deterministic pattern (id
+        //     first, then stable by energy).
+        if !freq_correction.is_empty() {
+            for (id, energy, _, _) in reranked.iter_mut() {
+                if let Some(c) = freq_correction.get(id) {
+                    *energy *= 1.0 + c;
+                }
+            }
+            reranked.sort_by_key(|(id, _, _, _)| *id);
+            reranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        }
 
         // 8. Build results
         let results: Vec<RetrievalResult> = reranked
@@ -540,6 +569,17 @@ impl Engine {
 }
 
 // ── Helpers ──
+
+/// Recency candidate-correction coefficient (recency-candidate-correction
+/// proposal, 0.4.1): confirmation frequency multiplies a candidate's energy
+/// by at most (1 + this) — a tie-break within the candidate set, not a
+/// relevance source. Multiplicative so the lift is proportional to the
+/// memory's own energy: strong candidates gain the most, weak noise gains
+/// almost nothing, and relative gaps are preserved instead of flattened.
+/// At 0.15, a fully-confirmed memory (ratio=1) gains +15%; the acceptance
+/// scenario climbs 0.307 → ~0.35 per full cycle, and B-scenario confirmations
+/// (ratio < 1 in practice) move borderline ranks without flipping tiers.
+const RECENCY_CORRECTION_ALPHA: f32 = 0.15;
 
 // ── Question-type aware boost (§4.5) ──
 
