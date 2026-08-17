@@ -16,6 +16,7 @@
 //!   a higher entity-channel hit score (0.2 / 0.35 / 0.5 by k);
 //! - rerank tier (retrieve_api.rs 7d2): candidates covering k of the query's
 //!   N ≥ 2 entities are multiplied by (1 + 0.2·k/N).
+//!
 //! Both tiers only lift memories that already reached the candidate set —
 //! coverage is a query-side relevance signal, never a global gain.
 
