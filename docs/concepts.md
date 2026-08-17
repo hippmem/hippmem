@@ -143,7 +143,7 @@ Each channel is an independent angle for finding memories, returning "hit list +
 | Channel | How it finds | Hit score |
 |---------|-------------|-----------|
 | BM25 | Full-text inverted index, lexical match | tanh(score/2.0) normalized |
-| Entity | Query entities → entity index | fixed 0.2 |
+| Entity | Query entities → entity index | tiered by covered query entities: 0.2 / 0.35 / 0.5 (1 / 2 / 3+ covered) |
 | Topic | Query topics → topic index | fixed 0.15 |
 | Temporal | Current time buckets (hour/day/week) → temporal index | fixed 0.3 ("recent events") |
 | Semantic (dense) | Query vector vs memory vectors (cosine similarity) | 1/(1+distance) |
@@ -199,7 +199,7 @@ The **candidate set = seeds + memories reached by spreading**.
 
 ### 5.6 Step 6: rerank and output
 
-After sorting the candidate set by energy, three adjustments are applied:
+After sorting the candidate set by energy, four adjustments are applied:
 
 1. **Question-type adjustment**: detect the question type ("why"/"what"...), apply a moderate boost to matching answer patterns (capped at 1.0)
 2. **Compressed filter**: compressed source memories are removed from results (summaries are returned by default; sources remain inspectable)
@@ -210,6 +210,7 @@ final_energy = energy × (1 + 0.15 × confirm_count / global_max_confirm_count)
 ```
 
    At most +15%, applied only to memories already in the candidate set — it is a **tie-break within the same relevance tier**, and can never pull a weakly relevant memory over a strongly relevant one.
+4. **Entity coverage correction**: for multi-entity queries (N ≥ 2 query entities, e.g. "what is the relationship between X and Y?"), a candidate covering k of the query's entities is multiplied by `(1 + 0.2 × k/N)` — the answer must involve both entities, so full-coverage memories win within their tier and single-entity word-surface decoys (memories sharing only one entity word with the query) fall behind. Single-entity queries are unaffected.
 
 The final ordering is **deterministic**: the same store state + the same query → bit-identical scores and order.
 

@@ -51,19 +51,35 @@ impl Engine {
         let inverted = InvertedIndex::new(self.store.db_arc());
 
         // 2a. Entity: from query entities → entity_index
-        let entity_hits: Vec<(MemoryId, f32)> = understanding
-            .entities
-            .iter()
-            .filter_map(|em| {
+        // entity-coverage-query-boost (0.4.2): a memory covering more query
+        // entities gets a higher per-hit score (0.2 / 0.35 / 0.5 by covered
+        // count) — for multi-entity queries ("what is the relationship between
+        // X and Y") the answer must involve both entities, so full coverage
+        // should rank first in this channel. Count first (seeds are deduped by
+        // (id, channel) downstream, so coverage must be aggregated here).
+        let mut entity_hits: Vec<(MemoryId, f32)> = {
+            let mut covered: std::collections::HashMap<MemoryId, u32> =
+                std::collections::HashMap::new();
+            for em in &understanding.entities {
                 let key = hippmem_core::hash::stable_hash64(&em.canonical);
-                inverted.get_entity(&key).ok().map(|ids| {
-                    ids.into_iter()
-                        .map(|id| (MemoryId(id), 0.2f32))
-                        .collect::<Vec<_>>()
-                })
-            })
-            .flatten()
-            .collect();
+                if let Ok(ids) = inverted.get_entity(&key) {
+                    for id in ids {
+                        *covered.entry(MemoryId(id)).or_default() += 1;
+                    }
+                }
+            }
+            covered
+                .into_iter()
+                .map(|(id, k)| (id, entity_coverage_score(k)))
+                .collect()
+        };
+        // Determinism: HashMap iteration is randomized; sort by score desc
+        // (id as tie-break) so same-tier hits resolve to a fixed channel rank.
+        entity_hits.sort_by(|(a_id, a_s), (b_id, b_s)| {
+            b_s.partial_cmp(a_s)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a_id.cmp(b_id))
+        });
 
         // 2b. Topic: from query topics → topic_index
         let topic_hits: Vec<(MemoryId, f32)> = understanding
@@ -423,6 +439,37 @@ impl Engine {
             reranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         }
 
+        // 7d2. Entity coverage correction (entity-coverage-query-boost, 0.4.2):
+        //     for multi-entity queries (N ≥ 2), lift candidates that cover more
+        //     of the query's entities — a multiplicative tie-break within the
+        //     candidate set, same tier as the recency correction. Coverage is a
+        //     query-side signal (|memory entities ∩ query entities| / N), so it
+        //     never reaches outside the query's own relevance scope. Single-
+        //     entity queries (N = 1) are untouched: coverage has no
+        //     discrimination there. Re-sort with the deterministic pattern.
+        let query_entity_count = understanding.entities.len();
+        if query_entity_count >= 2 {
+            let query_entities: std::collections::HashSet<&str> = understanding
+                .entities
+                .iter()
+                .map(|em| em.canonical.as_str())
+                .collect();
+            let n = query_entity_count as f32;
+            for (_, energy, _, unit) in reranked.iter_mut() {
+                let covered = unit
+                    .understanding
+                    .entities
+                    .iter()
+                    .filter(|em| query_entities.contains(em.canonical.as_str()))
+                    .count();
+                if covered > 0 {
+                    *energy *= 1.0 + ENTITY_COVERAGE_BETA * (covered as f32 / n);
+                }
+            }
+            reranked.sort_by_key(|(id, _, _, _)| *id);
+            reranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        }
+
         // 8. Build results
         let results: Vec<RetrievalResult> = reranked
             .iter()
@@ -580,6 +627,27 @@ impl Engine {
 /// scenario climbs 0.307 → ~0.35 per full cycle, and B-scenario confirmations
 /// (ratio < 1 in practice) move borderline ranks without flipping tiers.
 const RECENCY_CORRECTION_ALPHA: f32 = 0.15;
+
+/// Entity-coverage query boost (entity-coverage-query-boost proposal, 0.4.2):
+/// rerank multiplier for multi-entity queries — a candidate covering k of the
+/// query's N entities scores ×(1 + β·k/N), at most +20%. Multiplicative, like
+/// the recency correction, so relative gaps between candidates are preserved;
+/// bounded (≤ ×1.2), so the score-ceiling guarantee (§8 of the concepts docs)
+/// is not weakened.
+const ENTITY_COVERAGE_BETA: f32 = 0.2;
+
+/// Per-hit entity channel score by how many query entities a memory covers
+/// (2a). k=1 keeps the historical flat 0.2; each additional covered query
+/// entity raises the hit score (cap 0.5), so a memory covering every query
+/// entity ranks first in the entity channel. Seeds are deduped by
+/// (id, channel) downstream, so this is a single seed per memory.
+fn entity_coverage_score(covered_entities: u32) -> f32 {
+    match covered_entities {
+        0 | 1 => 0.2,
+        2 => 0.35,
+        _ => 0.5,
+    }
+}
 
 // ── Question-type aware boost (§4.5) ──
 
@@ -1068,4 +1136,27 @@ fn load_limited_units(db: std::sync::Arc<redb::Database>, limit: usize) -> Vec<M
         }
     }
     units
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn entity_coverage_score_tiers() {
+        // k=1 keeps the historical flat 0.2; each extra covered query entity
+        // raises the hit score, capped at 0.5 (entity-coverage-query-boost).
+        assert_eq!(entity_coverage_score(0), 0.2);
+        assert_eq!(entity_coverage_score(1), 0.2);
+        assert_eq!(entity_coverage_score(2), 0.35);
+        assert_eq!(entity_coverage_score(3), 0.5);
+        assert_eq!(entity_coverage_score(7), 0.5);
+    }
+
+    #[test]
+    fn coverage_beta_is_bounded() {
+        // ×(1 + β·k/N) with k ≤ N and β = 0.2 ⇒ lift ≤ 20%, so the
+        // score-ceiling guarantee is preserved.
+        assert!(ENTITY_COVERAGE_BETA <= 0.2);
+    }
 }
