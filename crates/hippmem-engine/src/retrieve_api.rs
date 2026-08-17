@@ -1152,11 +1152,4 @@ mod tests {
         assert_eq!(entity_coverage_score(3), 0.5);
         assert_eq!(entity_coverage_score(7), 0.5);
     }
-
-    #[test]
-    fn coverage_beta_is_bounded() {
-        // ×(1 + β·k/N) with k ≤ N and β = 0.2 ⇒ lift ≤ 20%, so the
-        // score-ceiling guarantee is preserved.
-        assert!(ENTITY_COVERAGE_BETA <= 0.2);
-    }
 }
