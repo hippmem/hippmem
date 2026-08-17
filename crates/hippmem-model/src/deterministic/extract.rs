@@ -133,9 +133,24 @@ fn extract_chinese_entities(text: &str) -> Vec<EntityMention> {
                 "x" if is_potential_cjk_name(t.word) => (EntityType::Other, UnitScore::new(0.40)),
                 _ => return None,
             };
+            // jieba's HMM new-word discovery often fuses an OOV proper name with
+            // the copula (e.g. "Li Hua is a classmate" → "李华是" tagged nr, the
+            // dictionary word "Xiaoming" splits correctly). The copula is a
+            // function word and never part of a proper name: strip a trailing
+            // copula when at least two characters remain. Canonical-exact
+            // matching downstream (entity index, coverage boost) depends on it.
+            let mut text = t.word.to_string();
+            let mut canonical = t.word.to_lowercase();
+            if canonical.ends_with('是') {
+                let stripped: String = canonical.trim_end_matches('是').to_string();
+                if stripped.chars().count() >= 2 {
+                    canonical = stripped;
+                    text = text.trim_end_matches('是').to_string();
+                }
+            }
             Some(EntityMention {
-                text: t.word.to_string(),
-                canonical: t.word.to_lowercase(),
+                text,
+                canonical,
                 entity_type,
                 span: None,
                 confidence,

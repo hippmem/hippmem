@@ -15,6 +15,12 @@
     "杭州",
     "阿里巴巴"
   ],
+  "copula_text": "小明和李华是高中同学。",
+  "copula_expected": [
+    "小明",
+    "李华"
+  ],
+  "copula_fused": "李华是",
   "batch_text": "Transformer 架构革新了自然语言处理领域",
   "_meta": {
     "locale": "zh",

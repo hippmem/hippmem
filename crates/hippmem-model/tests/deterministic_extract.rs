@@ -153,6 +153,40 @@ fn entity_extraction_person_and_place() {
     }
 }
 
+/// jieba's HMM new-word discovery fuses an OOV proper name with the copula
+/// ("李华是" instead of "李华" + "是"); the extractor must strip the copula so
+/// canonical-exact matching (entity index, coverage boost) sees the same
+/// entity in the memory and the query. Chinese-only fixture.
+#[test]
+fn entity_copula_not_fused() {
+    let locale = "zh";
+    let fixture = load_fixture(locale);
+    let text = fixture["copula_text"].as_str().unwrap();
+    let expected: Vec<&str> = fixture["copula_expected"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|v| v.as_str().unwrap())
+        .collect();
+    let fused = fixture["copula_fused"].as_str().unwrap();
+
+    let content = make_content(text, locale);
+    let result = DeterministicExtractor
+        .extract_sync_immediate(&content)
+        .unwrap();
+    let entity_texts: Vec<&str> = result.entities.iter().map(|e| e.text.as_str()).collect();
+    for name in &expected {
+        assert!(
+            entity_texts.contains(name),
+            "[{locale}] should extract {name:?}, actual entities: {entity_texts:?}"
+        );
+    }
+    assert!(
+        !entity_texts.contains(&fused),
+        "[{locale}] must not extract the copula-fused form {fused:?}, actual entities: {entity_texts:?}"
+    );
+}
+
 /// Pure ASCII uppercase entities: Python, Java, Rust are still extracted correctly. All locales.
 #[test]
 fn ascii_uppercase_entities_still_work() {
