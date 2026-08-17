@@ -50,5 +50,14 @@ if [ $# -eq 0 ]; then
     set -- build
 fi
 
+# Gate commands must match CI (workflows/ci.yml) exactly: clippy checks ALL
+# targets with -D warnings (plain `cargo clippy` skips tests/ and lib tests,
+# which is how CI-only lints slipped through locally); test covers the whole
+# workspace.
+case "$1" in
+    clippy) set -- clippy --workspace --all-targets -- -D warnings ;;
+    test) set -- test --workspace ;;
+esac
+
 echo "▶ cargo $*"
 cargo "$@"
