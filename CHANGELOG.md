@@ -7,11 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [0.4.1] — 2026-08-12
+## [0.4.1] — 2026-08-17
+
+### Added
+- Multi-entity queries ("what is the relationship between X and Y?") now prefer memories that cover more of the query's entities. The entity channel scores a memory by how many query entities it covers (0.2 / 0.35 / 0.5 for k = 1 / 2 / 3+), and after rerank a candidate covering k of the query's N ≥ 2 entities is multiplied by (1 + 0.2·k/N). The answer to such a query must involve both entities, so a full-coverage memory now overtakes single-entity decoys that only share one entity word with the query — the C-scenario case where an unrelated "Xiaoming is a student" memory ranked above the only correct answer. Single-entity queries are unaffected.
 
 ### Changed
 - A `user_rejected` feedback with an empty `used_memory_ids` is no longer a result-set reject: it no longer lowers the usage scores of the returned memories, and it no longer removes them from the recent channel. Trap questions (queries with no answer in the store) trigger this signal by construction while retrieval must still return a list, so the 0.4.0 behavior permanently suppressed innocent memories that merely appeared in the rejected result set — even after they were explicitly confirmed. An empty rejection is now a retrieval-quality signal with no memory-side effects; it is still recorded in the activation log for audit. Targeted rejections (non-empty `used_memory_ids`) are unchanged: they still weaken the named memories' association edges during the next consolidation.
 - Confirmed memories no longer surface in unrelated queries: confirmation frequency previously seeded retrieval in *every* query (a recently confirmed memory could crowd out more relevant ones in queries it had nothing to do with). It is now a small multiplicative tie-break inside the candidate set only — a confirmed memory that already matched a query scores up to 15% higher than it would have, so it can overtake memories within that relative distance but cannot enter the results of an unrelated query. `RetrieveContext.recent_memory_ids` remains the explicit working-memory interface (caller-declared recent context is still seeded directly).
+
+### Fixed
+- Chinese entity extraction no longer fuses an out-of-vocabulary proper name with the copula: jieba's HMM new-word discovery tagged the fused form "Li Hua shi" (person name + "is") as a single person name. The trailing copula is now stripped, so canonical-exact entity matching (entity index, multi-entity coverage boost) sees the same entity in the memory and the query — before the fix, a memory containing the fused form did not match the query entity "Li Hua", and full-coverage memories silently degraded to partial coverage.
 
 [0.4.1]: https://github.com/hippmem/hippmem/releases/tag/v0.4.1
 
