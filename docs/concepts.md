@@ -146,7 +146,7 @@ Each channel is an independent angle for finding memories, returning "hit list +
 | Entity | Query entities → entity index | tiered by covered query entities: 0.2 / 0.35 / 0.5 (1 / 2 / 3+ covered) |
 | Topic | Query topics → topic index | fixed 0.15 |
 | Temporal | Current time buckets (hour/day/week) → temporal index | fixed 0.3 ("recent events") |
-| Semantic (dense) | Query vector vs memory vectors (cosine similarity) | 1/(1+distance) |
+| Semantic (dense) | Query vector vs memory vectors (cosine similarity) | 1/(1+distance); vectors are persisted at write time and the index is rebuilt locally on reopen |
 | Semantic (binary) | 128-bit Hamming distance | 1 − distance/128 |
 | Goal | Goal words in query → goal index | hit count |
 | Event | Event words in query → event index | hit count |
