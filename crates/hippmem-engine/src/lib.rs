@@ -521,6 +521,11 @@ pub struct Engine {
     binary_code_index: parking_lot::Mutex<BinaryCodeIndex>,
     /// Dense vector index (in-memory brute-force L2 KNN, 03 §4.5 SemanticDense channel).
     dense_vector_index: parking_lot::Mutex<FlatVectorIndex>,
+    /// True when the store has memories but no persisted dense vectors
+    /// (old store / embedding-failed store): SemanticDense recall is empty
+    /// and callers should observe the degradation instead of silently losing
+    /// semantics (semantic-index-persistence, 0.4.2).
+    semantic_index_degraded: bool,
 }
 
 impl Engine {
@@ -557,6 +562,63 @@ impl Engine {
                 EngineError::Store(format!("Tantivy index initialization failed: {}", e))
             })?;
 
+        // Semantic index persistence (semantic-index-persistence proposal,
+        // 0.4.2): rebuild the in-memory vector indexes from the store on open —
+        // dense vectors from DENSE_VECTORS, binary codes from each unit's
+        // SemanticSignature (both persisted at write time). A store with
+        // memories but an empty DENSE_VECTORS table is an old / embedding-
+        // failed store: dense recall stays empty, binary recall still works,
+        // and semantic_index_degraded is set so callers can observe it.
+        let (dense_index, binary_index, semantic_index_degraded) = {
+            use hippmem_core::model::unit::MemoryUnit;
+            use hippmem_store::semantic::binary::BinaryCodeIndex;
+            use hippmem_store::semantic::hnsw::FlatVectorIndex;
+            use hippmem_store::semantic::vector_index::{BinaryIndex, VectorIndex};
+            use hippmem_store::store::{DENSE_VECTORS, MEMORY_KV};
+            use redb::{ReadableDatabase, ReadableTable};
+            let db = store.db_arc();
+            let mut dense = FlatVectorIndex::new();
+            let mut binary = BinaryCodeIndex::new();
+            let mut memory_count: u64 = 0;
+            let txn = db.begin_read().map_err(|e| {
+                EngineError::Store(format!("failed to open store for index rebuild: {e}"))
+            })?;
+            if let Ok(table) = txn.open_table(DENSE_VECTORS) {
+                for (k, v) in table
+                    .iter()
+                    .map_err(|e| {
+                        EngineError::Store(format!("failed to iterate dense vectors: {e}"))
+                    })?
+                    .flatten()
+                {
+                    if let Ok((vec, _)) = bincode::serde::decode_from_slice::<Vec<f32>, _>(
+                        v.value(),
+                        bincode::config::standard(),
+                    ) {
+                        let _ = dense.insert(k.value(), &vec);
+                    }
+                }
+            }
+            if let Ok(table) = txn.open_table(MEMORY_KV) {
+                for (_, v) in table
+                    .iter()
+                    .map_err(|e| EngineError::Store(format!("failed to iterate memories: {e}")))?
+                    .flatten()
+                {
+                    if let Ok((unit, _)) = bincode::serde::decode_from_slice::<MemoryUnit, _>(
+                        v.value(),
+                        bincode::config::standard(),
+                    ) {
+                        let bc = unit.association_keys.semantic_signature.binary_code_bytes();
+                        let _ = binary.insert(unit.id.0, &bc);
+                        memory_count += 1;
+                    }
+                }
+            }
+            let degraded = dense.is_empty() && memory_count > 0;
+            (dense, binary, degraded)
+        };
+
         Ok(Self {
             store: Arc::new(store),
             params: Arc::new(RwLock::new(config.algo)),
@@ -564,9 +626,18 @@ impl Engine {
             backend: config.backend,
             fulltext_index: parking_lot::Mutex::new(fulltext_index),
             fulltext_dir,
-            binary_code_index: parking_lot::Mutex::new(BinaryCodeIndex::new()),
-            dense_vector_index: parking_lot::Mutex::new(FlatVectorIndex::new()),
+            binary_code_index: parking_lot::Mutex::new(binary_index),
+            dense_vector_index: parking_lot::Mutex::new(dense_index),
+            semantic_index_degraded,
         })
+    }
+
+    /// Whether SemanticDense recall is unavailable because the store predates
+    /// vector persistence or its embeddings failed at write time. When true,
+    /// `consolidate("reindex")` rebuilds the dense index (re-embedding every
+    /// memory through the configured embedder).
+    pub fn semantic_index_degraded(&self) -> bool {
+        self.semantic_index_degraded
     }
 
     /// Graceful shutdown.

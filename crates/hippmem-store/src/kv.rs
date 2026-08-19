@@ -4,8 +4,8 @@
 //! Unlike memory_log, kv allows overwriting existing records.
 
 use crate::store::{
-    StoreResult, CAUSAL_INDEX, ENTITY_INDEX, EVENT_INDEX, GOAL_INDEX, LINK_OVERLAY, MEMORY_KV,
-    MEMORY_LOG, TEMPORAL_INDEX, TOPIC_INDEX,
+    StoreResult, CAUSAL_INDEX, DENSE_VECTORS, ENTITY_INDEX, EVENT_INDEX, GOAL_INDEX, LINK_OVERLAY,
+    MEMORY_KV, MEMORY_LOG, TEMPORAL_INDEX, TOPIC_INDEX,
 };
 use redb::{Database, ReadableDatabase, ReadableTable};
 use std::sync::Arc;
@@ -352,6 +352,7 @@ pub fn persist_memory_unit(
     event_keys: &[u64],
     causal_keys: &[u64],
     skip_memory_log: bool,
+    dense_vector: Option<&[u8]>,
 ) -> StoreResult<()> {
     let txn = db.begin_write()?;
     {
@@ -368,6 +369,21 @@ pub fn persist_memory_unit(
         {
             let mut table = txn.open_table(MEMORY_KV)?;
             table.insert(id, bincode_unit)?;
+        }
+
+        // dense_vectors (semantic-index-persistence, 0.4.2): persist the dense
+        // embedding in the same transaction so the SemanticDense index can be
+        // rebuilt on open. None removes any stale entry (embedding failed).
+        {
+            let mut table = txn.open_table(DENSE_VECTORS)?;
+            match dense_vector {
+                Some(bytes) => {
+                    table.insert(id, bytes)?;
+                }
+                None => {
+                    table.remove(id)?;
+                }
+            }
         }
 
         // link_overlay

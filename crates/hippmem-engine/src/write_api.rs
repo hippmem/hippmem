@@ -139,6 +139,9 @@ pub(crate) fn write_internal(
     // 4. Embedding (config-driven Embedder backend, synchronous)
     let mut semantic = build_semantic_signature(&input.content);
     // Generate dense vector and insert into FlatVectorIndex (SemanticDense channel, 03 §4.5)
+    // dense_persist: bincode bytes persisted in the same transaction as the
+    // unit (semantic-index-persistence, 0.4.2) so the index survives restarts.
+    let mut dense_persist: Option<Vec<u8>> = None;
     {
         if let Some(vector) = precomputed_embedding {
             // Batch mode: use precomputed embedding, skip API call
@@ -146,6 +149,10 @@ pub(crate) fn write_internal(
             let mut idx = engine.dense_vector_index.lock();
             let _ = idx.insert(vector_id, &vector);
             semantic.dense_embedding_ref = Some(VectorId(vector_id));
+            dense_persist = Some(
+                bincode::serde::encode_to_vec(&vector, bincode::config::standard())
+                    .expect("bincode encoding Vec<f32> should not fail"),
+            );
         } else {
             // Per-entry mode: standalone embedding API call
             let texts = vec![input.content.clone()];
@@ -155,6 +162,10 @@ pub(crate) fn write_internal(
                     let mut idx = engine.dense_vector_index.lock();
                     let _ = idx.insert(vector_id, vector);
                     semantic.dense_embedding_ref = Some(VectorId(vector_id));
+                    dense_persist = Some(
+                        bincode::serde::encode_to_vec(vector, bincode::config::standard())
+                            .expect("bincode encoding Vec<f32> should not fail"),
+                    );
                 }
             }
         }
@@ -166,7 +177,7 @@ pub(crate) fn write_internal(
 
     // 4b. Insert binary_code into the binary code index (for SemanticBinary channel Hamming recall)
     {
-        let bc_bytes = binary_code_to_bytes(&semantic.binary_code);
+        let bc_bytes = semantic.binary_code_bytes();
         let mut idx = engine.binary_code_index.lock();
         let _ = idx.insert(memory_id.0, &bc_bytes);
     }
@@ -223,6 +234,7 @@ pub(crate) fn write_internal(
         &keys.event_keys,
         &keys.causal_keys,
         skip_memory_log,
+        dense_persist.as_deref(),
     )
     .map_err(|e| EngineError::Store(e.to_string()))?;
 
@@ -265,14 +277,6 @@ pub(crate) fn write_internal(
 }
 
 // ── Helpers ──
-
-/// Converts binary_code [u64;2] to 16 bytes (Little Endian) for BinaryCodeIndex Hamming search.
-fn binary_code_to_bytes(bc: &[u64; 2]) -> [u8; 16] {
-    let mut bytes = [0u8; 16];
-    bytes[..8].copy_from_slice(&bc[0].to_le_bytes());
-    bytes[8..].copy_from_slice(&bc[1].to_le_bytes());
-    bytes
-}
 
 fn build_semantic_signature(text: &str) -> SemanticSignature {
     let sim0 = stable_hash64(text);

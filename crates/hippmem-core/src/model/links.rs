@@ -59,6 +59,18 @@ pub struct SemanticSignature {
     pub topic_minhash: [u32; 16],
 }
 
+impl SemanticSignature {
+    /// Converts the 128-bit binary code to 16 Little-Endian bytes for the
+    /// BinaryCodeIndex Hamming recall (and for rebuilding the binary index
+    /// from persisted units on open — semantic-index-persistence, 0.4.2).
+    pub fn binary_code_bytes(&self) -> [u8; 16] {
+        let mut bytes = [0u8; 16];
+        bytes[..8].copy_from_slice(&self.binary_code[0].to_le_bytes());
+        bytes[8..].copy_from_slice(&self.binary_code[1].to_le_bytes());
+        bytes
+    }
+}
+
 // ── AssociationLink / LinkType ──
 
 /// Association edge: a native association edge between MemoryUnits, carrying type, direction, strength, confidence, and evidence.

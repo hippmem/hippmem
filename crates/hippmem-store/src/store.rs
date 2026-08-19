@@ -14,6 +14,11 @@ pub const MEMORY_LOG: TableDefinition<u128, &[u8]> = TableDefinition::new("memor
 /// `(MemoryId) -> MemoryUnit` bincode bytes.
 pub const MEMORY_KV: TableDefinition<u128, &[u8]> = TableDefinition::new("memory_kv");
 
+/// Dense embedding vectors: `(MemoryId) -> f32 vector` bincode bytes
+/// (semantic-index-persistence, 0.4.2 — the dense index is rebuilt from this
+/// table on open, so SemanticDense recall survives restarts).
+pub const DENSE_VECTORS: TableDefinition<u128, &[u8]> = TableDefinition::new("dense_vectors");
+
 /// Entity inverted index: `(EntityKey) -> Vec<MemoryId>` bincode.
 pub const ENTITY_INDEX: TableDefinition<u64, &[u8]> = TableDefinition::new("entity_index");
 

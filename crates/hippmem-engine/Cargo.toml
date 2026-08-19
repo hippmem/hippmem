@@ -51,6 +51,7 @@ dotenvy = "0.15"
 
 [dev-dependencies]
 tempfile.workspace = true
+redb.workspace = true
 
 [[example]]
 name = "basic_usage"
