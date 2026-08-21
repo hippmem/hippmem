@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [0.4.2] — 2026-08-19
+## [0.4.3] — 2026-08-21
+
+### Changed
+- Confirmation now learns *context-answer links* instead of global memory heat: a confirmed memory is bound to the query's entity/topic fingerprint, and only later queries whose fingerprint intersects the recorded links lift it — a hot memory borrows nothing in unrelated queries, and repeated confirmation accumulates (multi-round learning replaces the one-shot +15% cap)
+- Confirming a non-seed answer (reached through the graph) strengthens the guide→answer edge that carried it, so propagation paths become learnable bridges
+- Edge decay follows a forgetting curve: strength halves per half-life (1 day base), and each review (activation) doubles the half-life — spaced reviews consolidate edges into long-term memory while unused edges fade per the curve (replaces the fixed ×0.97/day decay)
+
+[0.4.3]: https://github.com/hippmem/hippmem/releases/tag/v0.4.3
+
+
 
 ### Added
 - Semantic index persistence: dense embedding vectors are now stored with each memory (DENSE_VECTORS table) and the SemanticDense / SemanticBinary indexes are rebuilt locally on open — previously the in-memory vector indexes were lost on restart, silently disabling semantic recall for every existing store (a non-empty store with no vectors is now reported via `semantic_index_degraded` on retrieve, and `consolidate("reindex")` rebuilds the dense index). Verified end-to-end: C scenario MRR 0.778 → 0.889, Hit@1 6/9 → 8/9 once semantic recall is live.
