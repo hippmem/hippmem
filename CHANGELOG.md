@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 [0.4.3]: https://github.com/hippmem/hippmem/releases/tag/v0.4.3
 
-
+## [0.4.2] — 2026-08-19
 
 ### Added
 - Semantic index persistence: dense embedding vectors are now stored with each memory (DENSE_VECTORS table) and the SemanticDense / SemanticBinary indexes are rebuilt locally on open — previously the in-memory vector indexes were lost on restart, silently disabling semantic recall for every existing store (a non-empty store with no vectors is now reported via `semantic_index_degraded` on retrieve, and `consolidate("reindex")` rebuilds the dense index). Verified end-to-end: C scenario MRR 0.778 → 0.889, Hit@1 6/9 → 8/9 once semantic recall is live.
