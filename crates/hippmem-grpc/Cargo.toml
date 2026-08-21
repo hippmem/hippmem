@@ -19,7 +19,7 @@ grpc = ["dep:tonic", "dep:prost", "dep:tokio", "dep:tonic-build"]
 
 [dependencies]
 hippmem-core = { path = "../hippmem-core", version = "0.4.0" }
-hippmem-engine = { path = "../hippmem-engine", version = "0.4.2" }
+hippmem-engine = { path = "../hippmem-engine", version = "0.4.3" }
 tonic = { version = "0.12", optional = true }
 prost = { version = "0.13", optional = true }
 tokio = { workspace = true, optional = true }
