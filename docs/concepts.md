@@ -295,9 +295,9 @@ Consolidation is **idempotent**: running it repeatedly neither duplicates links 
 
 ## 8. Three guarantees
 
-1. **Scores never grow without bound**: seed energy capped at 1.0, propagation energy clamped to [0,1], link strength capped at 1.0, recency correction ≤ ×1.15 — the absolute ceiling of a retrieval score is about 1.15. Frequent use raises scores, but they converge instead of "skyrocketing".
+1. **Scores never grow without bound**: seed energy capped at 1.0, propagation energy clamped to [0,1], link strength capped at 1.0, context-link correction capped at ×1.5 (link strength capped at 1.0 × boost 0.5) — the absolute ceiling of a retrieval score is about 1.5. Frequent use raises scores, but they converge instead of "skyrocketing".
 2. **Retrieval does not reinforce itself**: plain retrieval produces no positive signal (`signal="retrieve"` is not a positive signal) — otherwise frequently-returned memories would snowball.
-3. **Confirmations do not reach across queries**: confirmation frequency is only a same-tier correction inside the candidate set (≤ +15%) — it cannot push "recently confirmed" memories into unrelated queries.
+3. **Confirmations do not reach across queries**: a confirmation binds the answer to the query's context (entity/topic fingerprint) and lifts it only in later queries whose fingerprint intersects that context — an unrelated query borrows nothing. The lift accumulates across confirmations, always scoped to the context.
 
 ---
 
