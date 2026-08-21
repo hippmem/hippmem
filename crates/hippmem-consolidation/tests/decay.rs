@@ -117,8 +117,8 @@ fn observing_edge_not_protected() {
     let params = DecayParams::default();
     apply_decay_with_protection(&mut links, &params, Timestamp(200_000_000));
     assert!(
-        links[0].strength.value() < 0.5,
-        "observation-zone edge (even Causal) should decay"
+        links.is_empty() || links[0].strength.value() < 0.5,
+        "observation-zone edge (even Causal) should decay or be pruned below the floor"
     );
 }
 

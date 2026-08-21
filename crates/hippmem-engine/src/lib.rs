@@ -18,6 +18,13 @@ mod signals;
 pub mod traverse_api;
 pub mod write_api;
 
+/// Context-link strength increment per positive confirmation
+/// (memory-learning-mechanism, 0.4.3): each confirmation adds this much to
+/// the confirmed memory's links under the query's context features, capped
+/// at LINK_STRENGTH_CAP (1.0). Calibrated with CONTEXT_BOOST_ALPHA so ~6
+/// confirmations in the same context overtake an initial gap of ~20%.
+pub(crate) const CONTEXT_LINK_DELTA: f32 = 0.25;
+
 use hippmem_core::config::{AlgoParams, EmbedderConfig};
 use hippmem_core::ids::MemoryId;
 use hippmem_core::model::links::AssociationLink;

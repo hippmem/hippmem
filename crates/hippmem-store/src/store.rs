@@ -19,6 +19,26 @@ pub const MEMORY_KV: TableDefinition<u128, &[u8]> = TableDefinition::new("memory
 /// table on open, so SemanticDense recall survives restarts).
 pub const DENSE_VECTORS: TableDefinition<u128, &[u8]> = TableDefinition::new("dense_vectors");
 
+/// Query context fingerprints: `(RetrievalId) -> QueryContext` bincode bytes
+/// (memory-learning-mechanism, 0.4.3). Written at retrieve time so that a
+/// later confirmation can bind its answer to the query's entity/topic
+/// context — the fingerprint is a set of stable hashes, matched by exact
+/// set intersection (no fuzzy retrieval involved).
+pub const QUERY_CONTEXT: TableDefinition<u64, &[u8]> = TableDefinition::new("query_context");
+
+/// Context-answer links: `(FeatureHash) -> Vec<ContextLink>` bincode bytes
+/// (memory-learning-mechanism, 0.4.3). Confirmation strengthens the link
+/// between the query's context features and the confirmed memory; retrieval
+/// lifts candidates whose link features intersect the current query's.
+pub const CONTEXT_LINKS: TableDefinition<u64, &[u8]> = TableDefinition::new("context_links");
+
+/// Retrieval propagation paths: `(RetrievalId) -> Vec<(from, to)>` bincode
+/// bytes (memory-learning-mechanism, 0.4.3). Written at retrieve time for
+/// every non-seed result (the memory that spread energy to it), so a later
+/// confirmation can strengthen the "guide → answer" edge — the bridge that
+/// let the query reach the answer through the graph.
+pub const RETRIEVAL_PATHS: TableDefinition<u64, &[u8]> = TableDefinition::new("retrieval_paths");
+
 /// Entity inverted index: `(EntityKey) -> Vec<MemoryId>` bincode.
 pub const ENTITY_INDEX: TableDefinition<u64, &[u8]> = TableDefinition::new("entity_index");
 

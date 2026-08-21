@@ -312,10 +312,12 @@ fn scenario_3_multi_cycle_decay_compounds() {
         Some(Timestamp(0)), // formed far earlier than now
     )];
 
-    // 3 decay rounds, each advancing now forward (> 1 day)
+    // 3 decay rounds, each advancing now by half a day — the base half-life
+    // is one day (forgetting-curve model, 0.4.3), so the strength halves per
+    // day: 0.5 → ~0.35 → ~0.18 → floor.
     let strengths: Vec<f32> = (0..3)
         .map(|round| {
-            let now = Timestamp(200_000_000 + round * 200_000_000);
+            let now = Timestamp(43_200_000 + round * 43_200_000);
             apply_decay_with_protection(&mut links, &decay_params, now);
             links[0].strength.value()
         })

@@ -2,7 +2,6 @@
 //!
 //! Corresponds to 05#retrieve, 09 §4.2. Wires seed recall→energy→spreading→rerank→warnings→explain.
 
-use crate::signals::is_positive_signal;
 use crate::{Engine, EngineResult, RetrieveInput, RetrieveOutput};
 use hippmem_core::hash::stable_hash64;
 use hippmem_core::ids::MemoryId;
@@ -256,35 +255,17 @@ impl Engine {
             hits
         };
 
-        // 2j2. Recency correction: confirmation frequency from activation_log is
-        //      a candidate-set tie-break, NOT an independent seed
-        //      (recency-candidate-correction proposal, 0.4.1; 2026-08-13 test
-        //      report O2). The engine cannot know query context — frequency as
-        //      a seed boosted confirmed memories in every query, crowding out
-        //      more relevant ones. It now only lifts memories that already
-        //      reached the candidate set (applied after rerank, step 7d).
-        let freq_correction: HashMap<MemoryId, f32> = {
-            let act_log = ActivationLogger::new(self.store.db_arc());
-            let mut freq: HashMap<MemoryId, u32> = HashMap::new();
-            if let Ok(records) = act_log.read_all() {
-                for rec in records.iter() {
-                    // 0.3.0: UserRejected 不参与正向计数（05 §6，拒绝不得强化）
-                    // B2 (0.4.0): "retrieve" is no longer positive either —
-                    // only confirmed signals boost recency.
-                    if !is_positive_signal(&rec.signal) {
-                        continue;
-                    }
-                    for &mid in &rec.used_memory_ids {
-                        // P1 回归：used_memory_ids 是完整 u128（MemoryId 原值），禁止截断
-                        *freq.entry(MemoryId(mid)).or_default() += 1;
-                    }
-                }
-            }
-            let max_freq = freq.values().max().copied().unwrap_or(1) as f32;
-            freq.into_iter()
-                .map(|(mid, count)| (mid, (count as f32 / max_freq) * RECENCY_CORRECTION_ALPHA))
-                .collect()
-        };
+        // 2j2. (removed in 0.4.3, memory-learning-mechanism) The global
+        //      confirmation-frequency correction (recency-candidate-correction,
+        //      0.4.1) learned "memory heat" without binding it to the query
+        //      context: a hot memory lifted itself in every candidate set it
+        //      happened to enter, could not accumulate across rounds, and
+        //      diluted others via the max-frequency denominator. It is replaced
+        //      by the context-answer correction (step 7d): confirmation binds
+        //      a memory to the query's entity/topic fingerprint, and only
+        //      queries whose fingerprint intersects the recorded links lift it.
+        //      The context strengths are computed lazily inside step 7d (after
+        //      rerank), so no per-query work is done here.
 
         let seed_result = multi_channel_seeds(
             &input.query,
@@ -418,25 +399,46 @@ impl Engine {
             !matches!(unit.lifecycle, MemoryLifecycle::Compressed { .. })
         });
 
-        // 7d. Recency correction (recency-candidate-correction, 0.4.1):
-        //     confirmation frequency lifts candidates that were confirmed
-        //     recently — a tie-break within the candidate set, applied after
-        //     the compressed/summary filter so summaries never gain from it.
-        //     Multiplicative (score × (1 + α·ratio)): proportional to the
-        //     memory's own energy, so it amplifies the gap between strongly
-        //     and weakly relevant memories instead of flattening it (an
-        //     additive lift erased the gap and let weakly-related confirmed
-        //     memories crowd out more relevant ones — the 0.3412 tie-tier in
-        //     the O2 report). Re-sort with the deterministic pattern (id
-        //     first, then stable by energy).
-        if !freq_correction.is_empty() {
-            for (id, energy, _, _) in reranked.iter_mut() {
-                if let Some(c) = freq_correction.get(id) {
-                    *energy *= 1.0 + c;
+        // 7d. Context-answer correction (memory-learning-mechanism, 0.4.3):
+        //     confirmation binds a memory to the query's entity/topic
+        //     fingerprint (written to QUERY_CONTEXT at retrieve time, applied
+        //     in feedback). Here we lift a candidate only when the current
+        //     query's fingerprint intersects the links recorded for it —
+        //     exact set intersection, so the lift is scoped to similar queries
+        //     and a hot memory borrows nothing in unrelated queries (no global
+        //     heat). Multiplicative (score × (1 + α·strength)), bounded by
+        //     LINK_STRENGTH_CAP; strengths accumulate across confirmations
+        //     (multi-round learning). Applied after the compressed/summary
+        //     filter so summaries never gain from it. Re-sort with the
+        //     deterministic pattern (id first, then stable by energy).
+        {
+            use hippmem_store::context_links::{collect_link_strengths, QueryContext};
+            let ctx = QueryContext {
+                entity_hashes: understanding
+                    .entities
+                    .iter()
+                    .map(|em| stable_hash64(&em.canonical))
+                    .collect(),
+                topic_hashes: understanding
+                    .topics
+                    .iter()
+                    .map(|t| stable_hash64(&t.label))
+                    .collect(),
+            };
+            let now_ms = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_millis() as i64)
+                .unwrap_or(0);
+            let context_strengths = collect_link_strengths(self.store.db_arc(), &ctx, now_ms);
+            if !context_strengths.is_empty() {
+                for (id, energy, _, _) in reranked.iter_mut() {
+                    if let Some(s) = context_strengths.get(&id.0) {
+                        *energy *= 1.0 + CONTEXT_BOOST_ALPHA * s;
+                    }
                 }
+                reranked.sort_by_key(|(id, _, _, _)| *id);
+                reranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
             }
-            reranked.sort_by_key(|(id, _, _, _)| *id);
-            reranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         }
 
         // 7d2. Entity coverage correction (entity-coverage-query-boost, 0.4.2):
@@ -521,6 +523,47 @@ impl Engine {
                 signal: "retrieve".into(),
                 recorded_at_ms: now_ms,
             });
+            // 0.4.3 memory-learning-mechanism: record the query context
+            // fingerprint so a later confirmation can bind its answers to
+            // this query's entity/topic context (exact set intersection at
+            // lift time — the query itself is never stored as a memory).
+            {
+                use hippmem_store::context_links::{write_query_context, QueryContext};
+                let ctx = QueryContext {
+                    entity_hashes: understanding
+                        .entities
+                        .iter()
+                        .map(|em| stable_hash64(&em.canonical))
+                        .collect(),
+                    topic_hashes: understanding
+                        .topics
+                        .iter()
+                        .map(|t| stable_hash64(&t.label))
+                        .collect(),
+                };
+                let _ = write_query_context(self.store.db_arc(), now_ms as u64, &ctx);
+            }
+            // 0.4.3 memory-learning-mechanism: record the propagation paths of
+            // every non-seed result (the guide memory that spread energy to
+            // it), so a later confirmation can strengthen the "guide →
+            // answer" edge — the bridge that let the query reach the answer
+            // through the graph.
+            {
+                use hippmem_store::context_links::{write_retrieval_paths, RetrievalPath};
+                let paths: Vec<RetrievalPath> = activated
+                    .iter()
+                    .filter_map(|(_, _, steps)| {
+                        steps
+                            .iter()
+                            .find(|s| s.from.is_some())
+                            .map(|s| RetrievalPath {
+                                from: s.from.expect("checked is_some").0,
+                                to: s.to.0,
+                            })
+                    })
+                    .collect();
+                let _ = write_retrieval_paths(self.store.db_arc(), now_ms as u64, &paths);
+            }
             now_ms as u64
         };
 
@@ -617,16 +660,14 @@ impl Engine {
 
 // ── Helpers ──
 
-/// Recency candidate-correction coefficient (recency-candidate-correction
-/// proposal, 0.4.1): confirmation frequency multiplies a candidate's energy
-/// by at most (1 + this) — a tie-break within the candidate set, not a
-/// relevance source. Multiplicative so the lift is proportional to the
-/// memory's own energy: strong candidates gain the most, weak noise gains
-/// almost nothing, and relative gaps are preserved instead of flattened.
-/// At 0.15, a fully-confirmed memory (ratio=1) gains +15%; the acceptance
-/// scenario climbs 0.307 → ~0.35 per full cycle, and B-scenario confirmations
-/// (ratio < 1 in practice) move borderline ranks without flipping tiers.
-const RECENCY_CORRECTION_ALPHA: f32 = 0.15;
+/// Context-answer boost coefficient (memory-learning-mechanism, 0.4.3):
+/// a candidate with context-link strength s scores ×(1 + this·s). With
+/// CONFIRM_LINK_DELTA = 0.15 per confirmation and a strength cap of 1.0,
+/// a memory confirmed ~6 times in the same context reaches s ≈ 0.9 →
+/// ×(1 + 0.3·0.9) ≈ +27%, enough to overtake an initial gap of up to ~20%
+/// while remaining bounded (×1.3 max). Calibrated against batch2 hard
+/// questions; revisit with the forgetting-curve work (P3).
+const CONTEXT_BOOST_ALPHA: f32 = 0.5;
 
 /// Entity-coverage query boost (entity-coverage-query-boost proposal, 0.4.2):
 /// rerank multiplier for multi-entity queries — a candidate covering k of the

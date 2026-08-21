@@ -11,6 +11,7 @@
 use hippmem_core::model::enums::ContentType;
 use hippmem_core::model::links::RetrievalMode;
 use hippmem_core::model::unit::{GeneratedBy, MemoryLifecycle, MemoryUnit, WriteContext};
+use hippmem_core::time::{Clock, SystemClock};
 use hippmem_engine::{
     ConsolidationScope, Engine, EngineConfig, InspectQuery, InspectReport, RetrieveContext,
     RetrieveInput, WriteMemoryInput,
@@ -26,7 +27,7 @@ fn ctx() -> WriteContext {
         project_id: None,
         task_id: None,
         user_id: None,
-        local_time: hippmem_core::time::Timestamp(1_700_000_000_000),
+        local_time: SystemClock.now(),
         preceding_memory_ids: vec![],
         source_refs: vec![],
     }

@@ -9,6 +9,7 @@
 //! Corresponds to 04 §5 storage layout, ADR-001 (redb).
 
 pub mod activation_log;
+pub mod context_links;
 pub mod fulltext;
 pub mod graph;
 pub mod kv;
