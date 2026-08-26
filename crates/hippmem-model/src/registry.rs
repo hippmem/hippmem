@@ -63,6 +63,33 @@ pub struct BackendUsage {
     pub reranker: Option<String>,
 }
 
+// ── Extractor factory (08 §5) ──
+
+/// Build the corresponding `Extractor` implementation from the backend choice.
+///
+/// - `Deterministic` -> rule-based, always available, offline.
+/// - `Api` -> Anthropic Claude structured extraction (requires
+///   `ANTHROPIC_API_KEY`; fails fast when missing).
+/// - `Auto` -> Api when `ANTHROPIC_API_KEY` is present, Deterministic
+///   otherwise (the "default enhancement, degraded guarantee" semantics of
+///   08 §1 — strongest effect when a key exists, offline otherwise).
+pub fn build_extractor(choice: BackendChoice) -> Result<std::sync::Arc<dyn Extractor>, String> {
+    use crate::api::anthropic::AnthropicExtractor;
+    use crate::deterministic::extract::DeterministicExtractor;
+    match choice {
+        BackendChoice::Deterministic => Ok(std::sync::Arc::new(DeterministicExtractor)),
+        BackendChoice::Api => {
+            let key = std::env::var("ANTHROPIC_API_KEY")
+                .map_err(|_| "extractor Api backend requires ANTHROPIC_API_KEY".to_string())?;
+            Ok(std::sync::Arc::new(AnthropicExtractor::new(key)))
+        }
+        BackendChoice::Auto => match std::env::var("ANTHROPIC_API_KEY") {
+            Ok(key) if !key.is_empty() => Ok(std::sync::Arc::new(AnthropicExtractor::new(key))),
+            _ => Ok(std::sync::Arc::new(DeterministicExtractor)),
+        },
+    }
+}
+
 // ── Embedder factory functions (V4) ──
 
 use hippmem_core::config::EmbedderConfig;

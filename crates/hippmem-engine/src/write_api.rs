@@ -12,7 +12,6 @@ use hippmem_core::model::understanding::MemoryUnderstanding;
 use hippmem_core::model::unit::{Language, MemoryContent, MemoryStage, MemoryUnit};
 use hippmem_core::score::UnitScore;
 use hippmem_core::time::{Clock, SystemClock};
-use hippmem_model::deterministic::extract::DeterministicExtractor;
 use hippmem_store::kv::InvertedIndex;
 use hippmem_store::semantic::vector_index::BinaryIndex;
 use hippmem_store::semantic::vector_index::VectorIndex;
@@ -96,9 +95,10 @@ pub(crate) fn write_internal(
         content_type: input.content_type.unwrap_or(ContentType::UserStatement),
     };
 
-    // 3. Extract understanding (degraded backend, synchronous, uses the global JIEBA instance)
-    let extractor = DeterministicExtractor;
-    let (understanding, mut warnings) = match extractor.extract_sync_immediate(&content) {
+    // 3. Extract understanding (config-driven Extractor backend; degraded
+    //    deterministic rules by default, Anthropic when configured — 08 §5)
+    let extractor = engine.extractor.as_ref();
+    let (understanding, mut warnings) = match extractor.extract_immediate_sync(&content) {
         Ok(imm) => {
             let u = MemoryUnderstanding {
                 entities: imm.entities,

@@ -31,7 +31,7 @@ use hippmem_core::model::links::AssociationLink;
 use hippmem_core::model::understanding::MemoryUnderstanding;
 use hippmem_core::model::unit::{MemoryStage, WriteContext};
 use hippmem_model::registry::{build_embedder, BackendSelection};
-use hippmem_model::traits::Embedder;
+use hippmem_model::traits::{Embedder, Extractor};
 use hippmem_store::fulltext::FulltextIndex;
 use hippmem_store::semantic::binary::BinaryCodeIndex;
 use hippmem_store::semantic::hnsw::FlatVectorIndex;
@@ -517,6 +517,9 @@ pub struct Engine {
     params: Arc<RwLock<AlgoParams>>,
     /// Embedder backend (config-driven, default deterministic 256d SimHash).
     embedder: Arc<dyn Embedder>,
+    /// Extractor backend (config-driven, Auto -> Anthropic when a key is
+    /// present, deterministic rules otherwise; 08 §5).
+    extractor: Arc<dyn Extractor>,
     /// Backend config (extractor/reranker/summarizer; embedder migrated to `self.embedder`).
     #[allow(dead_code)]
     backend: BackendSelection,
@@ -626,10 +629,14 @@ impl Engine {
             (dense, binary, degraded)
         };
 
+        let extractor = hippmem_model::registry::build_extractor(config.backend.extractor)
+            .map_err(EngineError::Model)?;
+
         Ok(Self {
             store: Arc::new(store),
             params: Arc::new(RwLock::new(config.algo)),
             embedder,
+            extractor,
             backend: config.backend,
             fulltext_index: parking_lot::Mutex::new(fulltext_index),
             fulltext_dir,

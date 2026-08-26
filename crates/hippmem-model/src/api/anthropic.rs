@@ -24,6 +24,15 @@ impl Extractor for AnthropicExtractor {
             "Anthropic extractor not yet implemented".into(),
         ))
     }
+    fn extract_immediate_sync(
+        &self,
+        c: &hippmem_core::model::unit::MemoryContent,
+    ) -> ModelResult<crate::traits::ImmediateExtraction> {
+        tokio::runtime::Runtime::new()
+            .map_err(|e| crate::error::ModelError::Network(e.to_string()))?
+            .block_on(self.extract_immediate(c))
+    }
+
     async fn extract_strong(
         &self,
         _c: &hippmem_core::model::unit::MemoryContent,

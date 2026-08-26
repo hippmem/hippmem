@@ -88,7 +88,7 @@ fn extractor_causal_connectives_produce_claims() {
                 language,
                 content_type: ContentType::UserStatement,
             };
-            let r = ext.extract_sync_immediate(&content).unwrap();
+            let r = ext.extract_immediate_sync(&content).unwrap();
             assert!(
                 !r.explicit_causals.is_empty(),
                 "[{}] text containing '{cause}...{effect}' should produce an explicit causal; text='{text}'",
@@ -108,7 +108,7 @@ fn extractor_causal_connectives_produce_claims() {
 fn extractor_entity_hits_known_samples() {
     let ext = DeterministicExtractor;
     let content = make_content_en("I used Rust and Tantivy today");
-    let r = ext.extract_sync_immediate(&content).unwrap();
+    let r = ext.extract_immediate_sync(&content).unwrap();
     let names: Vec<&str> = r.entities.iter().map(|e| e.text.as_str()).collect();
     assert!(names.contains(&"Rust"), "should extract Rust");
     assert!(names.contains(&"Tantivy"), "should extract Tantivy");
@@ -119,7 +119,7 @@ fn extractor_entity_hits_known_samples() {
 fn extractor_output_confidence_in_range() {
     let ext = DeterministicExtractor;
     let content = make_content_en("The weather is nice today");
-    let imm = ext.extract_sync_immediate(&content).unwrap();
+    let imm = ext.extract_immediate_sync(&content).unwrap();
     let strong = ext.extract_sync_strong(&content).unwrap();
 
     for e in &imm.entities {
@@ -148,7 +148,7 @@ fn extractor_output_confidence_in_range() {
 fn extractor_empty_text_does_not_panic() {
     let ext = DeterministicExtractor;
     let content = make_content_en("");
-    let _ = ext.extract_sync_immediate(&content).unwrap();
+    let _ = ext.extract_immediate_sync(&content).unwrap();
     let _ = ext.extract_sync_strong(&content).unwrap();
 }
 

@@ -59,7 +59,7 @@ fn explicit_causal_extraction() {
         let ext = DeterministicExtractor;
         let fixture = load_fixture(&locale);
         let content = make_content(fixture["causal_text"].as_str().unwrap(), &locale);
-        let result = ext.extract_sync_immediate(&content).unwrap();
+        let result = ext.extract_immediate_sync(&content).unwrap();
         assert!(
             !result.explicit_causals.is_empty(),
             "[{locale}] text containing '{}' should produce an explicit CausalClaim",
@@ -75,7 +75,7 @@ fn entity_extraction_from_proper_names() {
         let ext = DeterministicExtractor;
         let fixture = load_fixture(&locale);
         let content = make_content(fixture["tech_text"].as_str().unwrap(), &locale);
-        let result = ext.extract_sync_immediate(&content).unwrap();
+        let result = ext.extract_immediate_sync(&content).unwrap();
         assert!(
             !result.entities.is_empty(),
             "[{locale}] should extract at least one entity (Rust/Tantivy)"
@@ -131,7 +131,7 @@ fn entity_extraction_person_and_place() {
         let ext = DeterministicExtractor;
         let fixture = load_fixture(&locale);
         let content = make_content(fixture["entity_text"].as_str().unwrap(), &locale);
-        let result = ext.extract_sync_immediate(&content).unwrap();
+        let result = ext.extract_immediate_sync(&content).unwrap();
 
         let entity_texts: Vec<&str> = result.entities.iter().map(|e| e.text.as_str()).collect();
         let person = fixture["entity_person"].as_str().unwrap();
@@ -172,7 +172,7 @@ fn entity_copula_not_fused() {
 
     let content = make_content(text, locale);
     let result = DeterministicExtractor
-        .extract_sync_immediate(&content)
+        .extract_immediate_sync(&content)
         .unwrap();
     let entity_texts: Vec<&str> = result.entities.iter().map(|e| e.text.as_str()).collect();
     for name in &expected {
@@ -194,7 +194,7 @@ fn ascii_uppercase_entities_still_work() {
         let ext = DeterministicExtractor;
         let fixture = load_fixture(&locale);
         let content = make_content(fixture["compare_text"].as_str().unwrap(), &locale);
-        let result = ext.extract_sync_immediate(&content).unwrap();
+        let result = ext.extract_immediate_sync(&content).unwrap();
 
         let entity_texts: Vec<&str> = result.entities.iter().map(|e| e.text.as_str()).collect();
         assert!(
@@ -219,7 +219,7 @@ fn named_entity_extraction_locale() {
         let ext = DeterministicExtractor;
         let fixture = load_fixture(&locale);
         let content = make_content(fixture["cn_entity_text"].as_str().unwrap(), &locale);
-        let result = ext.extract_sync_immediate(&content).unwrap();
+        let result = ext.extract_immediate_sync(&content).unwrap();
 
         let entity_names: Vec<&str> = fixture["cn_entity_names"]
             .as_array()
@@ -252,7 +252,7 @@ fn english_entities_still_extracted_regression() {
         content_type: ContentType::UserStatement,
     };
     let ext = DeterministicExtractor;
-    let result = ext.extract_sync_immediate(&content).unwrap();
+    let result = ext.extract_immediate_sync(&content).unwrap();
 
     let entity_texts: Vec<&str> = result.entities.iter().map(|e| e.text.as_str()).collect();
     assert!(
@@ -285,7 +285,7 @@ fn entity_extraction_supports_cjk() {
             language: Language::Zh,
             content_type: ContentType::UserStatement,
         };
-        let result = ext.extract_sync_immediate(&content).unwrap();
+        let result = ext.extract_immediate_sync(&content).unwrap();
         let entity_texts: Vec<&str> = result.entities.iter().map(|e| e.text.as_str()).collect();
         assert!(
             entity_texts.contains(&"Transformer"),
@@ -303,7 +303,7 @@ fn entity_extraction_supports_cjk() {
     //         language: Language::Ja,
     //         content_type: ContentType::UserStatement,
     //     };
-    //     let result = ext.extract_sync_immediate(&content).unwrap();
+    //     let result = ext.extract_immediate_sync(&content).unwrap();
     //     let entity_texts: Vec<&str> =
     //         result.entities.iter().map(|e| e.text.as_str()).collect();
     //     assert!(
@@ -322,7 +322,7 @@ fn entity_extraction_supports_cjk() {
     //         language: Language::Ko,
     //         content_type: ContentType::UserStatement,
     //     };
-    //     let result = ext.extract_sync_immediate(&content).unwrap();
+    //     let result = ext.extract_immediate_sync(&content).unwrap();
     //     let entity_texts: Vec<&str> =
     //         result.entities.iter().map(|e| e.text.as_str()).collect();
     //     assert!(

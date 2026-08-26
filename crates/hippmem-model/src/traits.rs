@@ -38,6 +38,12 @@ pub trait Extractor: Send + Sync {
     /// All backends MUST provide this.
     async fn extract_immediate(&self, content: &MemoryContent) -> ModelResult<ImmediateExtraction>;
 
+    /// Synchronous immediate extraction (the engine's write/retrieve paths are
+    /// sync). Each backend implements its own; no default impl to avoid
+    /// implicitly pulling in a tokio runtime dependency (same pattern as
+    /// `Embedder::embed_sync`).
+    fn extract_immediate_sync(&self, content: &MemoryContent) -> ModelResult<ImmediateExtraction>;
+
     /// Extract strong semantic dimensions (goals / preferences / emotions /
     /// decisions / implicit causals / contradictions).
     async fn extract_strong(&self, content: &MemoryContent) -> ModelResult<StrongExtraction>;

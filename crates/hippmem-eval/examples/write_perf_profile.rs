@@ -36,6 +36,7 @@ fn main() {
 
         // Measure DeterministicExtractor timing
         use hippmem_model::deterministic::extract::DeterministicExtractor;
+        use hippmem_model::traits::Extractor;
         let t0 = Instant::now();
         for _ in 0..100 {
             let content = hippmem_core::model::unit::MemoryContent {
@@ -45,7 +46,7 @@ fn main() {
                 language: locale_to_language(&locale),
                 content_type: ContentType::ProjectKnowledge,
             };
-            let _ = DeterministicExtractor.extract_sync_immediate(&content);
+            let _ = DeterministicExtractor.extract_immediate_sync(&content);
         }
         let extract_time = t0.elapsed();
         println!(

@@ -21,13 +21,6 @@ use hippmem_core::score::UnitScore;
 pub struct DeterministicExtractor;
 
 impl DeterministicExtractor {
-    pub fn extract_sync_immediate(
-        &self,
-        content: &MemoryContent,
-    ) -> ModelResult<ImmediateExtraction> {
-        Ok(self.immediate_impl(content))
-    }
-
     pub fn extract_sync_strong(&self, content: &MemoryContent) -> ModelResult<StrongExtraction> {
         Ok(self.strong_impl(content))
     }
@@ -61,6 +54,10 @@ impl DeterministicExtractor {
 #[async_trait::async_trait]
 impl Extractor for DeterministicExtractor {
     async fn extract_immediate(&self, c: &MemoryContent) -> ModelResult<ImmediateExtraction> {
+        Ok(self.immediate_impl(c))
+    }
+
+    fn extract_immediate_sync(&self, c: &MemoryContent) -> ModelResult<ImmediateExtraction> {
         Ok(self.immediate_impl(c))
     }
 

@@ -8,7 +8,6 @@ use hippmem_core::ids::MemoryId;
 use hippmem_core::model::links::{ActivationStep, RecallChannel, RetrievalResult};
 use hippmem_core::model::unit::{GeneratedBy, MemoryLifecycle, MemoryUnit};
 use hippmem_core::time::Clock;
-use hippmem_model::deterministic::extract::DeterministicExtractor;
 use hippmem_model::lang::active_locales;
 use hippmem_retrieval::explain::deduce_dimensions;
 use hippmem_retrieval::seeds::{multi_channel_seeds, rrf_fuse};
@@ -27,7 +26,7 @@ impl Engine {
         let params = self.params.read();
 
         // 1. Lightweight understanding of the query (extract entities/topics for index lookup)
-        let extractor = DeterministicExtractor;
+        let extractor = self.extractor.as_ref();
         let query_content = hippmem_core::model::unit::MemoryContent {
             raw: input.query.clone(),
             summary: None,
@@ -36,7 +35,7 @@ impl Engine {
             content_type: hippmem_core::model::enums::ContentType::UserStatement,
         };
         let understanding = extractor
-            .extract_sync_immediate(&query_content)
+            .extract_immediate_sync(&query_content)
             .unwrap_or_else(|_| hippmem_model::traits::ImmediateExtraction {
                 entities: vec![],
                 topics: vec![],
