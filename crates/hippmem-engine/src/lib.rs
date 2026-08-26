@@ -7,6 +7,7 @@
 //! Corresponds to 05-api-contract, 09-engine-assembly.
 
 pub mod consolidate_api;
+pub mod delete_api;
 pub mod dump_api;
 pub mod explain_api;
 pub mod feedback_api;
@@ -344,6 +345,21 @@ pub struct ListItem {
     pub lifecycle: hippmem_core::model::unit::MemoryLifecycle,
     /// Number of outgoing edges of this memory.
     pub edge_count: usize,
+}
+
+// ── Delete API types (memory-management, M3) ──
+
+/// Input for deleting memories.
+#[derive(Debug, Clone)]
+pub struct DeleteInput {
+    pub memory_ids: Vec<MemoryId>,
+}
+
+/// Output of a deletion.
+#[derive(Debug, Clone)]
+pub struct DeleteOutput {
+    pub deleted: u64,
+    pub edges_removed: u64,
 }
 
 // ── Dump API types ──

@@ -451,3 +451,91 @@ pub fn persist_memory_unit(
     txn.commit()?;
     Ok(())
 }
+
+/// Removes a memory id from every inverted index (entity/topic/goal/event/
+/// causal/temporal) — the delete-cascade counterpart of `add_*` (M3,
+/// memory-management proposal). The id is stripped from each posting list;
+/// keys left empty are removed.
+pub fn remove_memory_from_indexes(db: Arc<Database>, id: u128) -> StoreResult<()> {
+    use crate::store::{
+        CAUSAL_INDEX, ENTITY_INDEX, EVENT_INDEX, GOAL_INDEX, TEMPORAL_INDEX, TOPIC_INDEX,
+    };
+    let txn = db.begin_write()?;
+    // Pass 1: collect posting keys that contain the id (iter borrow ends).
+    let mut affected: Vec<(redb::TableDefinition<u64, &[u8]>, u64)> = Vec::new();
+    for def in [
+        ENTITY_INDEX,
+        TOPIC_INDEX,
+        GOAL_INDEX,
+        EVENT_INDEX,
+        CAUSAL_INDEX,
+    ] {
+        let table = txn.open_table(def)?;
+        for entry in table.iter()?.flatten() {
+            if let Ok((ids, _)) = bincode::serde::decode_from_slice::<Vec<u128>, _>(
+                entry.1.value(),
+                bincode::config::standard(),
+            ) {
+                if ids.contains(&id) {
+                    affected.push((def, entry.0.value()));
+                }
+            }
+        }
+    }
+    let mut temporal_affected: Vec<u32> = Vec::new();
+    {
+        let table = txn.open_table(TEMPORAL_INDEX)?;
+        for entry in table.iter()?.flatten() {
+            if let Ok((ids, _)) = bincode::serde::decode_from_slice::<Vec<u128>, _>(
+                entry.1.value(),
+                bincode::config::standard(),
+            ) {
+                if ids.contains(&id) {
+                    temporal_affected.push(entry.0.value());
+                }
+            }
+        }
+    }
+    // Pass 2: rewrite the affected posting lists (raw copied locally so the
+    // table borrow ends before mutation).
+    for (def, key) in affected {
+        let mut table = txn.open_table(def)?;
+        let raw = table.get(key)?.map(|v| v.value().to_vec());
+        if let Some(raw) = raw {
+            if let Ok((mut ids, _)) = bincode::serde::decode_from_slice::<Vec<u128>, _>(
+                raw.as_slice(),
+                bincode::config::standard(),
+            ) {
+                ids.retain(|x| *x != id);
+                if ids.is_empty() {
+                    table.remove(key)?;
+                } else if let Ok(enc) =
+                    bincode::serde::encode_to_vec(&ids, bincode::config::standard())
+                {
+                    table.insert(key, enc.as_slice())?;
+                }
+            }
+        }
+    }
+    for key in temporal_affected {
+        let mut table = txn.open_table(TEMPORAL_INDEX)?;
+        let raw = table.get(key)?.map(|v| v.value().to_vec());
+        if let Some(raw) = raw {
+            if let Ok((mut ids, _)) = bincode::serde::decode_from_slice::<Vec<u128>, _>(
+                raw.as_slice(),
+                bincode::config::standard(),
+            ) {
+                ids.retain(|x| *x != id);
+                if ids.is_empty() {
+                    table.remove(key)?;
+                } else if let Ok(enc) =
+                    bincode::serde::encode_to_vec(&ids, bincode::config::standard())
+                {
+                    table.insert(key, enc.as_slice())?;
+                }
+            }
+        }
+    }
+    txn.commit()?;
+    Ok(())
+}

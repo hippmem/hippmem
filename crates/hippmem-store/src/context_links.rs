@@ -240,6 +240,61 @@ pub fn read_retrieval_paths(db: Arc<Database>, retrieval_id: u64) -> Vec<Retriev
     .unwrap_or_default()
 }
 
+/// Removes every context link entry referencing the memory (M3,
+/// memory-management): the memory is stripped from all feature posting
+/// lists; empty lists are removed. Query fingerprints and retrieval paths
+/// are audit records and stay.
+pub fn remove_memory_links(db: Arc<Database>, memory_id: u128) -> Result<(), String> {
+    let txn = db.begin_write().map_err(|e| e.to_string())?;
+    // Pass 1: collect feature keys whose posting list mentions the memory.
+    let affected: Vec<u64> = {
+        let table = txn.open_table(CONTEXT_LINKS).map_err(|e| e.to_string())?;
+        table
+            .iter()
+            .map_err(|e| e.to_string())?
+            .flatten()
+            .filter_map(|(k, v)| {
+                if let Ok((links, _)) = bincode::serde::decode_from_slice::<Vec<ContextLink>, _>(
+                    v.value(),
+                    bincode::config::standard(),
+                ) {
+                    if links.iter().any(|l| l.memory_id == memory_id) {
+                        return Some(k.value());
+                    }
+                }
+                None
+            })
+            .collect()
+    };
+    // Pass 2: rewrite the affected posting lists (raw copied locally so the
+    // table borrow ends before mutation).
+    for feature in affected {
+        let mut table = txn.open_table(CONTEXT_LINKS).map_err(|e| e.to_string())?;
+        let raw = table
+            .get(feature)
+            .map_err(|e| e.to_string())?
+            .map(|v| v.value().to_vec());
+        if let Some(raw) = raw {
+            if let Ok((mut links, _)) = bincode::serde::decode_from_slice::<Vec<ContextLink>, _>(
+                raw.as_slice(),
+                bincode::config::standard(),
+            ) {
+                links.retain(|l| l.memory_id != memory_id);
+                if links.is_empty() {
+                    table.remove(feature).map_err(|e| e.to_string())?;
+                } else if let Ok(enc) =
+                    bincode::serde::encode_to_vec(&links, bincode::config::standard())
+                {
+                    table
+                        .insert(feature, enc.as_slice())
+                        .map_err(|e| e.to_string())?;
+                }
+            }
+        }
+    }
+    txn.commit().map_err(|e| e.to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -268,5 +323,52 @@ mod tests {
 
         // A recent review resets the clock: just-reviewed link is nearly full.
         assert!((effective_strength(&reviewed, 60_000) - 1.0).abs() < 0.001);
+    }
+
+    /// M3 (memory-management): the delete-cascade counterpart — a removed
+    /// memory is stripped from every posting list; lists left empty are
+    /// dropped entirely.
+    #[test]
+    fn remove_memory_links_strips_and_prunes() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let db = Arc::new(redb::Database::create(dir.path().join("ctx.redb")).expect("create db"));
+        let txn = db.begin_write().expect("write txn");
+        txn.open_table(CONTEXT_LINKS).expect("open table");
+        txn.commit().expect("commit");
+
+        // Features 11/22/33 bind both memories; feature 44 binds only memory 1.
+        let shared = QueryContext {
+            entity_hashes: vec![11, 22, 33],
+            topic_hashes: vec![],
+        };
+        strengthen_links(db.clone(), &shared, 1, 0.8, 1_000).expect("link memory 1");
+        strengthen_links(db.clone(), &shared, 2, 0.5, 1_000).expect("link memory 2");
+        let solo = QueryContext {
+            entity_hashes: vec![44],
+            topic_hashes: vec![],
+        };
+        strengthen_links(db.clone(), &solo, 1, 0.7, 1_000).expect("link memory 1 solo");
+
+        remove_memory_links(db.clone(), 1).expect("remove memory 1");
+
+        let txn = db.begin_read().expect("read txn");
+        let table = txn.open_table(CONTEXT_LINKS).expect("open table");
+        for feature in [11u64, 22, 33] {
+            let raw = table
+                .get(feature)
+                .expect("read")
+                .expect("shared feature key must survive");
+            let (links, _) = bincode::serde::decode_from_slice::<Vec<ContextLink>, _>(
+                raw.value(),
+                bincode::config::standard(),
+            )
+            .expect("decode");
+            assert_eq!(links.len(), 1, "only memory 2 remains on feature {feature}");
+            assert_eq!(links[0].memory_id, 2);
+        }
+        assert!(
+            table.get(44u64).expect("read").is_none(),
+            "feature bound only to the removed memory is pruned"
+        );
     }
 }
