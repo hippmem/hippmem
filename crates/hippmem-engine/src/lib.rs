@@ -40,7 +40,9 @@ use hippmem_store::store::{RedbStore, Store};
 use parking_lot::RwLock;
 use serde::Serialize;
 use std::path::PathBuf;
-use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Weak};
+use std::time::Duration;
 
 // ── EngineError ──
 
@@ -552,6 +554,61 @@ pub struct Engine {
     /// and callers should observe the degradation instead of silently losing
     /// semantics (semantic-index-persistence, 0.4.2).
     semantic_index_degraded: bool,
+    /// Background consolidation worker (方案 B, consolidate-worker-design):
+    /// runs `consolidate` every `consolidate_interval_ms` while the engine
+    /// lives; stopped and joined by `close`. None when disabled.
+    consolidation_worker: Option<ConsolidationWorker>,
+}
+
+/// Handle for the background consolidation worker thread.
+struct ConsolidationWorker {
+    stop: Arc<AtomicBool>,
+    handle: std::thread::JoinHandle<()>,
+}
+
+impl ConsolidationWorker {
+    /// Spawns a worker that runs an incremental consolidation every
+    /// `interval_ms`. Holds only a `Weak<Engine>` so `Engine::open` can
+    /// still return an owned `Engine` (`Arc::try_unwrap` succeeds) and
+    /// `close` drops the store only after the worker has exited.
+    fn spawn(engine: Weak<Engine>, interval_ms: u64) -> Self {
+        let stop = Arc::new(AtomicBool::new(false));
+        let stop_flag = stop.clone();
+        let handle = std::thread::Builder::new()
+            .name("hippmem-consolidation".into())
+            .spawn(move || {
+                // Sleep in small steps so stop() is honoured promptly even
+                // for long intervals.
+                let step_ms = 100u64;
+                loop {
+                    let steps = (interval_ms / step_ms).max(1);
+                    for _ in 0..steps {
+                        if stop_flag.load(Ordering::Relaxed) {
+                            return;
+                        }
+                        std::thread::sleep(Duration::from_millis(step_ms));
+                    }
+                    if stop_flag.load(Ordering::Relaxed) {
+                        return;
+                    }
+                    let Some(engine) = engine.upgrade() else {
+                        return; // engine dropped (close) — stop quietly
+                    };
+                    // Best-effort: a failed consolidation must not kill the
+                    // worker or the process.
+                    if let Err(e) = engine.consolidate(ConsolidationScope::Incremental) {
+                        eprintln!("background consolidation failed: {e}");
+                    }
+                }
+            })
+            .expect("spawn consolidation worker");
+        Self { stop, handle }
+    }
+
+    fn stop_and_join(self) {
+        self.stop.store(true, Ordering::Relaxed);
+        let _ = self.handle.join();
+    }
 }
 
 impl Engine {
@@ -648,17 +705,33 @@ impl Engine {
         let extractor = hippmem_model::registry::build_extractor(config.backend.extractor)
             .map_err(EngineError::Model)?;
 
-        Ok(Self {
-            store: Arc::new(store),
-            params: Arc::new(RwLock::new(config.algo)),
-            embedder,
-            extractor,
-            backend: config.backend,
-            fulltext_index: parking_lot::Mutex::new(fulltext_index),
-            fulltext_dir,
-            binary_code_index: parking_lot::Mutex::new(binary_index),
-            dense_vector_index: parking_lot::Mutex::new(dense_index),
-            semantic_index_degraded,
+        // Background consolidation worker (方案 B): holds only a Weak ref,
+        // so the owned Engine below is returned and close() owns the stop.
+        let engine = Arc::new_cyclic(|weak| {
+            let worker = if config.background.consolidate_interval_ms > 0 {
+                Some(ConsolidationWorker::spawn(
+                    weak.clone(),
+                    config.background.consolidate_interval_ms,
+                ))
+            } else {
+                None
+            };
+            Self {
+                store: Arc::new(store),
+                params: Arc::new(RwLock::new(config.algo)),
+                embedder,
+                extractor,
+                backend: config.backend,
+                fulltext_index: parking_lot::Mutex::new(fulltext_index),
+                fulltext_dir,
+                binary_code_index: parking_lot::Mutex::new(binary_index),
+                dense_vector_index: parking_lot::Mutex::new(dense_index),
+                semantic_index_degraded,
+                consolidation_worker: worker,
+            }
+        });
+        Arc::try_unwrap(engine).map_err(|_| {
+            EngineError::Internal("engine shared unexpectedly".into())
         })
     }
 
@@ -675,6 +748,11 @@ impl Engine {
     /// Corresponds to 05 §0 `Engine::close`.
     /// Currently only drops the store (redb auto-flushes); in the future it will wait for background workers to exit.
     pub fn close(self) -> EngineResult<()> {
+        // Stop the background worker before tearing down the store: join
+        // ensures no consolidation is still writing when the store drops.
+        if let Some(worker) = self.consolidation_worker {
+            worker.stop_and_join();
+        }
         // Tantivy: commit unwritten documents and close
         if let Err(e) = self.fulltext_index.lock().flush() {
             // Non-fatal; tracing warn, does not block close
