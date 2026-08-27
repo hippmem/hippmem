@@ -35,7 +35,7 @@ fn retrieve_ctx() -> hippmem_engine::RetrieveContext {
     }
 }
 
-fn open_engine(dir: &tempfile::TempDir) -> Engine {
+fn open_engine(dir: &tempfile::TempDir) -> std::sync::Arc<Engine> {
     Engine::open(EngineConfig {
         store_dir: dir.path().join("hippmem.redb"),
         ..Default::default()

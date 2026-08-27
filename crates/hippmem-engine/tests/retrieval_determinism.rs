@@ -51,7 +51,7 @@ fn retrieve_ctx() -> RetrieveContext {
 
 /// Builds a store whose memories share entities (EntityOverlap edges) so that a
 /// query reaches multiple memories through both direct channels and graph paths.
-fn build_shared_entity_store() -> (tempfile::TempDir, Engine) {
+fn build_shared_entity_store() -> (tempfile::TempDir, std::sync::Arc<Engine>) {
     let dir = tempdir().unwrap();
     let engine = Engine::open(EngineConfig {
         store_dir: dir.path().join("hippmem.redb"),

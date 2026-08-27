@@ -37,11 +37,11 @@ use hippmem_store::fulltext::FulltextIndex;
 use hippmem_store::semantic::binary::BinaryCodeIndex;
 use hippmem_store::semantic::hnsw::FlatVectorIndex;
 use hippmem_store::store::{RedbStore, Store};
-use parking_lot::RwLock;
+use parking_lot::{Mutex, RwLock};
 use serde::Serialize;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Weak};
+use std::sync::Arc;
 use std::time::Duration;
 
 // ── EngineError ──
@@ -556,8 +556,9 @@ pub struct Engine {
     semantic_index_degraded: bool,
     /// Background consolidation worker (方案 B, consolidate-worker-design):
     /// runs `consolidate` every `consolidate_interval_ms` while the engine
-    /// lives; stopped and joined by `close`. None when disabled.
-    consolidation_worker: Option<ConsolidationWorker>,
+    /// lives; stopped and joined by `close`. None when disabled. Mutex so
+    /// `close(&self)` can take and join it.
+    consolidation_worker: Mutex<Option<ConsolidationWorker>>,
 }
 
 /// Handle for the background consolidation worker thread.
@@ -568,10 +569,9 @@ struct ConsolidationWorker {
 
 impl ConsolidationWorker {
     /// Spawns a worker that runs an incremental consolidation every
-    /// `interval_ms`. Holds only a `Weak<Engine>` so `Engine::open` can
-    /// still return an owned `Engine` (`Arc::try_unwrap` succeeds) and
-    /// `close` drops the store only after the worker has exited.
-    fn spawn(engine: Weak<Engine>, interval_ms: u64) -> Self {
+    /// `interval_ms`. Holds an `Arc<Engine>` clone; `close` stops and
+    /// joins it before the store is released.
+    fn spawn(engine: Arc<Engine>, interval_ms: u64) -> Self {
         let stop = Arc::new(AtomicBool::new(false));
         let stop_flag = stop.clone();
         let handle = std::thread::Builder::new()
@@ -591,9 +591,6 @@ impl ConsolidationWorker {
                     if stop_flag.load(Ordering::Relaxed) {
                         return;
                     }
-                    let Some(engine) = engine.upgrade() else {
-                        return; // engine dropped (close) — stop quietly
-                    };
                     // Best-effort: a failed consolidation must not kill the
                     // worker or the process.
                     if let Err(e) = engine.consolidate(ConsolidationScope::Incremental) {
@@ -618,7 +615,7 @@ impl Engine {
     /// - Automatically creates the `store_dir` parent directory.
     /// - If a redb file already exists at the specified path, opens the existing store.
     /// - Builds the Embedder backend from `config.embedder` (default deterministic 256d, constitution C5).
-    pub fn open(config: EngineConfig) -> EngineResult<Self> {
+    pub fn open(config: EngineConfig) -> EngineResult<Arc<Self>> {
         // Automatically create parent directory
         if let Some(parent) = config.store_dir.parent() {
             std::fs::create_dir_all(parent).map_err(|e| {
@@ -705,34 +702,32 @@ impl Engine {
         let extractor = hippmem_model::registry::build_extractor(config.backend.extractor)
             .map_err(EngineError::Model)?;
 
-        // Background consolidation worker (方案 B): holds only a Weak ref,
-        // so the owned Engine below is returned and close() owns the stop.
-        let engine = Arc::new_cyclic(|weak| {
-            let worker = if config.background.consolidate_interval_ms > 0 {
-                Some(ConsolidationWorker::spawn(
-                    weak.clone(),
-                    config.background.consolidate_interval_ms,
-                ))
-            } else {
-                None
-            };
-            Self {
-                store: Arc::new(store),
-                params: Arc::new(RwLock::new(config.algo)),
-                embedder,
-                extractor,
-                backend: config.backend,
-                fulltext_index: parking_lot::Mutex::new(fulltext_index),
-                fulltext_dir,
-                binary_code_index: parking_lot::Mutex::new(binary_index),
-                dense_vector_index: parking_lot::Mutex::new(dense_index),
-                semantic_index_degraded,
-                consolidation_worker: worker,
-            }
-        });
-        Arc::try_unwrap(engine).map_err(|_| {
-            EngineError::Internal("engine shared unexpectedly".into())
-        })
+        // Background consolidation worker (方案 B): spawns a thread holding
+        // an Arc<Engine> clone; close() stops and joins it before the store
+        // is released. Arc<Self> is returned so the worker can share the
+        // engine without a self-reference cycle.
+        let engine = Self {
+            store: Arc::new(store),
+            params: Arc::new(RwLock::new(config.algo)),
+            embedder,
+            extractor,
+            backend: config.backend,
+            fulltext_index: parking_lot::Mutex::new(fulltext_index),
+            fulltext_dir,
+            binary_code_index: parking_lot::Mutex::new(binary_index),
+            dense_vector_index: parking_lot::Mutex::new(dense_index),
+            semantic_index_degraded,
+            consolidation_worker: Mutex::new(None),
+        };
+        let engine = Arc::new(engine);
+        if config.background.consolidate_interval_ms > 0 {
+            let worker = ConsolidationWorker::spawn(
+                engine.clone(),
+                config.background.consolidate_interval_ms,
+            );
+            *engine.consolidation_worker.lock() = Some(worker);
+        }
+        Ok(engine)
     }
 
     /// Whether SemanticDense recall is unavailable because the store predates
@@ -747,10 +742,10 @@ impl Engine {
     ///
     /// Corresponds to 05 §0 `Engine::close`.
     /// Currently only drops the store (redb auto-flushes); in the future it will wait for background workers to exit.
-    pub fn close(self) -> EngineResult<()> {
-        // Stop the background worker before tearing down the store: join
-        // ensures no consolidation is still writing when the store drops.
-        if let Some(worker) = self.consolidation_worker {
+    pub fn close(self: Arc<Self>) -> EngineResult<()> {
+        // Stop the background worker before tearing down: join ensures no
+        // consolidation is still writing when the store is released.
+        if let Some(worker) = self.consolidation_worker.lock().take() {
             worker.stop_and_join();
         }
         // Tantivy: commit unwritten documents and close
@@ -758,8 +753,12 @@ impl Engine {
             // Non-fatal; tracing warn, does not block close
             eprintln!("Tantivy flush failed: {}", e);
         }
-        // store is dropped; redb auto-flushes and closes
-        drop(self.store);
+        // Release the store now: the worker has exited (joined above), so
+        // this Arc is the last strong reference — unwrap and drop the store
+        // so a reopen of the same directory can acquire the redb lock.
+        if let Ok(engine) = Arc::try_unwrap(self) {
+            drop(engine.store);
+        }
         Ok(())
     }
 

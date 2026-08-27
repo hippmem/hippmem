@@ -64,7 +64,7 @@ fn retrieve_ids(engine: &Engine, query: &str) -> Vec<u128> {
         .collect()
 }
 
-fn open_engine(dir: &tempfile::TempDir) -> Engine {
+fn open_engine(dir: &tempfile::TempDir) -> std::sync::Arc<Engine> {
     Engine::open(EngineConfig {
         store_dir: dir.path().join("hippmem.redb"),
         ..Default::default()

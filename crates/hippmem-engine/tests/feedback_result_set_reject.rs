@@ -71,7 +71,7 @@ fn run_retrieval(engine: &Engine, query: &str) -> Vec<(hippmem_core::ids::Memory
         .collect()
 }
 
-fn build_store() -> (tempfile::TempDir, Engine) {
+fn build_store() -> (tempfile::TempDir, std::sync::Arc<Engine>) {
     let dir = tempdir().unwrap();
     let engine = Engine::open(EngineConfig {
         store_dir: dir.path().join("hippmem.redb"),

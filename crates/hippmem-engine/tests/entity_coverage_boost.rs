@@ -72,7 +72,7 @@ fn run_retrieval(engine: &Engine, query: &str) -> Vec<(String, f32)> {
 /// the pseudo-relevant decoy covers one entity and carries higher importance
 /// (mirrors the 2026-08-12 C5 measurement where importance 0.3 vs ~0 widened
 /// the gap to 1.62×).
-fn build_store() -> (tempfile::TempDir, Engine) {
+fn build_store() -> (tempfile::TempDir, std::sync::Arc<Engine>) {
     let dir = tempdir().unwrap();
     let engine = Engine::open(EngineConfig {
         store_dir: dir.path().join("hippmem.redb"),

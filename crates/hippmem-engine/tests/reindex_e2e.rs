@@ -23,7 +23,7 @@ fn make_ctx() -> WriteContext {
     }
 }
 
-fn open_engine(dir: &tempfile::TempDir) -> Engine {
+fn open_engine(dir: &tempfile::TempDir) -> std::sync::Arc<Engine> {
     let store_path = dir.path().join("hippmem_data");
     let config = EngineConfig {
         store_dir: store_path,

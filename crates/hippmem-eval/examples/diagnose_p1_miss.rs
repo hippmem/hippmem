@@ -36,7 +36,7 @@ fn retrieve_ctx() -> RetrieveContext {
 
 // Uses hippmem_eval::fixture_loader::discover_bench_locales (shared with tests)
 
-fn open_engine(dir: &tempfile::TempDir) -> Engine {
+fn open_engine(dir: &tempfile::TempDir) -> std::sync::Arc<Engine> {
     let mut config = EngineConfig {
         store_dir: dir.path().join("eval.redb"),
         ..Default::default()

@@ -65,7 +65,7 @@ fn run_retrieval(engine: &Engine, query: &str) -> Vec<(hippmem_core::ids::Memory
 /// 20 memories in two disjoint topics ("people" vs "tech"); no shared
 /// vocabulary across topics, so an unrelated query cannot reach the other
 /// topic through any channel.
-fn build_topic_store() -> (tempfile::TempDir, Engine) {
+fn build_topic_store() -> (tempfile::TempDir, std::sync::Arc<Engine>) {
     let dir = tempdir().unwrap();
     let engine = Engine::open(EngineConfig {
         store_dir: dir.path().join("hippmem.redb"),

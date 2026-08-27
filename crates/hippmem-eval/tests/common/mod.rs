@@ -67,7 +67,7 @@ pub fn api_embedder_config() -> Option<EmbedderConfig> {
 
 /// Open an engine, preferring the API backend if configured, otherwise using the
 /// deterministic fallback backend (no network dependency).
-pub fn open_engine(dir: &tempfile::TempDir) -> Engine {
+pub fn open_engine(dir: &tempfile::TempDir) -> std::sync::Arc<Engine> {
     let mut config = EngineConfig {
         store_dir: dir.path().join("eval.redb"),
         ..Default::default()

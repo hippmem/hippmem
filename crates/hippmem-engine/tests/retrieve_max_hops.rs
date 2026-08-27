@@ -28,7 +28,7 @@ fn ctx() -> WriteContext {
 /// 另降低传播能量阈值：默认 decay_factor=0.55 且能量按 hop 指数衰减（×0.55^hop），
 /// 两跳能量 ≈ 0.47×0.62²×0.45² ≈ 0.006 < 0.05，两跳传播在默认参数下不可达；
 /// 本测试聚焦跳数控制语义而非能量衰减真实性。
-fn chain_engine(store_dir: &std::path::Path) -> Engine {
+fn chain_engine(store_dir: &std::path::Path) -> std::sync::Arc<Engine> {
     Engine::open(EngineConfig {
         store_dir: store_dir.into(),
         algo: AlgoParams {

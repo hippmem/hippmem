@@ -66,7 +66,7 @@ fn compressed_ids(db_path: &std::path::Path) -> Vec<u128> {
 /// Chinese near-duplicates with default importance: the same shape as the
 /// existing consolidate_summary_indexed test, which is known to pass the
 /// summarizer's confidence gate.
-fn build_cluster_store() -> (tempfile::TempDir, Engine) {
+fn build_cluster_store() -> (tempfile::TempDir, std::sync::Arc<Engine>) {
     let dir = tempdir().unwrap();
     let db_path = dir.path().join("hippmem.redb");
     let engine = Engine::open(EngineConfig {

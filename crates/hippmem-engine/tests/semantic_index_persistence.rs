@@ -65,7 +65,7 @@ fn run(engine: &Engine, query: &str) -> Vec<(String, f32)> {
         .collect()
 }
 
-fn open_engine(store_dir: &std::path::Path) -> Engine {
+fn open_engine(store_dir: &std::path::Path) -> std::sync::Arc<Engine> {
     Engine::open(EngineConfig {
         store_dir: store_dir.to_path_buf(),
         ..Default::default()
@@ -89,7 +89,11 @@ fn dense_index_survives_reopen() {
             !engine.semantic_index_degraded(),
             "a freshly written store must have a live dense index"
         );
-        run(&engine, "Where does Xiaoming live?")
+        let r = run(&engine, "Where does Xiaoming live?");
+        // A worker-bearing engine holds the redb lock until close() —
+        // required before reopening the same directory.
+        engine.close().unwrap();
+        r
     };
     assert!(!before.is_empty());
 
@@ -119,6 +123,7 @@ fn store_without_vectors_is_explicitly_degraded() {
             &engine,
             "Xiaoming is a computer science student at Peking University.",
         );
+        engine.close().unwrap(); // required: worker holds the redb lock
     } // close
 
     // Simulate an old / embedding-failed store: drop every persisted vector.
@@ -173,10 +178,13 @@ fn reopen_is_deterministic() {
             &engine,
             "Xiaoming's goal is to become an AI architect within three years.",
         );
+        engine.close().unwrap(); // worker holds the redb lock until close
     }
     let first = {
         let engine = open_engine(&store_dir);
-        run(&engine, "Where does Xiaoming live?")
+        let r = run(&engine, "Where does Xiaoming live?");
+        engine.close().unwrap();
+        r
     };
     let second = {
         let engine = open_engine(&store_dir);
