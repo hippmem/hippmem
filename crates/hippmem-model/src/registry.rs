@@ -74,25 +74,38 @@ pub struct BackendUsage {
 ///   otherwise (the "default enhancement, degraded guarantee" semantics of
 ///   08 §1 — strongest effect when a key exists, offline otherwise).
 pub fn build_extractor(choice: BackendChoice) -> Result<std::sync::Arc<dyn Extractor>, String> {
-    use crate::api::anthropic::AnthropicExtractor;
+    use crate::api::openai_extract::OpenAiExtractor;
     use crate::deterministic::extract::DeterministicExtractor;
     match choice {
         BackendChoice::Deterministic => Ok(std::sync::Arc::new(DeterministicExtractor)),
+        // Vendor-neutral API backend: OpenAI-compatible chat-completions
+        // service configured via HIPPMEM_EXTRACTOR_* (fallback OPENAI_API_KEY).
         BackendChoice::Api => {
-            let key = std::env::var("ANTHROPIC_API_KEY")
-                .map_err(|_| "extractor Api backend requires ANTHROPIC_API_KEY".to_string())?;
-            Ok(std::sync::Arc::new(AnthropicExtractor::new(key)))
+            let extractor =
+                OpenAiExtractor::from_env().map_err(|e| format!("extractor Api backend: {e}"))?;
+            Ok(std::sync::Arc::new(extractor))
         }
-        BackendChoice::Auto => match std::env::var("ANTHROPIC_API_KEY") {
-            Ok(key) if !key.is_empty() => Ok(std::sync::Arc::new(AnthropicExtractor::new(key))),
-            _ => Ok(std::sync::Arc::new(DeterministicExtractor)),
-        },
+        BackendChoice::Auto => {
+            let has_key = !std::env::var("HIPPMEM_EXTRACTOR_API_KEY")
+                .ok()
+                .filter(|k| !k.is_empty())
+                .or_else(|| std::env::var("OPENAI_API_KEY").ok())
+                .unwrap_or_default()
+                .is_empty();
+            if has_key {
+                let extractor = OpenAiExtractor::from_env()
+                    .map_err(|e| format!("extractor Auto backend: {e}"))?;
+                Ok(std::sync::Arc::new(extractor))
+            } else {
+                Ok(std::sync::Arc::new(DeterministicExtractor))
+            }
+        }
     }
 }
 
 // ── Embedder factory functions (V4) ──
 
-use hippmem_core::config::EmbedderConfig;
+use hippmem_core::config::{default_embed_dim, default_embedder_base_url, EmbedderConfig};
 
 /// Build the corresponding `Embedder` implementation from the config.
 ///
@@ -103,7 +116,30 @@ use hippmem_core::config::EmbedderConfig;
 pub fn build_embedder(
     config: &EmbedderConfig,
 ) -> crate::error::ModelResult<std::sync::Arc<dyn crate::traits::Embedder>> {
+    // Auto: strongest-first default (2026-08-26) — neural when a key is
+    // present, deterministic hash otherwise (no-key behavior unchanged).
+    if matches!(config, EmbedderConfig::Auto) {
+        let has_key = !std::env::var("OPENAI_API_KEY")
+            .unwrap_or_default()
+            .is_empty();
+        if has_key {
+            let base_url = std::env::var("HIPPMEM_EMBEDDING_BASE_URL")
+                .unwrap_or_else(|_| default_embedder_base_url());
+            let model = std::env::var("HIPPMEM_EMBEDDING_MODEL")
+                .unwrap_or_else(|_| "text-embedding-3-small".to_string());
+            return build_embedder(&EmbedderConfig::Neural {
+                base_url,
+                model,
+                api_key: None,
+                dimensions: default_embed_dim(),
+            });
+        }
+        return build_embedder(&EmbedderConfig::Hash {
+            dimensions: default_embed_dim(),
+        });
+    }
     match config {
+        EmbedderConfig::Auto => unreachable!("handled above"),
         EmbedderConfig::Hash { dimensions } => Ok(std::sync::Arc::new(
             crate::deterministic::embed::DeterministicEmbedder::new(*dimensions),
         )),
@@ -140,11 +176,33 @@ mod tests {
     use hippmem_core::config::EmbedderConfig;
 
     #[test]
-    fn build_embedder_hash_default() {
-        let cfg = EmbedderConfig::default(); // Hash { dimensions: 256 }
+    fn build_embedder_hash_explicit() {
+        let cfg = EmbedderConfig::Hash { dimensions: 256 };
         let embedder = build_embedder(&cfg).unwrap();
         assert_eq!(embedder.dim(), 256);
         assert_eq!(embedder.backend_id(), "deterministic-hash");
+    }
+
+    /// Auto is the strongest-first default (D13): neural when
+    /// OPENAI_API_KEY is present, deterministic hash otherwise.
+    #[test]
+    fn build_embedder_auto_semantics() {
+        let _guard = crate::test_env::ENV_LOCK.lock().unwrap();
+        let prev = std::env::var("OPENAI_API_KEY").ok();
+        std::env::remove_var("OPENAI_API_KEY");
+
+        let cfg = EmbedderConfig::Auto;
+        let hash_embedder = build_embedder(&cfg).unwrap();
+        assert_eq!(hash_embedder.backend_id(), "deterministic-hash");
+
+        std::env::set_var("OPENAI_API_KEY", "sk-test");
+        let neural_embedder = build_embedder(&cfg).unwrap();
+        assert_eq!(neural_embedder.backend_id(), "text-embedding-3-small");
+
+        match prev {
+            Some(v) => std::env::set_var("OPENAI_API_KEY", v),
+            None => std::env::remove_var("OPENAI_API_KEY"),
+        }
     }
 
     #[test]

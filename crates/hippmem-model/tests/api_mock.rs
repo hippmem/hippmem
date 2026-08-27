@@ -99,3 +99,62 @@ fn empty_api_key_does_not_panic() {
     );
     assert!(result.is_err(), "an empty key should return Err, not Ok");
 }
+
+/// A real HTTP round-trip: the OpenAI-compatible extractor parses a
+/// chat-completions response into structured understanding.
+#[test]
+fn openai_extract_mock_roundtrip_parses() {
+    use hippmem_model::api::openai_extract::OpenAiExtractor;
+    use hippmem_model::traits::Extractor;
+
+    let body = r#"{
+        "choices": [{
+            "message": {
+                "role": "assistant",
+                "content": "{\"entities\": [{\"text\": \"小明\", \"canonical\": \"小明\", \"entity_type\": \"person\"}], \"topics\": [{\"label\": \"住址\", \"confidence\": 0.8}], \"explicit_causals\": [], \"importance\": 0.7, \"language\": \"zh\", \"content_type\": \"user_statement\"}"
+            }
+        }],
+        "usage": {"total_tokens": 42}
+    }"#;
+    let port = mock_server(body, "HTTP/1.1 200 OK");
+    let extractor = OpenAiExtractor::new_with_base_url(
+        "sk-test-key".into(),
+        &format!("http://127.0.0.1:{port}/v1"),
+        "test-model",
+    )
+    .expect("explicit key, no env lookup");
+
+    let out = extractor
+        .extract_immediate_sync(&hippmem_core::model::unit::MemoryContent {
+            raw: "小明住在北京海淀区。".into(),
+            summary: None,
+            normalized: None,
+            language: hippmem_core::model::unit::Language::Zh,
+            content_type: hippmem_core::model::enums::ContentType::UserStatement,
+        })
+        .expect("mock response should parse");
+
+    assert_eq!(out.entities.len(), 1);
+    assert_eq!(out.entities[0].text, "小明");
+    assert_eq!(
+        out.entities[0].entity_type,
+        hippmem_core::model::understanding::EntityType::Person
+    );
+    assert_eq!(out.topics[0].label, "住址");
+    assert!((out.importance.value() - 0.7).abs() < 0.01);
+    assert_eq!(out.language, hippmem_core::model::unit::Language::Zh);
+    assert_eq!(
+        out.content_type,
+        Some(hippmem_core::model::enums::ContentType::UserStatement)
+    );
+}
+
+/// The OpenAI-compatible extractor reports its backend id.
+#[test]
+fn openai_extract_backend_id() {
+    use hippmem_model::api::openai_extract::OpenAiExtractor;
+    use hippmem_model::traits::Extractor;
+
+    let e = OpenAiExtractor::new("sk-test-key".into());
+    assert_eq!(e.backend_id(), "openai-compatible");
+}

@@ -360,12 +360,12 @@ impl AlgoParams {
 // ── EmbedderConfig (V4) ──
 
 /// Default embedding dimension.
-fn default_embed_dim() -> usize {
+pub fn default_embed_dim() -> usize {
     256
 }
 
 /// Default base URL for the Neural embedder API.
-fn default_embedder_base_url() -> String {
+pub fn default_embedder_base_url() -> String {
     "https://api.openai.com/v1".to_string()
 }
 
@@ -395,10 +395,15 @@ fn default_embedder_base_url() -> String {
 /// model_cache_dir = "/path/to/cache"
 /// dimensions = 512
 /// ```
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 #[serde(tag = "provider", rename_all = "kebab-case")]
 pub enum EmbedderConfig {
-    /// Hash embedder: 256d SimHash, zero dependencies, deterministic, offline. (Default)
+    /// Auto: neural when an API key is available (OPENAI_API_KEY or
+    /// HIPPMEM_EMBEDDING_* env), deterministic hash otherwise. The default
+    /// "strongest-first" choice (2026-08-26 decision).
+    #[default]
+    Auto,
+    /// Hash embedder: 256d SimHash, zero dependencies, deterministic, offline.
     Hash {
         /// Vector dimension, default 256.
         #[serde(default = "default_embed_dim")]
@@ -428,18 +433,11 @@ pub enum EmbedderConfig {
     },
 }
 
-impl Default for EmbedderConfig {
-    fn default() -> Self {
-        Self::Hash {
-            dimensions: default_embed_dim(),
-        }
-    }
-}
-
 impl EmbedderConfig {
     /// Returns the vector dimension specified by the current configuration.
     pub fn dimensions(&self) -> usize {
         match self {
+            Self::Auto => default_embed_dim(),
             Self::Hash { dimensions } => *dimensions,
             Self::Neural { dimensions, .. } => *dimensions,
             Self::Onnx { dimensions, .. } => *dimensions,
@@ -472,9 +470,11 @@ mod tests {
     // ── EmbedderConfig tests ──
 
     #[test]
-    fn embedder_config_default_is_hash_256() {
+    fn embedder_config_default_is_auto() {
+        // Auto is the strongest-first default (2026-08-26); without keys it
+        // resolves to hash at build time, so no-key behavior is unchanged.
         let cfg = EmbedderConfig::default();
-        assert_eq!(cfg, EmbedderConfig::Hash { dimensions: 256 });
+        assert_eq!(cfg, EmbedderConfig::Auto);
     }
 
     #[test]
@@ -566,12 +566,13 @@ dimensions = 512
         // Compile-time verification: all variants can be handled via match
         fn match_config(c: &EmbedderConfig) -> &'static str {
             match c {
+                EmbedderConfig::Auto => "auto",
                 EmbedderConfig::Hash { .. } => "hash",
                 EmbedderConfig::Neural { .. } => "neural",
                 EmbedderConfig::Onnx { .. } => "onnx",
             }
         }
-        assert_eq!(match_config(&EmbedderConfig::default()), "hash");
+        assert_eq!(match_config(&EmbedderConfig::default()), "auto");
         assert_eq!(
             match_config(&EmbedderConfig::Onnx {
                 model_name: "test".into(),

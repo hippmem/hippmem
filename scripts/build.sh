@@ -56,7 +56,12 @@ fi
 # workspace.
 case "$1" in
     clippy) set -- clippy --workspace --all-targets -- -D warnings ;;
-    test) set -- test --workspace ;;
+    test)
+        # Determinism: drop external-AI env so the gate always exercises the
+        # offline hash/deterministic path (CI has no keys; Auto semantics are
+        # covered by their own locked tests).
+        export -n OPENAI_API_KEY HIPPMEM_EXTRACTOR_API_KEY HIPPMEM_EMBEDDING_BASE_URL HIPPMEM_EMBEDDING_MODEL
+        set -- test --workspace ;;
 esac
 
 echo "▶ cargo $*"
