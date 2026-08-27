@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.4.4] — 2026-08-27
+
+### Added
+- Delete API: remove memories with full cascade cleanup (storage, inverted indexes, graph edges, context links; audit records are kept)
+- Extractor backends are now configurable: `hash` (deterministic rules), `neural` (any OpenAI-compatible chat-completions service), or `auto` (default — best available backend when an API key is present)
+
+### Changed
+- Embedder backend now defaults to `auto`: uses the neural embedder when `OPENAI_API_KEY` is available, otherwise the deterministic hash embedder (no-key behavior unchanged)
+- Extractor API settings are independent from the embedder: `HIPPMEM_EXTRACTOR_API_KEY` / `HIPPMEM_EXTRACTOR_BASE_URL` / `HIPPMEM_EXTRACTOR_MODEL` (key falls back to `OPENAI_API_KEY`)
+- Default extractor model is `gpt-4o` (override with `HIPPMEM_EXTRACTOR_MODEL`)
+
+[0.4.4]: https://github.com/hippmem/hippmem/releases/tag/v0.4.4
+
 ## [0.4.3] — 2026-08-21
 
 ### Changed
