@@ -9,8 +9,8 @@ pub mod api;
 pub mod deterministic;
 pub mod error;
 pub mod lang;
-pub mod time_query;
 pub mod registry;
+pub mod time_query;
 pub mod traits;
 
 #[cfg(test)]

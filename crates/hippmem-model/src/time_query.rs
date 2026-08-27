@@ -138,7 +138,10 @@ fn parse_iso_absolute(q: &str) -> Option<(i64, u32, u32)> {
         let Some(m_end) = chars[i + 5..].iter().position(|(_, c)| *c == '-') else {
             continue;
         };
-        let m: String = chars[i + 5..i + 5 + m_end].iter().map(|(_, c)| *c).collect();
+        let m: String = chars[i + 5..i + 5 + m_end]
+            .iter()
+            .map(|(_, c)| *c)
+            .collect();
         let Ok(m) = m.parse::<u32>() else {
             continue;
         };
@@ -244,9 +247,7 @@ fn parse_zh_range(q: &str, cy: i64) -> RangeParse {
         return range_parse(days_from_civil(cy, m1, d1), days_from_civil(cy, m2, d2));
     }
     // "M月到M月" / "YYYY年M月到YYYY年M月" / "YYYY年M月到M月"
-    if let (Some((y1, m1)), Some((y2, m2))) =
-        (parse_year_month(left), parse_year_month(right))
-    {
+    if let (Some((y1, m1)), Some((y2, m2))) = (parse_year_month(left), parse_year_month(right)) {
         let y1 = y1.unwrap_or(cy);
         let y2 = y2.unwrap_or(y1);
         if y2 < y1 || (y2 == y1 && m2 < m1) {
@@ -264,10 +265,7 @@ fn range_parse(start_day: i64, end_day: i64) -> RangeParse {
     if end_day < start_day || end_day - start_day + 1 > RANGE_MAX_DAYS {
         RangeParse::TooLarge
     } else {
-        RangeParse::Spec(TemporalQuerySpec::Range {
-            start_day,
-            end_day,
-        })
+        RangeParse::Spec(TemporalQuerySpec::Range { start_day, end_day })
     }
 }
 
@@ -311,10 +309,16 @@ fn parse_en_range(q: &str, cy: i64) -> RangeParse {
     };
     let left = &q[..to];
     let right = &q[to + 4..];
-    let Some((_, m1)) = MONTHS.iter().find(|(name, _)| left.trim_end().ends_with(name)) else {
+    let Some((_, m1)) = MONTHS
+        .iter()
+        .find(|(name, _)| left.trim_end().ends_with(name))
+    else {
         return RangeParse::NotRange;
     };
-    let Some((_, m2)) = MONTHS.iter().find(|(name, _)| right.trim_start().starts_with(name)) else {
+    let Some((_, m2)) = MONTHS
+        .iter()
+        .find(|(name, _)| right.trim_start().starts_with(name))
+    else {
         return RangeParse::NotRange;
     };
     if m2 < m1 {
@@ -354,7 +358,11 @@ fn parse_month_only(s: &str) -> Option<u32> {
 }
 
 fn last_day_of_month(year: i64, month: u32) -> u32 {
-    let (ny, nm) = if month == 12 { (year + 1, 1) } else { (year, month + 1) };
+    let (ny, nm) = if month == 12 {
+        (year + 1, 1)
+    } else {
+        (year, month + 1)
+    };
     (days_from_civil(ny, nm, 1) - days_from_civil(year, month, 1)) as u32
 }
 

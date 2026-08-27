@@ -99,11 +99,11 @@ impl Engine {
         // query carries a temporal expression ("3月5日", "上周"), target its
         // day buckets; otherwise the current-time hour/day/week buckets.
         let now = hippmem_core::time::SystemClock.now();
-        let temporal_keys =
-            match hippmem_model::time_query::parse_temporal_query(&input.query, now) {
-                Some(spec) => temporal_keys_for_spec(spec),
-                None => temporal_bucket_keys(now),
-            };
+        let temporal_keys = match hippmem_model::time_query::parse_temporal_query(&input.query, now)
+        {
+            Some(spec) => temporal_keys_for_spec(spec),
+            None => temporal_bucket_keys(now),
+        };
         let mut temporal_hit_ids = std::collections::HashSet::new();
         for tk in &temporal_keys {
             if let Ok(ids) = inverted.get_temporal(tk) {
@@ -1077,10 +1077,9 @@ fn temporal_keys_for_spec(spec: hippmem_model::time_query::TemporalQuerySpec) ->
         hippmem_model::time_query::TemporalQuerySpec::SingleDay { day } => {
             vec![(day - 1) as u32, day as u32, (day + 1) as u32]
         }
-        hippmem_model::time_query::TemporalQuerySpec::Range {
-            start_day,
-            end_day,
-        } => (start_day..=end_day).map(|d| d as u32).collect(),
+        hippmem_model::time_query::TemporalQuerySpec::Range { start_day, end_day } => {
+            (start_day..=end_day).map(|d| d as u32).collect()
+        }
     }
 }
 
