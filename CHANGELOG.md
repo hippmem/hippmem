@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.4.5] — 2026-08-27
+
+### Added
+- Query time-aware retrieval: temporal expressions in queries ("2026年3月5日", "昨天", "3月到5月", "March 5") are parsed and matched against the memories' write-time buckets — asking what happened on a past date now recalls that day's memories (single day covers the neighbouring UTC-day buckets to absorb timezone offsets; ranges enumerate day buckets up to one quarter)
+- Background consolidation worker: the engine now consolidates automatically every `consolidate_interval_ms` (default 1 hour) while open, so long-lived processes keep the memory graph maintained without explicit calls; `close()` stops and joins the worker
+
+### Changed
+- `Engine::open` now returns a shared handle; `close()` releases the storage lock so the same directory can be reopened
+
+[0.4.5]: https://github.com/hippmem/hippmem/releases/tag/v0.4.5
+
 ## [0.4.4] — 2026-08-27
 
 ### Added
