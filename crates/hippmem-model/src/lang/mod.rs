@@ -63,6 +63,32 @@ pub struct LangData {
     /// Pair of keywords whose co-occurrence signals a change/correction
     /// (e.g., ("之前", "后来") in Chinese — "before ... later")
     pub change_pair: Option<(&'static str, &'static str)>,
+
+    // ── Temporal query terms (time-aware retrieval) ──
+    /// Time-expression terms with their meaning (P6: locale literals live
+    /// in lang/<locale>.rs; the parser lives in time_query.rs).
+    pub time_terms: &'static [(&'static str, TimeTermKind)],
+}
+
+/// Semantic meaning of a temporal query term.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TimeTermKind {
+    /// The current calendar day ("今天" / "today")
+    Today,
+    /// One day before today ("昨天" / "yesterday")
+    Yesterday,
+    /// Two days before today ("前天" / "day before yesterday")
+    DayBeforeYesterday,
+    /// The current calendar week ("本周" / "this week")
+    ThisWeek,
+    /// The previous calendar week ("上周" / "last week")
+    LastWeek,
+    /// The current calendar month ("本月" / "this month")
+    ThisMonth,
+    /// The previous calendar month ("上个月" / "last month")
+    LastMonth,
+    /// The current calendar year ("今年" / "this year")
+    ThisYear,
 }
 
 /// Returns all active locales in priority order.

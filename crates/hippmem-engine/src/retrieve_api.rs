@@ -94,9 +94,16 @@ impl Engine {
             .flatten()
             .collect();
 
-        // 2c. Temporal: from current time bucket keys → temporal_index
+        // 2c. Temporal: query-time-aware retrieval (proposal
+        // query-time-aware-retrieval, confirmed 2026-08-27) — when the
+        // query carries a temporal expression ("3月5日", "上周"), target its
+        // day buckets; otherwise the current-time hour/day/week buckets.
         let now = hippmem_core::time::SystemClock.now();
-        let temporal_keys = temporal_bucket_keys(now);
+        let temporal_keys =
+            match hippmem_model::time_query::parse_temporal_query(&input.query, now) {
+                Some(spec) => temporal_keys_for_spec(spec),
+                None => temporal_bucket_keys(now),
+            };
         let mut temporal_hit_ids = std::collections::HashSet::new();
         for tk in &temporal_keys {
             if let Ok(ids) = inverted.get_temporal(tk) {
@@ -1059,6 +1066,22 @@ fn query_binary_code(text: &str) -> [u8; 16] {
     bytes[..8].copy_from_slice(&bc0.to_le_bytes());
     bytes[8..].copy_from_slice(&bc1.to_le_bytes());
     bytes
+}
+
+/// Temporal bucket keys for a parsed query spec:
+/// - single day → [day-1, day, day+1] (local dates straddle the UTC day
+///   boundary; neighbours absorb the offset, RRF weights demote noise);
+/// - range → every day in the range (caller caps the enumeration).
+fn temporal_keys_for_spec(spec: hippmem_model::time_query::TemporalQuerySpec) -> Vec<u32> {
+    match spec {
+        hippmem_model::time_query::TemporalQuerySpec::SingleDay { day } => {
+            vec![(day - 1) as u32, day as u32, (day + 1) as u32]
+        }
+        hippmem_model::time_query::TemporalQuerySpec::Range {
+            start_day,
+            end_day,
+        } => (start_day..=end_day).map(|d| d as u32).collect(),
+    }
 }
 
 /// Generates temporal bucket keys (hour/day/week) for the current time, consistent with write time.

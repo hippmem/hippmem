@@ -72,4 +72,15 @@ pub const EN: LangData = LangData {
     definition_patterns: &["is", "are", "refers to", "means", "defined as"],
     possessive_particle: None,
     change_pair: None,
+
+    // ── Temporal query terms (time-aware retrieval) ──
+    time_terms: &[
+        ("today", super::TimeTermKind::Today),
+        ("yesterday", super::TimeTermKind::Yesterday),
+        ("this week", super::TimeTermKind::ThisWeek),
+        ("last week", super::TimeTermKind::LastWeek),
+        ("this month", super::TimeTermKind::ThisMonth),
+        ("last month", super::TimeTermKind::LastMonth),
+        ("this year", super::TimeTermKind::ThisYear),
+    ],
 };

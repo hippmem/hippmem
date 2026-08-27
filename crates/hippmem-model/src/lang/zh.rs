@@ -102,4 +102,19 @@ pub const ZH: LangData = LangData {
     definition_patterns: &["是", "使用", "基于", "采用"],
     possessive_particle: Some('的'),
     change_pair: Some(("之前", "后来")),
+
+    // ── Temporal query terms (time-aware retrieval) ──
+    time_terms: &[
+        ("今天", super::TimeTermKind::Today),
+        ("昨天", super::TimeTermKind::Yesterday),
+        ("前天", super::TimeTermKind::DayBeforeYesterday),
+        ("本周", super::TimeTermKind::ThisWeek),
+        ("这周", super::TimeTermKind::ThisWeek),
+        ("上周", super::TimeTermKind::LastWeek),
+        ("本月", super::TimeTermKind::ThisMonth),
+        ("这个月", super::TimeTermKind::ThisMonth),
+        ("上个月", super::TimeTermKind::LastMonth),
+        ("上月", super::TimeTermKind::LastMonth),
+        ("今年", super::TimeTermKind::ThisYear),
+    ],
 };
